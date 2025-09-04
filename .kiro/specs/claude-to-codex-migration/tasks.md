@@ -79,13 +79,19 @@
   - Modify CodeLens providers for Codex task execution
   - _Requirements: 5.3_
 
-- [ ] 14. Clean up Claude Code dependencies
+- [ ] 14. Localize all content to English
+  - Convert all Japanese comments in source code to English
+  - Translate all Japanese documentation to English
+  - Update all configuration descriptions and error messages to English
+  - _Requirements: 8.1, 8.2, 8.3_
+
+- [ ] 15. Clean up Claude Code dependencies
   - Remove Claude Code specific imports and references
   - Delete unused Claude Code permission management code
   - Update all documentation and comments
   - _Requirements: 5.1, 5.2_
 
-- [ ] 15. Final integration testing and validation
+- [ ] 16. Final integration testing and validation
   - Test complete spec workflow with Codex CLI
   - Validate steering functionality with Codex
   - Verify agent operations with Codex integration

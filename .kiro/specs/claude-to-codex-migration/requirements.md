@@ -75,3 +75,13 @@
 1. WHEN Codex CLI実行でエラーが発生する THEN 適切なエラーメッセージとログが記録される SHALL
 2. WHEN Codex CLIプロセスが失敗する THEN 適切な再試行ロジックまたはフォールバック処理が実行される SHALL
 3. WHEN Codex CLIが利用できない場合 THEN 明確なエラーメッセージとセットアップ手順が提供される SHALL
+
+### Requirement 8
+
+**User Story:** 開発者として、プロジェクト全体の言語統一を図りたいので、すべてのドキュメントとソースコメントが英語で記述されるようになりたい
+
+#### Acceptance Criteria
+
+1. WHEN ソースコードファイルが更新される THEN すべてのコメントが英語で記述される SHALL
+2. WHEN ドキュメントファイルが更新される THEN すべての内容が英語で記述される SHALL
+3. WHEN 設定ファイルや説明文が更新される THEN すべてのテキストが英語で記述される SHALL
