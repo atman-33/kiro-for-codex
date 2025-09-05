@@ -132,7 +132,7 @@ interface CodexConfig {
   "codex": {
     "path": "codex",
     "defaultApprovalMode": "interactive",
-    "defaultModel": "gpt-4",
+    "defaultModel": "gpt-5",
     "timeout": 30000,
     "terminalDelay": 1000
   },

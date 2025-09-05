@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Create Codex CLI integration foundation
+- [x] 1. Create Codex CLI integration foundation
   - Implement CodexProvider class to replace ClaudeCodeProvider
   - Create command builder for Codex CLI commands with approval modes
   - Implement process manager for CLI execution and terminal management

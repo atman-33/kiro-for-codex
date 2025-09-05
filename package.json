@@ -345,6 +345,36 @@
           "type": "boolean",
           "default": false,
           "description": "Show Settings view"
+        },
+        "kfc.codex.path": {
+          "type": "string",
+          "default": "codex",
+          "description": "Path to Codex CLI executable"
+        },
+        "kfc.codex.defaultApprovalMode": {
+          "type": "string",
+          "default": "interactive",
+          "enum": [
+            "interactive",
+            "auto-edit",
+            "full-auto"
+          ],
+          "description": "Default approval mode for Codex operations"
+        },
+        "kfc.codex.defaultModel": {
+          "type": "string",
+          "default": "gpt-5",
+          "description": "Default model to use with Codex CLI"
+        },
+        "kfc.codex.timeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "Timeout for Codex CLI operations in milliseconds"
+        },
+        "kfc.codex.terminalDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay before sending commands to terminal in milliseconds"
         }
       }
     }
