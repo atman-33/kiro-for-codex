@@ -17,6 +17,18 @@ export const DEFAULT_CONFIG = {
         mcp: true,
         hooks: true,
         settings: false
+    },
+    codex: {
+        path: 'codex',
+        defaultApprovalMode: 'interactive',
+        defaultModel: 'gpt-5',
+        timeout: 30000,
+        terminalDelay: 1000
+    },
+    migration: {
+        preserveClaudeSettings: true,
+        backupOriginalFiles: true,
+        migrationCompleted: false
     }
 } as const;
 
