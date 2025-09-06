@@ -2,27 +2,27 @@
 
 ## Overview
 
-このプロジェクトをClaude CodeからCodex CLIに移行するための包括的な設計です。Codex CLIは自然言語でコード生成・編集・実行を行うOpenAIのツールで、Claude Codeと同様の機能を提供しますが、異なるAPI構造とコマンド体系を持ちます。
+This is a comprehensive design for migrating this project from Claude Code to Codex CLI. Codex CLI is an OpenAI tool that performs code generation, editing, and execution using natural language. It provides similar functionality to Claude Code but has different API structures and command systems.
 
-移行の主要な目標：
-- 既存の機能を維持しながらCodex CLIの利点を活用
-- 最小限の破壊的変更での移行
-- Codex CLIの特性に最適化されたプロンプト構造
-- 堅牢なエラーハンドリングとフォールバック機能
+Key migration objectives:
+- Leverage Codex CLI advantages while maintaining existing functionality
+- Migration with minimal breaking changes
+- Prompt structures optimized for Codex CLI characteristics
+- Robust error handling and fallback functionality
 
 ## Architecture
 
-### 現在のアーキテクチャ分析
+### Current Architecture Analysis
 
-現在のシステムは以下の主要コンポーネントで構成されています：
+The current system consists of the following main components:
 
-1. **ClaudeCodeProvider** - Claude Code CLIとの統合を管理
-2. **SpecManager** - spec機能（requirements、design、tasks）の管理
-3. **SteeringManager** - steering機能の管理
-4. **AgentManager** - エージェント機能の管理
-5. **PermissionManager** - Claude Code権限管理
+1. **ClaudeCodeProvider** - Manages integration with Claude Code CLI
+2. **SpecManager** - Manages spec functionality (requirements, design, tasks)
+3. **SteeringManager** - Manages steering functionality
+4. **AgentManager** - Manages agent functionality
+5. **PermissionManager** - Claude Code permission management
 
-### 新しいアーキテクチャ
+### New Architecture
 
 ```mermaid
 graph TB
@@ -47,20 +47,20 @@ graph TB
 
 ## Components and Interfaces
 
-### 1. CodexProvider (ClaudeCodeProviderの置き換え)
+### 1. CodexProvider (Replacement for ClaudeCodeProvider)
 
 ```typescript
 interface CodexProvider {
-    // Codex CLIの基本実行
+    // Basic Codex CLI execution
     executeCodex(prompt: string, options?: CodexOptions): Promise<CodexResult>
     
-    // 分割ビューでのCodex実行
+    // Codex execution in split view
     invokeCodexSplitView(prompt: string, title?: string): Promise<vscode.Terminal>
     
-    // バックグラウンドでのCodex実行
+    // Background Codex execution
     invokeCodexHeadless(prompt: string, options?: CodexOptions): Promise<CodexResult>
     
-    // 承認モードの管理
+    // Approval mode management
     setApprovalMode(mode: ApprovalMode): void
 }
 
@@ -87,7 +87,7 @@ enum ApprovalMode {
 
 ### 2. Command Builder
 
-Codex CLIコマンドの構築を担当：
+Responsible for building Codex CLI commands:
 
 ```typescript
 interface CommandBuilder {
@@ -99,7 +99,7 @@ interface CommandBuilder {
 
 ### 3. Process Manager
 
-Codex CLIプロセスの実行と管理：
+Execution and management of Codex CLI processes:
 
 ```typescript
 interface ProcessManager {
@@ -109,9 +109,9 @@ interface ProcessManager {
 }
 ```
 
-### 4. Configuration Manager (拡張)
+### 4. Configuration Manager (Extended)
 
-Codex CLI設定の管理：
+Management of Codex CLI configuration:
 
 ```typescript
 interface CodexConfig {
@@ -125,7 +125,7 @@ interface CodexConfig {
 
 ## Data Models
 
-### 設定ファイル構造
+### Configuration File Structure
 
 ```json
 {
@@ -143,9 +143,9 @@ interface CodexConfig {
 }
 ```
 
-### プロンプト構造の最適化
+### Prompt Structure Optimization
 
-Codex CLI向けのプロンプトテンプレート：
+Prompt templates for Codex CLI:
 
 ```markdown
 # Task: {taskTitle}
@@ -167,7 +167,7 @@ Codex CLI向けのプロンプトテンプレート：
 
 ## Error Handling
 
-### 1. Codex CLI利用可能性チェック
+### 1. Codex CLI Availability Check
 
 ```typescript
 async function checkCodexAvailability(): Promise<boolean> {
@@ -180,109 +180,109 @@ async function checkCodexAvailability(): Promise<boolean> {
 }
 ```
 
-### 2. エラー分類と対応
+### 2. Error Classification and Response
 
-| エラータイプ | 検出方法 | 対応策 |
-|-------------|----------|--------|
-| CLI未インストール | コマンド実行失敗 | インストール手順表示 |
-| 認証エラー | 特定のエラーメッセージ | 認証設定ガイド |
-| プロセスタイムアウト | 実行時間超過 | 再試行またはユーザー通知 |
-| ファイルアクセスエラー | 権限エラー | 権限確認とガイド |
+| Error Type | Detection Method | Response Strategy |
+|------------|------------------|-------------------|
+| CLI Not Installed | Command execution failure | Display installation instructions |
+| Authentication Error | Specific error messages | Authentication setup guide |
+| Process Timeout | Execution time exceeded | Retry or user notification |
+| File Access Error | Permission errors | Permission verification and guide |
 
-### 3. フォールバック機能
+### 3. Fallback Functionality
 
 ```typescript
 interface FallbackStrategy {
-    // Codex CLI失敗時の代替手段
+    // Alternative when Codex CLI fails
     fallbackToManualMode(): void
     
-    // 部分的な機能提供
+    // Provide limited functionality
     provideLimitedFunctionality(): void
     
-    // ユーザーガイダンス
+    // User guidance
     showTroubleshootingGuide(): void
 }
 ```
 
 ## Testing Strategy
 
-### 1. ユニットテスト
+### 1. Unit Tests
 
-- **CodexProvider**の各メソッド
-- **CommandBuilder**のコマンド生成
-- **ProcessManager**のプロセス管理
-- **ConfigManager**の設定読み込み
+- Each method of **CodexProvider**
+- Command generation in **CommandBuilder**
+- Process management in **ProcessManager**
+- Configuration loading in **ConfigManager**
 
-### 2. 統合テスト
+### 2. Integration Tests
 
-- Codex CLIとの実際の統合
-- ファイル操作の検証
-- エラーハンドリングの動作確認
+- Actual integration with Codex CLI
+- File operation verification
+- Error handling behavior confirmation
 
-### 3. エンドツーエンドテスト
+### 3. End-to-End Tests
 
-- spec作成から実装までの完全なワークフロー
-- steering機能の動作確認
-- エージェント機能の検証
+- Complete workflow from spec creation to implementation
+- Steering functionality verification
+- Agent functionality validation
 
-### 4. パフォーマンステスト
+### 4. Performance Tests
 
-- Codex CLI実行時間の測定
-- メモリ使用量の監視
-- 大量ファイル処理の性能確認
+- Codex CLI execution time measurement
+- Memory usage monitoring
+- Large file processing performance verification
 
 ## Migration Strategy
 
-### Phase 1: 基盤準備
-1. CodexProviderの実装
-2. 設定システムの拡張
-3. 基本的なエラーハンドリング
+### Phase 1: Foundation Preparation
+1. CodexProvider implementation
+2. Configuration system extension
+3. Basic error handling
 
-### Phase 2: 機能移行
-1. SpecManagerのCodex対応
-2. SteeringManagerのCodex対応
-3. AgentManagerのCodex対応
+### Phase 2: Feature Migration
+1. SpecManager Codex support
+2. SteeringManager Codex support
+3. AgentManager Codex support
 
-### Phase 3: 最適化と検証
-1. プロンプトテンプレートの最適化
-2. パフォーマンス調整
-3. 包括的なテスト実行
+### Phase 3: Optimization and Verification
+1. Prompt template optimization
+2. Performance tuning
+3. Comprehensive test execution
 
-### Phase 4: 移行完了
-1. Claude Code依存の削除
-2. ドキュメント更新
-3. リリース準備
+### Phase 4: Migration Completion
+1. Claude Code dependency removal
+2. Documentation updates
+3. Release preparation
 
 ## Security Considerations
 
-### 1. コマンド実行の安全性
-- コマンドインジェクション防止
-- 実行権限の適切な管理
-- 危険なコマンドの検出と防止
+### 1. Command Execution Security
+- Command injection prevention
+- Proper execution permission management
+- Detection and prevention of dangerous commands
 
-### 2. ファイルアクセス制御
-- 作業ディレクトリの制限
-- 重要ファイルの保護
-- バックアップ機能の実装
+### 2. File Access Control
+- Working directory restrictions
+- Protection of important files
+- Backup functionality implementation
 
-### 3. 認証情報の管理
-- API キーの安全な保存
-- 設定ファイルの暗号化
-- 権限の最小化原則
+### 3. Authentication Information Management
+- Secure storage of API keys
+- Configuration file encryption
+- Principle of least privilege
 
 ## Performance Optimization
 
-### 1. プロセス管理の最適化
-- プロセスプールの実装
-- 並列実行の制御
-- リソース使用量の監視
+### 1. Process Management Optimization
+- Process pool implementation
+- Parallel execution control
+- Resource usage monitoring
 
-### 2. キャッシュ戦略
-- コマンド結果のキャッシュ
-- 設定情報のメモリキャッシュ
-- ファイル変更の差分検出
+### 2. Caching Strategy
+- Command result caching
+- Configuration information memory caching
+- File change differential detection
 
-### 3. ユーザーエクスペリエンス
-- 進行状況の表示
-- 非同期処理の活用
-- レスポンシブなUI更新
+### 3. User Experience
+- Progress display
+- Asynchronous processing utilization
+- Responsive UI updates

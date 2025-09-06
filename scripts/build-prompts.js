@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
 
-// 递归查找所有 .md 文件
+// Recursively find all .md files
 function findMarkdownFiles(dir) {
   const files = [];
   
@@ -27,12 +27,12 @@ function findMarkdownFiles(dir) {
   return files;
 }
 
-// 将 Markdown 文件转换为 TypeScript 模块
+// Convert Markdown files to TypeScript modules
 function convertMarkdownToTypeScript(mdPath, outputDir) {
   const content = fs.readFileSync(mdPath, 'utf8');
   const { data, content: body } = matter(content);
   
-  // 生成 TypeScript 代码
+  // Generate TypeScript code
   const tsContent = `// Auto-generated from ${path.relative(process.cwd(), mdPath)}
 // DO NOT EDIT MANUALLY
 
@@ -46,41 +46,41 @@ export default {
 };
 `;
   
-  // 计算输出路径 - 保持相对目录结构
+  // Calculate output path - maintain relative directory structure
   const promptsDir = path.join(__dirname, '..', 'src', 'prompts');
   const relativePath = path.relative(promptsDir, mdPath);
   const tsFileName = relativePath.replace(/\.md$/, '.ts');
   const tsPath = path.join(outputDir, tsFileName);
   
-  // 确保输出目录存在
+  // Ensure output directory exists
   const tsDir = path.dirname(tsPath);
   if (!fs.existsSync(tsDir)) {
     fs.mkdirSync(tsDir, { recursive: true });
   }
   
-  // 写入文件
+  // Write file
   fs.writeFileSync(tsPath, tsContent);
   console.log(`Generated: ${path.relative(process.cwd(), tsPath)}`);
 }
 
-// 主函数
+// Main function
 function main() {
   const promptsDir = path.join(__dirname, '..', 'src', 'prompts');
   const outputDir = path.join(__dirname, '..', 'src', 'prompts', 'target');
   
-  // 确保目录存在
+  // Ensure directory exists
   if (!fs.existsSync(promptsDir)) {
     console.log('Creating prompts directory...');
     fs.mkdirSync(promptsDir, { recursive: true });
   }
   
-  // 确保输出目录存在
+  // Ensure output directory exists
   if (!fs.existsSync(outputDir)) {
     console.log('Creating prompts target directory...');
     fs.mkdirSync(outputDir, { recursive: true });
   }
   
-  // 查找并转换所有 Markdown 文件
+  // Find and convert all Markdown files
   const mdFiles = findMarkdownFiles(promptsDir);
   
   if (mdFiles.length === 0) {
@@ -94,5 +94,5 @@ function main() {
   console.log('Build complete!');
 }
 
-// 运行
+// Run
 main();

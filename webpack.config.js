@@ -8,21 +8,21 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 /**@type {import('webpack').Configuration}*/
 const extensionConfig = {
-  target: 'node', // VS Code 扩展运行在 Node.js 环境中
-  mode: 'none', // 开发时用 'none' 或 'development'，发布时用 'production'
+  target: 'node', // VS Code extensions run in Node.js environment
+  mode: 'none', // Use 'none' or 'development' for dev, 'production' for release
 
-  entry: './src/extension.ts', // 扩展的入口点
+  entry: './src/extension.ts', // Extension entry point
   output: {
-    // 打包后的文件输出位置
+    // Output location for bundled files
     path: path.resolve(__dirname, 'dist'),
     filename: 'extension.js',
     libraryTarget: 'commonjs2'
   },
   externals: {
-    vscode: 'commonjs vscode' // vscode 模块是外部依赖，不打包进去
+    vscode: 'commonjs vscode' // vscode module is external dependency, don't bundle
   },
   resolve: {
-    // 支持读取 TypeScript 和 JavaScript 文件
+    // Support reading TypeScript and JavaScript files
     extensions: ['.ts', '.js']
   },
   module: {
@@ -38,9 +38,9 @@ const extensionConfig = {
       }
     ]
   },
-  devtool: 'nosources-source-map', // 生成 source map 用于调试
+  devtool: 'nosources-source-map', // Generate source map for debugging
   infrastructureLogging: {
-    level: "log", // 启用日志
+    level: "log", // Enable logging
   },
   plugins: [
     new CopyPlugin({

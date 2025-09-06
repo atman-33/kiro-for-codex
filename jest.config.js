@@ -29,7 +29,7 @@ module.exports = {
     '/node_modules/',
     '/__mocks__/'
   ],
-  // 使快照文件更易读
+  // Make snapshot files more readable
   snapshotFormat: {
     escapeString: false,
     printBasicPrototype: false

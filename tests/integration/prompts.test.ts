@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll } from '@jest/globals';
+import { beforeAll, describe, expect, test } from '@jest/globals';
 import { PromptLoader } from '../../src/services/promptLoader';
 
 describe('Prompt Integration Tests', () => {
@@ -11,7 +11,7 @@ describe('Prompt Integration Tests', () => {
   });
 
   describe('Spec Creation Prompt', () => {
-    test('INT-01: 生成正确的 spec 创建 prompt', () => {
+    test('INT-01: Generate correct spec creation prompt', () => {
       const variables = {
         description: 'A user authentication system with OAuth support',
         workspacePath: '/Users/test/my-project',
@@ -35,7 +35,7 @@ describe('Prompt Integration Tests', () => {
       expect(result).toContain('Tasks');
     });
 
-    test('INT-02: 验证 spec prompt 包含目录创建指令', () => {
+    test('INT-02: Verify spec prompt contains directory creation instructions', () => {
       const result = promptLoader.renderPrompt('create-spec', {
         description: 'test feature',
         workspacePath: '/test',
@@ -49,7 +49,7 @@ describe('Prompt Integration Tests', () => {
 
   describe('Steering Prompts', () => {
     describe('Init Steering', () => {
-      test('INT-03: 生成 steering 初始化 prompt', () => {
+      test('INT-03: Generate steering initialization prompt', () => {
         const result = promptLoader.renderPrompt('init-steering', {
           steeringPath: '/Users/test/project/.claude/steering'
         });
@@ -59,7 +59,7 @@ describe('Prompt Integration Tests', () => {
         expect(result).toContain('codebase');
       });
 
-      test('INT-04: 验证 steering prompt 包含分析指令', () => {
+      test('INT-04: Verify steering prompt contains analysis instructions', () => {
         const result = promptLoader.renderPrompt('init-steering', {
           steeringPath: '/test/.claude/steering'
         });
@@ -69,7 +69,7 @@ describe('Prompt Integration Tests', () => {
         expect(result).toContain('conventions');
       });
 
-      test('INT-05: 验证 steering prompt 包含文件指令', () => {
+      test('INT-05: Verify steering prompt contains file instructions', () => {
         const result = promptLoader.renderPrompt('init-steering', {
           steeringPath: '/test/.claude/steering'
         });
@@ -80,7 +80,7 @@ describe('Prompt Integration Tests', () => {
     });
 
     describe('Create Custom Steering', () => {
-      test('INT-06: 生成自定义 steering 创建 prompt', () => {
+      test('INT-06: Generate custom steering creation prompt', () => {
         const result = promptLoader.renderPrompt('create-custom-steering', {
           description: 'Security best practices for API development',
           steeringPath: '/test/project/.claude/steering'
@@ -91,7 +91,7 @@ describe('Prompt Integration Tests', () => {
         expect(result).toContain('/test/project/.claude/steering');
       });
 
-      test('INT-07: 验证自定义 steering 文件命名指令', () => {
+      test('INT-07: Verify custom steering file naming instructions', () => {
         const result = promptLoader.renderPrompt('create-custom-steering', {
           description: 'Test guidelines',
           steeringPath: '/test/.claude/steering'

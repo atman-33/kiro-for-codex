@@ -74,11 +74,11 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                 vscode.TreeItemCollapsibleState.Collapsed,
                 'hook',
                 `codex-hook-${hook.name}`,
-                undefined, // 移除 command，让点击默认展开/折叠
+                undefined, // Remove command to allow default expand/collapse on click
                 this.context,
                 hook.enabled,
                 hook.config,
-                hook.configPath // 保存 configPath 以便后续使用
+                hook.configPath // Save configPath for later use
             ));
         } else if (element.contextValue === 'hook' && element.hookConfig) {
             // Show hook details as children
@@ -128,7 +128,7 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                         items.push(new HookItem(
                             `Command: ${hook.command}`,
                             vscode.TreeItemCollapsibleState.None,
-                            'hook-command', // 使用特定的 contextValue
+                            'hook-command', // Use specific contextValue
                             `${element.id}-command-${index}`,
                             {
                                 command: 'kfc.hooks.copyCommand',
@@ -244,7 +244,7 @@ class HookItem extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon('activate-breakpoints');
         }
 
-        // 不需要显示 Active/Inactive，因为出现在配置文件中的都是激活的
+        // No need to show Active/Inactive, as all hooks in config file are active
 
         // Set tooltips
         if (contextValue === 'no-hooks') {

@@ -18,22 +18,22 @@ export class SpecTaskCodeLensProvider implements vscode.CodeLensProvider {
 
         const codeLenses: vscode.CodeLens[] = [];
         const text = document.getText();
-        // 使用正则分割，同时处理 Windows (CRLF) 和 Unix (LF) 换行符
+        // Use regex split to handle both Windows (CRLF) and Unix (LF) line endings
         const lines = text.split(/\r?\n/);
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            // 匹配任务列表格式: - [ ] 任务描述
+            // Match task list format: - [ ] task description
             const taskMatch = line.match(/^(\s*)- \[ \] (.+)$/);
 
             if (taskMatch) {
                 const range = new vscode.Range(i, 0, i, line.length);
                 const taskDescription = taskMatch[2];
 
-                // 创建 CodeLens
+                // Create CodeLens
                 const codeLens = new vscode.CodeLens(range, {
                     title: "▶ Start Task",
-                    tooltip: "点击执行此任务",
+                    tooltip: "Click to execute this task",
                     command: "kfc.spec.implTask",
                     arguments: [document.uri, i, taskDescription]
                 });
