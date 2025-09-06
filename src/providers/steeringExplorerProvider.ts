@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { SteeringManager } from '../features/steering/steeringManager';
 
 export class SteeringExplorerProvider implements vscode.TreeDataProvider<SteeringItem> {
@@ -21,7 +21,7 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
     refresh(): void {
         this.isLoading = true;
         this._onDidChangeTreeData.fire(); // Show loading state immediately
-        
+
         // Simulate async loading
         setTimeout(() => {
             this.isLoading = false;
@@ -51,43 +51,47 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
             }
 
             // Check existence of files
-            const globalClaudeMd = path.join(process.env.HOME || '', '.claude', 'CLAUDE.md');
-            const globalExists = fs.existsSync(globalClaudeMd);
+            const globalConfigFile = path.join(process.env.HOME || '', '.codex', 'global-config.md');
+            const globalExists = fs.existsSync(globalConfigFile);
 
-            let projectClaudeMd = '';
+            let projectDocFile = '';
             let projectExists = false;
             if (vscode.workspace.workspaceFolders) {
-                projectClaudeMd = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'CLAUDE.md');
-                projectExists = fs.existsSync(projectClaudeMd);
+                // Check for AGENTS.md file specifically for Codex
+                const agentsFilePath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'AGENTS.md');
+                if (fs.existsSync(agentsFilePath)) {
+                    projectDocFile = agentsFilePath;
+                    projectExists = true;
+                }
             }
 
-            // Always show Global Rule and Project Rule (if they exist)
+            // Always show Global Config and Project Documentation (if they exist)
             if (globalExists) {
                 items.push(new SteeringItem(
-                    'Global Rule',
+                    'Global Config',
                     vscode.TreeItemCollapsibleState.None,
-                    'claude-md-global',
-                    globalClaudeMd,
+                    'config-global',
+                    globalConfigFile,
                     this.context,
                     {
                         command: 'vscode.open',
-                        title: 'Open Global CLAUDE.md',
-                        arguments: [vscode.Uri.file(globalClaudeMd)]
+                        title: 'Open Global Configuration',
+                        arguments: [vscode.Uri.file(globalConfigFile)]
                     }
                 ));
             }
 
             if (projectExists) {
                 items.push(new SteeringItem(
-                    'Project Rule',
+                    'Agents Config',
                     vscode.TreeItemCollapsibleState.None,
-                    'claude-md-project',
-                    projectClaudeMd,
+                    'agents-project',
+                    projectDocFile,
                     this.context,
                     {
                         command: 'vscode.open',
-                        title: 'Open Project CLAUDE.md',
-                        arguments: [vscode.Uri.file(projectClaudeMd)]
+                        title: 'Open Agents Configuration',
+                        arguments: [vscode.Uri.file(projectDocFile)]
                     }
                 ));
             }
@@ -110,28 +114,28 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
             // Add create buttons at the bottom for missing files
             if (!globalExists) {
                 items.push(new SteeringItem(
-                    'Create Global Rule',
+                    'Create Global Config',
                     vscode.TreeItemCollapsibleState.None,
-                    'create-global-claude',
+                    'create-global-config',
                     '',
                     this.context,
                     {
                         command: 'kfc.steering.createUserRule',
-                        title: 'Create Global CLAUDE.md'
+                        title: 'Create Global Configuration'
                     }
                 ));
             }
 
             if (vscode.workspace.workspaceFolders && !projectExists) {
                 items.push(new SteeringItem(
-                    'Create Project Rule',
+                    'Create Agents Config',
                     vscode.TreeItemCollapsibleState.None,
-                    'create-project-claude',
+                    'create-agents-config',
                     '',
                     this.context,
                     {
                         command: 'kfc.steering.createProjectRule',
-                        title: 'Create Project CLAUDE.md'
+                        title: 'Create Agents Configuration'
                     }
                 ));
             }
@@ -187,20 +191,20 @@ class SteeringItem extends vscode.TreeItem {
         if (contextValue === 'steering-loading') {
             this.iconPath = new vscode.ThemeIcon('sync~spin');
             this.tooltip = 'Loading steering documents...';
-        } else if (contextValue === 'claude-md-global') {
+        } else if (contextValue === 'config-global') {
             this.iconPath = new vscode.ThemeIcon('globe');
-            this.tooltip = `Global CLAUDE.md: ${resourcePath}`;
-            this.description = '~/.claude/CLAUDE.md';
-        } else if (contextValue === 'claude-md-project') {
-            this.iconPath = new vscode.ThemeIcon('root-folder');
-            this.tooltip = `Project CLAUDE.md: ${resourcePath}`;
-            this.description = 'CLAUDE.md';
-        } else if (contextValue === 'create-global-claude') {
+            this.tooltip = `Global Configuration: ${resourcePath}`;
+            this.description = '~/.codex/global-config.md';
+        } else if (contextValue === 'agents-project') {
+            this.iconPath = new vscode.ThemeIcon('robot');
+            this.tooltip = `Agents Configuration: ${resourcePath}`;
+            this.description = 'AGENTS.md';
+        } else if (contextValue === 'create-global-config') {
             this.iconPath = new vscode.ThemeIcon('globe');
-            this.tooltip = 'Click to create Global CLAUDE.md';
-        } else if (contextValue === 'create-project-claude') {
-            this.iconPath = new vscode.ThemeIcon('root-folder');
-            this.tooltip = 'Click to create Project CLAUDE.md';
+            this.tooltip = 'Click to create Global Configuration';
+        } else if (contextValue === 'create-agents-config') {
+            this.iconPath = new vscode.ThemeIcon('robot');
+            this.tooltip = 'Click to create Agents Configuration';
         } else if (contextValue === 'separator') {
             this.iconPath = undefined;
             this.description = undefined;

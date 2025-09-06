@@ -66,7 +66,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Initialize feature managers with output channel
     specManager = new SpecManager(codexProvider, outputChannel);
-    steeringManager = new SteeringManager(claudeCodeProvider, outputChannel);
+    steeringManager = new SteeringManager(codexProvider, outputChannel);
 
     // Initialize Agent Manager and agents
     agentManager = new AgentManager(context, outputChannel);
@@ -329,13 +329,13 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             }
         }),
 
-        // CLAUDE.md commands
+        // Configuration commands
         vscode.commands.registerCommand('kfc.steering.createUserRule', async () => {
-            await steeringManager.createUserClaudeMd();
+            await steeringManager.createUserConfiguration();
         }),
 
         vscode.commands.registerCommand('kfc.steering.createProjectRule', async () => {
-            await steeringManager.createProjectClaudeMd();
+            await steeringManager.createProjectDocumentation();
         }),
 
         vscode.commands.registerCommand('kfc.steering.refresh', async () => {

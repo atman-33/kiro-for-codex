@@ -1,16 +1,16 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { ClaudeCodeProvider } from '../../providers/claudeCodeProvider';
+import * as vscode from 'vscode';
+import { CodexProvider } from '../../providers/codexProvider';
+import { PromptLoader } from '../../services/promptLoader';
 import { ConfigManager } from '../../utils/configManager';
 import { NotificationUtils } from '../../utils/notificationUtils';
-import { PromptLoader } from '../../services/promptLoader';
 
 export class SteeringManager {
     private configManager: ConfigManager;
     private promptLoader: PromptLoader;
 
     constructor(
-        private claudeCodeProvider: ClaudeCodeProvider,
+        private codexProvider: CodexProvider,
         private outputChannel: vscode.OutputChannel
     ) {
         this.configManager = ConfigManager.getInstance();
@@ -48,25 +48,26 @@ export class SteeringManager {
             // Ensure directory exists
             await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
 
-            // Let Claude decide the filename based on the description
-            const prompt = this.promptLoader.renderPrompt('create-custom-steering', {
+            // Use Codex-optimized prompt template
+            const prompt = this.promptLoader.renderPrompt('create-custom-steering-codex', {
                 description,
-                steeringPath: this.getSteeringBasePath()
+                steeringPath: this.getSteeringBasePath(),
+                approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
             });
 
-            await this.claudeCodeProvider.invokeClaudeSplitView(prompt, 'KFC - Create Steering');
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Create Steering');
 
             // Show auto-dismiss notification
-            await NotificationUtils.showAutoDismissNotification('Claude is creating a steering document based on your needs. Check the terminal for progress.');
+            await NotificationUtils.showAutoDismissNotification('Codex is creating a steering document based on your needs. Check the terminal for progress.');
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to create steering document: ${error}`);
         }
     }
 
     /**
-     * Delete a steering document and update CLAUDE.md
+     * Delete a steering document and update project documentation
      */
-    async delete(documentName: string, documentPath: string): Promise<{ success: boolean; error?: string }> {
+    async delete(documentName: string, documentPath: string): Promise<{ success: boolean; error?: string; }> {
         try {
             // First delete the file
             await vscode.workspace.fs.delete(vscode.Uri.file(documentPath));
@@ -78,16 +79,16 @@ export class SteeringManager {
             });
 
             // Show progress notification
-            await NotificationUtils.showAutoDismissNotification(`Deleting "${documentName}" and updating CLAUDE.md...`);
+            await NotificationUtils.showAutoDismissNotification(`Deleting "${documentName}" and updating project documentation...`);
 
-            // Execute Claude command to update CLAUDE.md
-            const result = await this.claudeCodeProvider.invokeClaudeHeadless(prompt);
+            // Execute Codex command to update project documentation
+            const result = await this.codexProvider.invokeCodexHeadless(prompt);
 
             if (result.exitCode === 0) {
-                await NotificationUtils.showAutoDismissNotification(`Steering document "${documentName}" deleted and CLAUDE.md updated successfully.`);
+                await NotificationUtils.showAutoDismissNotification(`Steering document "${documentName}" deleted and project documentation updated successfully.`);
                 return { success: true };
             } else if (result.exitCode !== undefined) {
-                const error = `Failed to update CLAUDE.md. Exit code: ${result.exitCode}`;
+                const error = `Failed to update project documentation. Exit code: ${result.exitCode}`;
                 this.outputChannel.appendLine(`[Steering] ${error}`);
                 return { success: false, error };
             } else {
@@ -128,17 +129,18 @@ export class SteeringManager {
         const steeringPath = path.join(workspaceFolder.uri.fsPath, this.getSteeringBasePath());
         await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
 
-        // Generate steering documents using Claude
+        // Generate steering documents using Codex
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Analyzing project and generating steering documents...',
             cancellable: false
         }, async () => {
-            const prompt = this.promptLoader.renderPrompt('init-steering', {
-                steeringPath: this.getSteeringBasePath()
+            const prompt = this.promptLoader.renderPrompt('init-steering-codex', {
+                steeringPath: this.getSteeringBasePath(),
+                approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
             });
 
-            await this.claudeCodeProvider.invokeClaudeSplitView(prompt, 'KFC - Init Steering');
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Init Steering');
 
             // Auto-dismiss notification after 3 seconds
             await NotificationUtils.showAutoDismissNotification('Steering documents generation started. Check the terminal for progress.');
@@ -151,14 +153,14 @@ export class SteeringManager {
             filePath: uri.fsPath
         });
 
-        // Send to Claude
-        await this.claudeCodeProvider.invokeClaudeSplitView(prompt, 'KFC - Refine Steering');
+        // Send to Codex
+        await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Refine Steering');
 
         // Show auto-dismiss notification
-        await NotificationUtils.showAutoDismissNotification('Claude is refining the steering document. Check the terminal for progress.');
+        await NotificationUtils.showAutoDismissNotification('Codex is refining the steering document. Check the terminal for progress.');
     }
 
-    async getSteeringDocuments(): Promise<Array<{ name: string, path: string }>> {
+    async getSteeringDocuments(): Promise<Array<{ name: string, path: string; }>> {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
             return [];
@@ -181,35 +183,54 @@ export class SteeringManager {
     }
 
     /**
-     * Create project-level CLAUDE.md file using Claude CLI
+     * Create project-level AGENTS.md file using Codex CLI
      */
-    async createProjectClaudeMd() {
-        const terminal = vscode.window.createTerminal({
-            name: 'Claude Code - Init',
-            cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-            location: {
-                viewColumn: vscode.ViewColumn.Two
-            }
-        });
-        terminal.show();
+    async createProjectDocumentation() {
+        try {
+            const prompt = `# Task: Initialize AGENTS.md Configuration
 
-        // Wait for Python extension to finish venv activation
-        const delay = this.configManager.getTerminalDelay();
-        setTimeout(() => {
-            terminal.sendText('claude --permission-mode bypassPermissions "/init"');
-        }, delay);
+## Context
+Create an AGENTS.md file that provides agent configuration and guidance for Codex CLI when working with this codebase.
+
+## Expected Output
+Create an AGENTS.md file in the project root that includes:
+- Project overview and purpose
+- Agent behavior guidelines
+- Code style preferences
+- Architecture patterns to follow
+- Testing requirements
+- Development workflow instructions
+
+## Constraints
+- Analyze the existing codebase structure
+- Include specific examples from the project
+- Focus on actionable guidance for Codex CLI
+- Use clear, imperative language
+- Structure content for easy agent parsing
+
+## File Location
+Create the file as AGENTS.md in the project root directory.
+
+Begin by analyzing the project structure and creating the AGENTS.md configuration file.`;
+
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Create AGENTS.md');
+
+            await NotificationUtils.showAutoDismissNotification('Codex is creating AGENTS.md configuration. Check the terminal for progress.');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to create AGENTS.md: ${error}`);
+        }
     }
 
     /**
-     * Create global CLAUDE.md file in user's home directory
+     * Create global configuration file in user's home directory
      */
-    async createUserClaudeMd() {
-        const claudeDir = path.join(process.env.HOME || '', '.claude');
-        const filePath = path.join(claudeDir, 'CLAUDE.md');
+    async createUserConfiguration() {
+        const codexDir = path.join(process.env.HOME || '', '.codex');
+        const filePath = path.join(codexDir, 'global-config.md');
 
         // Ensure directory exists
         try {
-            await vscode.workspace.fs.createDirectory(vscode.Uri.file(claudeDir));
+            await vscode.workspace.fs.createDirectory(vscode.Uri.file(codexDir));
         } catch (error) {
             // Directory might already exist
         }
@@ -218,7 +239,7 @@ export class SteeringManager {
         try {
             await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
             const overwrite = await vscode.window.showWarningMessage(
-                'Global CLAUDE.md already exists. Overwrite?',
+                'Global configuration file already exists. Overwrite?',
                 'Overwrite',
                 'Cancel'
             );
@@ -229,8 +250,29 @@ export class SteeringManager {
             // File doesn't exist, continue
         }
 
-        // Create empty file
-        const initialContent = '';
+        // Create initial content with Codex-specific guidance
+        const initialContent = `# Global Codex Configuration
+
+## Purpose
+This file contains global configuration and guidance for Codex CLI when working across different projects.
+
+## Global Preferences
+- Default approval mode: interactive
+- Preferred code style: consistent with project conventions
+- Documentation style: clear and concise
+
+## Cross-Project Guidelines
+- Always follow existing project patterns
+- Maintain consistent naming conventions
+- Write comprehensive tests for new functionality
+- Document complex logic and decisions
+
+## Codex CLI Settings
+- Use project-specific steering documents when available
+- Respect existing code architecture and patterns
+- Prioritize readability and maintainability
+`;
+
         await vscode.workspace.fs.writeFile(
             vscode.Uri.file(filePath),
             Buffer.from(initialContent)
@@ -241,7 +283,7 @@ export class SteeringManager {
         await vscode.window.showTextDocument(document);
 
         // Auto-dismiss notification
-        await NotificationUtils.showAutoDismissNotification('Created global CLAUDE.md file');
+        await NotificationUtils.showAutoDismissNotification('Created global Codex configuration file');
     }
 
 

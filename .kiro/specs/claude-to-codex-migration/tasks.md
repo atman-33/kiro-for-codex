@@ -31,7 +31,7 @@
   - Implement task execution using Codex CLI commands
   - _Requirements: 4.1, 4.2_
 
-- [ ] 6. Update SteeringManager for Codex integration
+- [x] 6. Update SteeringManager for Codex integration
   - Modify SteeringManager to use CodexProvider
   - Update steering creation and refinement workflows
   - Ensure steering documents work with Codex CLI
