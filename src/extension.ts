@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI } from './constants';
+import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI, ENABLE_HOOKS_UI } from './constants';
 import { AgentManager } from './features/agents/agent-manager';
 import { SpecManager } from './features/spec/spec-manager';
 import { SteeringManager } from './features/steering/steering-manager';
@@ -64,7 +64,10 @@ export async function activate(context: vscode.ExtensionContext) {
     const overviewProvider = new OverviewProvider(context);
     const specExplorer = new SpecExplorerProvider(context, outputChannel);
     const steeringExplorer = new SteeringExplorerProvider(context);
-    const hooksExplorer = new HooksExplorerProvider(context);
+    // Guard Hooks UI to avoid invoking not-yet-implemented CLI hooks
+    const hooksExplorer: HooksExplorerProvider | undefined = ENABLE_HOOKS_UI
+        ? new HooksExplorerProvider(context)
+        : undefined;
     // Guard MCP UI to avoid invoking non-existent CLI commands
     const mcpExplorer: MCPExplorerProvider | undefined = ENABLE_MCP_UI
         ? new MCPExplorerProvider(context, outputChannel)
@@ -79,9 +82,13 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.registerTreeDataProvider('kfc.views.overview', overviewProvider),
         vscode.window.registerTreeDataProvider('kfc.views.specExplorer', specExplorer),
         vscode.window.registerTreeDataProvider('kfc.views.agentsExplorer', agentsExplorer),
-        vscode.window.registerTreeDataProvider('kfc.views.steeringExplorer', steeringExplorer),
-        vscode.window.registerTreeDataProvider('kfc.views.hooksStatus', hooksExplorer)
+        vscode.window.registerTreeDataProvider('kfc.views.steeringExplorer', steeringExplorer)
     );
+    if (ENABLE_HOOKS_UI && hooksExplorer) {
+        context.subscriptions.push(
+            vscode.window.registerTreeDataProvider('kfc.views.hooksStatus', hooksExplorer)
+        );
+    }
 
     if (ENABLE_MCP_UI && mcpExplorer) {
         context.subscriptions.push(
@@ -166,7 +173,7 @@ async function toggleViews() {
     const config = vscode.workspace.getConfiguration(VSC_CONFIG_NAMESPACE);
     const currentVisibility = {
         specs: config.get('views.specs.visible', true),
-        hooks: config.get('views.hooks.visible', true),
+        hooks: config.get('views.hooks.visible', false),
         steering: config.get('views.steering.visible', true),
         mcp: config.get('views.mcp.visible', false)
     };
@@ -177,17 +184,20 @@ async function toggleViews() {
             picked: currentVisibility.specs,
             id: 'specs'
         },
-        {
+        
+    {
+        label: `$(${currentVisibility.steering ? 'check' : 'blank'}) Agent Steering`,
+        picked: currentVisibility.steering,
+        id: 'steering'
+    }
+    ];
+    if (ENABLE_HOOKS_UI) {
+        items.splice(1, 0, {
             label: `$(${currentVisibility.hooks ? 'check' : 'blank'}) Agent Hooks`,
             picked: currentVisibility.hooks,
             id: 'hooks'
-        },
-        {
-            label: `$(${currentVisibility.steering ? 'check' : 'blank'}) Agent Steering`,
-            picked: currentVisibility.steering,
-            id: 'steering'
-        }
-    ];
+        });
+    }
 
     if (ENABLE_MCP_UI) {
         items.push({
@@ -211,7 +221,9 @@ async function toggleViews() {
         };
 
         await config.update('views.specs.visible', newVisibility.specs, vscode.ConfigurationTarget.Workspace);
-        await config.update('views.hooks.visible', newVisibility.hooks, vscode.ConfigurationTarget.Workspace);
+        if (ENABLE_HOOKS_UI) {
+            await config.update('views.hooks.visible', newVisibility.hooks, vscode.ConfigurationTarget.Workspace);
+        }
         await config.update('views.steering.visible', newVisibility.steering, vscode.ConfigurationTarget.Workspace);
         if (ENABLE_MCP_UI) {
             await config.update('views.mcp.visible', newVisibility.mcp, vscode.ConfigurationTarget.Workspace);
@@ -222,7 +234,7 @@ async function toggleViews() {
 }
 
 
-function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecExplorerProvider, steeringExplorer: SteeringExplorerProvider, hooksExplorer: HooksExplorerProvider, mcpExplorer: MCPExplorerProvider | undefined, agentsExplorer: AgentsExplorerProvider, updateChecker: UpdateChecker) {
+function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecExplorerProvider, steeringExplorer: SteeringExplorerProvider, hooksExplorer: HooksExplorerProvider | undefined, mcpExplorer: MCPExplorerProvider | undefined, agentsExplorer: AgentsExplorerProvider, updateChecker: UpdateChecker) {
 
     // Spec commands
     const createSpecCommand = vscode.commands.registerCommand('kfc.spec.create', async () => {
@@ -365,15 +377,16 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
     // Codex CLI integration commands
 
     // Hooks commands
-    context.subscriptions.push(
-        vscode.commands.registerCommand('kfc.hooks.refresh', () => {
-            hooksExplorer.refresh();
-        }),
-
-        vscode.commands.registerCommand('kfc.hooks.copyCommand', async (command: string) => {
-            await vscode.env.clipboard.writeText(command);
-        })
-    );
+    if (ENABLE_HOOKS_UI && hooksExplorer) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand('kfc.hooks.refresh', () => {
+                hooksExplorer.refresh();
+            }),
+            vscode.commands.registerCommand('kfc.hooks.copyCommand', async (command: string) => {
+                await vscode.env.clipboard.writeText(command);
+            })
+        );
+    }
 
     // MCP commands (only when enabled)
     if (ENABLE_MCP_UI && mcpExplorer) {
@@ -478,7 +491,7 @@ function setupFileWatchers(
     context: vscode.ExtensionContext,
     specExplorer: SpecExplorerProvider,
     steeringExplorer: SteeringExplorerProvider,
-    hooksExplorer: HooksExplorerProvider,
+    hooksExplorer: HooksExplorerProvider | undefined,
     mcpExplorer: MCPExplorerProvider | undefined,
     agentsExplorer: AgentsExplorerProvider
 ) {
@@ -495,7 +508,7 @@ function setupFileWatchers(
         refreshTimeout = setTimeout(() => {
             specExplorer.refresh();
             steeringExplorer.refresh();
-            hooksExplorer.refresh();
+            hooksExplorer?.refresh();
             mcpExplorer?.refresh();
             agentsExplorer.refresh();
         }, 1000); // Increase debounce time to 1 second
@@ -514,7 +527,7 @@ function setupFileWatchers(
         const codexSettingsWatcher = vscode.workspace.createFileSystemWatcher(settingsPattern);
 
         codexSettingsWatcher.onDidChange(() => {
-            hooksExplorer.refresh();
+            hooksExplorer?.refresh();
             mcpExplorer?.refresh();
         });
 

@@ -16,7 +16,8 @@ export const DEFAULT_CONFIG = {
         steering: true,
         // Temporarily hide MCP view until CLI commands are available
         mcp: false,
-        hooks: true,
+        // Temporarily hide Hooks view until CLI feature is available
+        hooks: false,
         settings: false
     },
     codex: {
@@ -39,6 +40,9 @@ export const DEFAULT_VIEW_VISIBILITY = DEFAULT_CONFIG.views;
 
 // Feature flag to fully disable MCP UI and background loading
 export const ENABLE_MCP_UI = false as const;
+
+// Feature flag to fully disable Hooks UI and background loading
+export const ENABLE_HOOKS_UI = false as const;
 
 // Minimum supported Codex CLI version (hardcoded requirement)
 export const MIN_CODEX_CLI_VERSION = '0.28.0' as const;

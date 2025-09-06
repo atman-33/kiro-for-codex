@@ -69,7 +69,7 @@
         {
           "id": "kfc.views.hooksStatus",
           "name": "Hooks",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.hooks.visible"
+          "when": "false"
         },
         {
           "id": "kfc.views.overview",
@@ -90,7 +90,7 @@
       },
       {
         "view": "kfc.views.hooksStatus",
-        "contents": "Automate repetitive tasks with smart triggers"
+        "contents": "Hooks are temporarily disabled in this build"
       },
       {
         "view": "kfc.views.steeringExplorer",
@@ -160,7 +160,8 @@
         "command": "kfc.hooks.refresh",
         "title": "Refresh Hooks",
         "category": "Kiro for Codex",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "false"
       },
       {
         "command": "kfc.mcp.refresh",
