@@ -1,0 +1,87 @@
+{
+  "templateMappings": {
+    "spec": {
+      "create-spec": {
+        "original": "src/prompts/spec/create-spec.md",
+        "codex_optimized": "src/prompts/spec/create-spec-codex.md",
+        "description": "Spec creation workflow optimized for Codex CLI"
+      },
+      "create-spec-with-agents": {
+        "original": "src/prompts/spec/create-spec-with-agents.md",
+        "codex_optimized": "src/prompts/spec/create-spec-codex.md",
+        "description": "Agent-based spec creation optimized for Codex CLI"
+      },
+      "impl-task": {
+        "original": "src/prompts/spec/impl-task.md",
+        "codex_optimized": "src/prompts/spec/impl-task-codex.md",
+        "description": "Task implementation optimized for Codex CLI"
+      }
+    },
+    "steering": {
+      "create-custom-steering": {
+        "original": "src/prompts/steering/create-custom-steering.md",
+        "codex_optimized": "src/prompts/steering/create-custom-steering-codex.md",
+        "description": "Custom steering document creation optimized for Codex CLI"
+      },
+      "init-steering": {
+        "original": "src/prompts/steering/init-steering.md",
+        "codex_optimized": "src/prompts/steering/init-steering-codex.md",
+        "description": "Steering initialization optimized for Codex CLI"
+      },
+      "refine-steering": {
+        "original": "src/prompts/steering/refine-steering.md",
+        "codex_optimized": "src/prompts/steering/refine-steering.md",
+        "description": "Steering refinement (uses original template)"
+      }
+    },
+    "agents": {
+      "spec-requirements": {
+        "original": "src/resources/agents/spec-requirements.md",
+        "codex_optimized": "src/resources/agents/spec-requirements-codex.md",
+        "description": "Requirements agent optimized for Codex CLI"
+      },
+      "spec-design": {
+        "original": "src/resources/agents/spec-design.md",
+        "codex_optimized": "src/resources/agents/spec-design-codex.md",
+        "description": "Design agent optimized for Codex CLI"
+      },
+      "spec-tasks": {
+        "original": "src/resources/agents/spec-tasks.md",
+        "codex_optimized": "src/resources/agents/spec-tasks-codex.md",
+        "description": "Tasks agent optimized for Codex CLI"
+      },
+      "spec-impl": {
+        "original": "src/resources/agents/spec-impl.md",
+        "codex_optimized": "src/resources/agents/spec-impl-codex.md",
+        "description": "Implementation agent optimized for Codex CLI"
+      }
+    }
+  },
+  "approvalModeTemplates": {
+    "interactive": {
+      "template": "src/prompts/codex/approval-mode-templates.md",
+      "section": "Interactive Mode Templates",
+      "description": "Templates optimized for interactive Codex CLI execution"
+    },
+    "auto-edit": {
+      "template": "src/prompts/codex/approval-mode-templates.md",
+      "section": "Auto-Edit Mode Templates",
+      "description": "Templates optimized for auto-edit Codex CLI execution"
+    },
+    "full-auto": {
+      "template": "src/prompts/codex/approval-mode-templates.md",
+      "section": "Full-Auto Mode Templates",
+      "description": "Templates optimized for full-auto Codex CLI execution"
+    }
+  },
+  "optimizationGuidelines": {
+    "guide": "src/prompts/codex/optimization-guide.md",
+    "description": "Comprehensive guide for optimizing prompts for Codex CLI"
+  },
+  "configuration": {
+    "defaultApprovalMode": "interactive",
+    "enableCodexOptimization": true,
+    "fallbackToOriginal": true,
+    "validationRequired": true
+  }
+}

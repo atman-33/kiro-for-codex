@@ -19,7 +19,7 @@
   - Add setup guidance for missing Codex CLI installation
   - _Requirements: 2.3, 7.3_
 
-- [ ] 4. Create Codex-optimized prompt templates
+- [x] 4. Create Codex-optimized prompt templates
   - Analyze existing prompt templates and optimize for Codex CLI
   - Implement Codex-specific prompt formatting
   - Create template system for different Codex approval modes

@@ -3,6 +3,8 @@ id: impl-task
 name: Implement Task
 version: 1.0.0
 description: Implement a task after a spec workflow
+codex_optimized: false
+codex_alternative: impl-task-codex
 variables:
   taskFilePath:
     type: string
