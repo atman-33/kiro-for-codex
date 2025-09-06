@@ -25,7 +25,7 @@ export class ProcessManager {
     /**
      * Execute a command and return the result
      */
-    async executeCommand(command: string, cwd?: string): Promise<ProcessResult> {
+    async executeCommand(command: string, cwd?: string, timeoutMs?: number): Promise<ProcessResult> {
         return new Promise((resolve, reject) => {
             this.outputChannel.appendLine(`[ProcessManager] Executing: ${command}`);
             this.outputChannel.appendLine(`[ProcessManager] Working directory: ${cwd || 'default'}`);
@@ -67,7 +67,7 @@ export class ProcessManager {
                 this.outputChannel.appendLine(`[ProcessManager] Process completed with exit code: ${code}`);
 
                 resolve({
-                    exitCode: code || 0,
+                    exitCode: (code === 0) ? 0 : (code ?? -1),
                     output: output.trim(),
                     error: error.trim()
                 });
@@ -80,14 +80,86 @@ export class ProcessManager {
                 reject(new Error(`Failed to execute command: ${err.message}`));
             });
 
-            // Set timeout if needed (default 30 seconds)
-            setTimeout(() => {
-                if (this.activeProcesses.has(processId)) {
-                    this.outputChannel.appendLine(`[ProcessManager] Process timeout, killing process`);
-                    this.killProcess(processId);
-                    reject(new Error('Command execution timeout'));
-                }
-            }, 30000);
+            // Optional timeout (honor caller-provided value)
+            if (typeof timeoutMs === 'number' && timeoutMs > 0) {
+                setTimeout(() => {
+                    if (this.activeProcesses.has(processId)) {
+                        this.outputChannel.appendLine(`[ProcessManager] Process timeout (${timeoutMs}ms), killing process`);
+                        this.killProcess(processId);
+                        reject(new Error('Command execution timeout'));
+                    }
+                }, timeoutMs);
+            }
+        });
+    }
+
+    /**
+     * Execute a command with explicit executable/args (no shell), optional stdin input
+     */
+    async executeCommandArgs(
+        executable: string,
+        args: string[],
+        options?: { cwd?: string; timeoutMs?: number; input?: string; }
+    ): Promise<ProcessResult> {
+        return new Promise((resolve, reject) => {
+            this.outputChannel.appendLine(`[ProcessManager] Executing: ${executable} ${args.join(' ')}`);
+            this.outputChannel.appendLine(`[ProcessManager] Working directory: ${options?.cwd || 'default'}`);
+
+            const processId = `cmd_${Date.now()}`;
+            let output = '';
+            let error = '';
+
+            const childProcess = spawn(executable, args, {
+                cwd: options?.cwd,
+                shell: false,
+                stdio: ['pipe', 'pipe', 'pipe']
+            });
+
+            this.activeProcesses.set(processId, childProcess);
+
+            if (options?.input) {
+                childProcess.stdin?.write(options.input);
+                childProcess.stdin?.end();
+            }
+
+            childProcess.stdout?.on('data', (data) => {
+                const chunk = data.toString();
+                output += chunk;
+                this.outputChannel.appendLine(`[ProcessManager] stdout: ${chunk.trim()}`);
+            });
+
+            childProcess.stderr?.on('data', (data) => {
+                const chunk = data.toString();
+                error += chunk;
+                this.outputChannel.appendLine(`[ProcessManager] stderr: ${chunk.trim()}`);
+            });
+
+            childProcess.on('close', (code) => {
+                this.activeProcesses.delete(processId);
+                this.outputChannel.appendLine(`[ProcessManager] Process completed with exit code: ${code}`);
+
+                resolve({
+                    exitCode: (code === 0) ? 0 : (code ?? -1),
+                    output: output.trim(),
+                    error: error.trim()
+                });
+            });
+
+            childProcess.on('error', (err) => {
+                this.activeProcesses.delete(processId);
+                this.outputChannel.appendLine(`[ProcessManager] Process error: ${err.message}`);
+                reject(new Error(`Failed to execute command: ${err.message}`));
+            });
+
+            if (typeof options?.timeoutMs === 'number' && options.timeoutMs > 0) {
+                setTimeout(() => {
+                    if (this.activeProcesses.has(processId)) {
+                        this.outputChannel.appendLine(`[ProcessManager] Process timeout (${options.timeoutMs}ms), killing process`);
+                        this.killProcess(processId);
+                        reject(new Error('Command execution timeout'));
+                    }
+                }, options.timeoutMs);
+            }
         });
     }
 

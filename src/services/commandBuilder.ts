@@ -11,33 +11,37 @@ export class CommandBuilder {
      * Build a complete Codex CLI command with all options
      */
     buildCommand(promptFilePath: string, options: CommandOptions): string {
+        // Legacy string command (POSIX-style). Retained for split-view terminals.
         const parts: string[] = [options.codexPath || 'codex'];
+        const approvalMode = options.approvalMode || options.defaultApprovalMode;
+        if (approvalMode) parts.push(this.buildApprovalModeFlag(approvalMode));
+        if (options.model || options.defaultModel) parts.push(`--model "${options.model || options.defaultModel}"`);
+        if (options.timeout) parts.push(`--timeout ${Math.floor(options.timeout / 1000)}`);
+        if (options.workingDirectory) parts.push(this.buildWorkingDirectoryFlag(options.workingDirectory));
+        parts.push(`"$(cat "${promptFilePath}")"`);
+        return parts.join(' ');
+    }
 
-        // Add approval mode flag
+    /**
+     * Build argv-style flags (no prompt content) for non-shell execution.
+     */
+    buildArgs(options: CommandOptions): string[] {
+        const args: string[] = [];
         const approvalMode = options.approvalMode || options.defaultApprovalMode;
         if (approvalMode) {
-            parts.push(this.buildApprovalModeFlag(approvalMode));
+            args.push('--approval-mode', approvalMode);
         }
-
-        // Add model flag if specified
         if (options.model || options.defaultModel) {
-            parts.push(`--model "${options.model || options.defaultModel}"`);
+            args.push('--model', String(options.model || options.defaultModel));
         }
-
-        // Add timeout flag if specified
         if (options.timeout) {
-            parts.push(`--timeout ${Math.floor(options.timeout / 1000)}`);
+            args.push('--timeout', String(Math.floor(options.timeout / 1000)));
         }
-
-        // Add working directory flag if specified
         if (options.workingDirectory) {
-            parts.push(this.buildWorkingDirectoryFlag(options.workingDirectory));
+            // Some CLIs support --cwd; if unsupported, the caller should set process cwd
+            args.push('--cwd', options.workingDirectory);
         }
-
-        // Add the prompt file using command substitution
-        parts.push(`"$(cat "${promptFilePath}")"`);
-
-        return parts.join(' ');
+        return args;
     }
 
     /**

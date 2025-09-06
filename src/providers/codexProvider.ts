@@ -278,26 +278,45 @@ export class CodexProvider {
           throw error;
         }
 
-        let promptFilePath: string | null = null;
-
         try {
-          // Create temporary file with the prompt
-          promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
-
-          // Build the command with options
-          const command = this.commandBuilder.buildCommand(promptFilePath, {
-            ...this.codexConfig,
-            ...options
-          });
-
-          // Execute the command with timeout
+          // Build argv flags (no shell) and execute with argument list
           const workingDir = options?.workingDirectory || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
           const timeout = options?.timeout || this.codexConfig.timeout;
 
-          const result = await Promise.race([
-            this.processManager.executeCommand(command, workingDir),
-            this.createTimeoutPromise(timeout)
-          ]);
+          let result: any;
+          const hasBuildArgs = typeof (this.commandBuilder as any).buildArgs === 'function';
+          if (hasBuildArgs) {
+            const args = (this.commandBuilder as any).buildArgs({
+              ...this.codexConfig,
+              ...options
+            });
+
+            // Append the prompt as the last argument (avoid shell substitution)
+            result = await Promise.race([
+              this.processManager.executeCommandArgs(
+                this.codexConfig.codexPath,
+                [...args, prompt],
+                { cwd: workingDir, timeoutMs: timeout }
+              ),
+              this.createTimeoutPromise(timeout)
+            ]);
+          } else {
+            // Fallback to legacy behavior (temp file + string command)
+            const promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
+            try {
+              const command = this.commandBuilder.buildCommand(promptFilePath, {
+                ...this.codexConfig,
+                ...options
+              });
+              result = await Promise.race([
+                this.processManager.executeCommand(command, workingDir, timeout),
+                this.createTimeoutPromise(timeout)
+              ]);
+            } finally {
+              // Cleanup temp file
+              await this.cleanupTempFile(promptFilePath);
+            }
+          }
 
           // Validate result
           if (result.exitCode !== 0) {
@@ -315,10 +334,7 @@ export class CodexProvider {
           };
 
         } finally {
-          // Clean up temp file
-          if (promptFilePath) {
-            this.cleanupTempFile(promptFilePath);
-          }
+          // No temp file used in headless path
         }
       },
       'Codex CLI Execution',
@@ -372,11 +388,19 @@ export class CodexProvider {
         let promptFilePath: string | null = null;
 
         try {
-          // Create temp file with the prompt
+          // Create temp file with the prompt (terminal path keeps file-based invocation)
           promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
 
-          // Build the command
-          const command = this.commandBuilder.buildCommand(promptFilePath, this.codexConfig);
+          // Build command with OS-aware content loading
+          let command: string;
+          if (process.platform === 'win32') {
+            // PowerShell: use Get-Content -Raw to read file contents
+            const psPath = promptFilePath.replace(/\\/g, '/');
+            command = `${this.codexConfig.codexPath} ${this.commandBuilder.buildApprovalModeFlag(this.codexConfig.defaultApprovalMode)} ${this.codexConfig.defaultModel ? `--model "${this.codexConfig.defaultModel}"` : ''} --timeout ${Math.floor(this.codexConfig.timeout / 1000)} --cwd "${vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || ''}" "$(Get-Content -Raw \"${psPath}\")"`;
+          } else {
+            // POSIX: legacy $(cat)
+            command = this.commandBuilder.buildCommand(promptFilePath, this.codexConfig);
+          }
 
           // Create terminal in split view
           const terminal = this.processManager.createTerminal(command, {
@@ -477,7 +501,10 @@ export class CodexProvider {
    * Convert Windows path to WSL path if needed
    */
   private convertPathIfWSL(filePath: string): string {
-    if (process.platform === 'win32' && filePath.match(/^[A-Za-z]:\\/)) {
+    // Convert only when actually running under WSL context
+    const isWindows = process.platform === 'win32';
+    const isWSL = Boolean(process.env.WSL_DISTRO_NAME || process.env.WSLENV);
+    if (isWindows && isWSL && filePath.match(/^[A-Za-z]:\\/)) {
       let wslPath = filePath.replace(/\\/g, '/');
       wslPath = wslPath.replace(/^([A-Za-z]):/, (_match, drive) => `/mnt/${drive.toLowerCase()}`);
       return wslPath;

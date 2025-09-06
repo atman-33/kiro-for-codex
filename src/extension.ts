@@ -488,17 +488,19 @@ function setupFileWatchers(
 
     context.subscriptions.push(codexWatcher);
 
-    // Watch for changes in Codex settings
-    const codexSettingsWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.codex/settings.json')
-    );
+    // Watch for changes in workspace Codex settings (.codex/settings/kfc-settings.json)
+    const wsFolder = vscode.workspace.workspaceFolders?.[0];
+    if (wsFolder) {
+        const settingsPattern = new vscode.RelativePattern(wsFolder, '.codex/settings/kfc-settings.json');
+        const codexSettingsWatcher = vscode.workspace.createFileSystemWatcher(settingsPattern);
 
-    codexSettingsWatcher.onDidChange(() => {
-        hooksExplorer.refresh();
-        mcpExplorer.refresh();
-    });
+        codexSettingsWatcher.onDidChange(() => {
+            hooksExplorer.refresh();
+            mcpExplorer.refresh();
+        });
 
-    context.subscriptions.push(codexSettingsWatcher);
+        context.subscriptions.push(codexSettingsWatcher);
+    }
 
     // Watch for changes in CODEX.md files
     const globalCodexMdWatcher = vscode.workspace.createFileSystemWatcher(
