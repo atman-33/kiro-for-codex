@@ -150,11 +150,11 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
     private async getCodexHooks(): Promise<{ name: string, enabled: boolean, config: any, configPath: string; }[]> {
         const hooks: { name: string, enabled: boolean, config: any, configPath: string; }[] = [];
 
-        // Check workspace .kiro/settings.json first
+        // Check workspace .codex/settings.json first
         if (vscode.workspace.workspaceFolders) {
             const workspaceConfigPath = path.join(
                 vscode.workspace.workspaceFolders[0].uri.fsPath,
-                '.kiro',
+                '.codex',
                 'settings.json'
             );
             if (fs.existsSync(workspaceConfigPath)) {
@@ -176,11 +176,11 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
             }
         }
 
-        // Then check global ~/.kiro/settings.json
+        // Then check global ~/.codex/settings.json
         try {
-            const kiroConfigPath = path.join(process.env.HOME || '', '.kiro', 'settings.json');
-            if (fs.existsSync(kiroConfigPath)) {
-                const config = JSON.parse(fs.readFileSync(kiroConfigPath, 'utf8'));
+            const codexConfigPath = path.join(process.env.HOME || '', '.codex', 'settings.json');
+            if (fs.existsSync(codexConfigPath)) {
+                const config = JSON.parse(fs.readFileSync(codexConfigPath, 'utf8'));
                 if (config.hooks) {
                     Object.entries(config.hooks).forEach(([name, value]) => {
                         // Only add if not already added from workspace
@@ -189,7 +189,7 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                                 name,
                                 enabled: true,
                                 config: value,
-                                configPath: kiroConfigPath
+                                configPath: codexConfigPath
                             });
                         }
                     });

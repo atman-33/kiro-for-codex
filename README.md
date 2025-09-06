@@ -150,18 +150,18 @@ Create project-specific guidance:
 
 - Click ✨ icon to create custom steering
 - Generate initial docs (product, tech, structure)
-- Documents are stored in `.claude/steering/`
+- Documents are stored in `.codex/steering/`
 
 ## Configuration
 
-Settings are stored in `.kiro/settings/kfc-settings.json`:
+Settings are stored in `.codex/settings/kfc-settings.json`:
 
 ```json
 {
   "paths": {
-    "specs": ".kiro/specs",
-    "steering": ".kiro/steering",
-    "settings": ".kiro/settings"
+    "specs": ".codex/specs",
+    "steering": ".codex/steering",
+    "settings": ".codex/settings"
   },
   "views": {
     "specs": {
@@ -188,7 +188,7 @@ Settings are stored in `.kiro/settings/kfc-settings.json`:
 The extension creates the following structure in your workspace:
 
 ```plain
-.kiro/                       # Extension data directory
+.codex/                      # Extension data directory
 ├── specs/                   # Feature specifications
 │   └── {spec-name}/
 │       ├── requirements.md  # What to build

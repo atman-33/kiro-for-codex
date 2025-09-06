@@ -7,9 +7,9 @@ export const CONFIG_FILE_NAME = 'kfc-settings.json';
 // Default configuration
 export const DEFAULT_CONFIG = {
     paths: {
-        specs: '.claude/specs',
-        steering: '.claude/steering',
-        settings: '.claude/settings'
+        specs: '.codex/specs',
+        steering: '.codex/steering',
+        settings: '.codex/settings'
     },
     views: {
         specs: true,

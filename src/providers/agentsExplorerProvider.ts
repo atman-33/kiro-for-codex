@@ -92,9 +92,9 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
 
         // Watch project agents directory
         if (workspaceFolder) {
-            const kiroAgentsPattern = new vscode.RelativePattern(
+            const codexAgentsPattern = new vscode.RelativePattern(
                 workspaceFolder,
-                '.kiro/agents/**/*.md'
+                '.codex/agents/**/*.md'
             );
             const codexAgentsPattern = new vscode.RelativePattern(
                 workspaceFolder,
@@ -118,7 +118,7 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
         }
 
         // Watch user agents directory (including subdirectories)
-        const userKiroAgentsPath = path.join(require('os').homedir(), '.kiro/agents');
+        const userCodexAgentsPath = path.join(require('os').homedir(), '.codex/agents');
         const userCodexAgentsPath = path.join(require('os').homedir(), '.codex/agents');
 
         const userKiroAgentsPattern = new vscode.RelativePattern(

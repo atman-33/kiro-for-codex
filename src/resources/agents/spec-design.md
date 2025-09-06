@@ -130,7 +130,7 @@ The design document should be based on the requirements document, so ensure it e
 - The model SHOULD NOT create separate research files, but instead use the research as context for the design and implementation plan
 - The model MUST summarize key findings that will inform the feature design
 - The model SHOULD cite sources and include relevant links in the conversation
-- The model MUST create a detailed design document at '.kiro/specs/{feature_name}/design.md'
+- The model MUST create a detailed design document at '.codex/specs/{feature_name}/design.md'
 - The model MUST incorporate research findings directly into the design process
 - The model MUST include the following sections in the design document:
   - Overview

@@ -100,11 +100,11 @@ export async function activate(context: vscode.ExtensionContext) {
     // Register CodeLens provider for spec tasks
     const specTaskCodeLensProvider = new SpecTaskCodeLensProvider();
 
-    // Use document selector for .kiro spec directories
+    // Use document selector for .codex spec directories
     const selector: vscode.DocumentSelector = [
         {
             language: 'markdown',
-            pattern: '**/.kiro/specs/*/tasks.md',
+            pattern: '**/.codex/specs/*/tasks.md',
             scheme: 'file'
         }
     ];
@@ -125,30 +125,30 @@ async function initializeDefaultSettings() {
         return;
     }
 
-    // Create .kiro/settings directory if it doesn't exist (primary)
-    const kiroDir = vscode.Uri.joinPath(workspaceFolder.uri, '.kiro');
-    const kiroSettingsDir = vscode.Uri.joinPath(kiroDir, 'settings');
+    // Create .codex/settings directory if it doesn't exist (primary)
+    const codexDir = vscode.Uri.joinPath(workspaceFolder.uri, '.codex');
+    const codexSettingsDir = vscode.Uri.joinPath(codexDir, 'settings');
 
     try {
-        await vscode.workspace.fs.createDirectory(kiroDir);
-        await vscode.workspace.fs.createDirectory(kiroSettingsDir);
+        await vscode.workspace.fs.createDirectory(codexDir);
+        await vscode.workspace.fs.createDirectory(codexSettingsDir);
     } catch (error) {
         // Directory might already exist
     }
 
-    // Create kfc-settings.json in .kiro directory
-    const kiroSettingsFile = vscode.Uri.joinPath(kiroSettingsDir, CONFIG_FILE_NAME);
+    // Create kfc-settings.json in .codex directory
+    const codexSettingsFile = vscode.Uri.joinPath(codexSettingsDir, CONFIG_FILE_NAME);
 
     try {
-        // Check if file exists in .kiro directory
-        await vscode.workspace.fs.stat(kiroSettingsFile);
+        // Check if file exists in .codex directory
+        await vscode.workspace.fs.stat(codexSettingsFile);
     } catch (error) {
         // File doesn't exist, create with defaults
         const configManager = ConfigManager.getInstance();
         const defaultSettings = configManager.getSettings();
 
         await vscode.workspace.fs.writeFile(
-            kiroSettingsFile,
+            codexSettingsFile,
             Buffer.from(JSON.stringify(defaultSettings, null, 2))
         );
     }
@@ -323,8 +323,8 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             const document = event.document;
             const filePath = document.fileName;
 
-            // Check if this is an agent file in .kiro directories
-            if (filePath.includes('.kiro/agents/') && filePath.endsWith('.md')) {
+            // Check if this is an agent file in .codex directories
+            if (filePath.includes('.codex/agents/') && filePath.endsWith('.md')) {
                 // Show confirmation dialog
                 const result = await vscode.window.showWarningMessage(
                     'Are you sure you want to save changes to this agent file?',
@@ -384,12 +384,12 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
                 return;
             }
 
-            // Create .kiro/settings directory if it doesn't exist
-            const kiroDir = vscode.Uri.joinPath(workspaceFolder.uri, '.kiro');
-            const settingsDir = vscode.Uri.joinPath(kiroDir, 'settings');
+            // Create .codex/settings directory if it doesn't exist
+            const codexDir = vscode.Uri.joinPath(workspaceFolder.uri, '.codex');
+            const settingsDir = vscode.Uri.joinPath(codexDir, 'settings');
 
             try {
-                await vscode.workspace.fs.createDirectory(kiroDir);
+                await vscode.workspace.fs.createDirectory(codexDir);
                 await vscode.workspace.fs.createDirectory(settingsDir);
             } catch (error) {
                 // Directory might already exist
@@ -463,8 +463,7 @@ function setupFileWatchers(
     mcpExplorer: MCPExplorerProvider,
     agentsExplorer: AgentsExplorerProvider
 ) {
-    // Watch for changes in .kiro and .codex directories with debouncing
-    const kiroWatcher = vscode.workspace.createFileSystemWatcher('**/.kiro/**/*');
+    // Watch for changes in .codex directories with debouncing
     const codexWatcher = vscode.workspace.createFileSystemWatcher('**/.codex/**/*');
 
     let refreshTimeout: NodeJS.Timeout | undefined;
@@ -483,40 +482,36 @@ function setupFileWatchers(
         }, 1000); // Increase debounce time to 1 second
     };
 
-    kiroWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
-    kiroWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
-    kiroWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
-
     codexWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
     codexWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
     codexWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
 
-    context.subscriptions.push(kiroWatcher, codexWatcher);
+    context.subscriptions.push(codexWatcher);
 
-    // Watch for changes in Kiro settings
-    const kiroSettingsWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.kiro/settings.json')
+    // Watch for changes in Codex settings
+    const codexSettingsWatcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(process.env.HOME || '', '.codex/settings.json')
     );
 
-    kiroSettingsWatcher.onDidChange(() => {
+    codexSettingsWatcher.onDidChange(() => {
         hooksExplorer.refresh();
         mcpExplorer.refresh();
     });
 
-    context.subscriptions.push(kiroSettingsWatcher);
+    context.subscriptions.push(codexSettingsWatcher);
 
-    // Watch for changes in KIRO.md files
-    const globalKiroMdWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.kiro/KIRO.md')
+    // Watch for changes in CODEX.md files
+    const globalCodexMdWatcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(process.env.HOME || '', '.codex/CODEX.md')
     );
-    const projectKiroMdWatcher = vscode.workspace.createFileSystemWatcher('**/KIRO.md');
+    const projectCodexMdWatcher = vscode.workspace.createFileSystemWatcher('**/CODEX.md');
 
-    globalKiroMdWatcher.onDidCreate(() => steeringExplorer.refresh());
-    globalKiroMdWatcher.onDidDelete(() => steeringExplorer.refresh());
-    projectKiroMdWatcher.onDidCreate(() => steeringExplorer.refresh());
-    projectKiroMdWatcher.onDidDelete(() => steeringExplorer.refresh());
+    globalCodexMdWatcher.onDidCreate(() => steeringExplorer.refresh());
+    globalCodexMdWatcher.onDidDelete(() => steeringExplorer.refresh());
+    projectCodexMdWatcher.onDidCreate(() => steeringExplorer.refresh());
+    projectCodexMdWatcher.onDidDelete(() => steeringExplorer.refresh());
 
-    context.subscriptions.push(globalKiroMdWatcher, projectKiroMdWatcher);
+    context.subscriptions.push(globalCodexMdWatcher, projectCodexMdWatcher);
 }
 
 export function deactivate() {
