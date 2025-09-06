@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { VSC_CONFIG_NAMESPACE } from '../constants';
+import { CodexSetupService } from '../services/codexSetupService';
 import { CommandBuilder } from '../services/commandBuilder';
 import { ProcessManager } from '../services/processManager';
 import { ConfigManager } from '../utils/configManager';
@@ -34,12 +35,22 @@ export interface CodexConfig {
   terminalDelay: number;
 }
 
+export interface CodexAvailabilityResult {
+  isAvailable: boolean;
+  isInstalled: boolean;
+  version: string | null;
+  isCompatible: boolean;
+  errorMessage: string | null;
+  setupGuidance: string | null;
+}
+
 export class CodexProvider {
   private context: vscode.ExtensionContext;
   private outputChannel: vscode.OutputChannel;
   private configManager: ConfigManager;
   private commandBuilder: CommandBuilder;
   private processManager: ProcessManager;
+  private setupService: CodexSetupService;
   private codexConfig: CodexConfig;
 
   constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
@@ -48,6 +59,7 @@ export class CodexProvider {
     this.configManager = ConfigManager.getInstance();
     this.commandBuilder = new CommandBuilder();
     this.processManager = new ProcessManager(outputChannel);
+    this.setupService = CodexSetupService.getInstance(outputChannel);
 
     // Initialize Codex configuration with defaults
     this.codexConfig = {
@@ -100,12 +112,155 @@ export class CodexProvider {
   }
 
   /**
+   * Comprehensive Codex CLI availability and compatibility check
+   */
+  async checkCodexInstallationAndCompatibility(): Promise<CodexAvailabilityResult> {
+    const result: CodexAvailabilityResult = {
+      isAvailable: false,
+      isInstalled: false,
+      version: null,
+      isCompatible: false,
+      errorMessage: null,
+      setupGuidance: null
+    };
+
+    try {
+      // First check if Codex CLI is installed and accessible
+      const versionResult = await this.processManager.executeCommand(
+        this.commandBuilder.buildVersionCommand(this.codexConfig.codexPath)
+      );
+
+      if (versionResult.exitCode === 0) {
+        result.isInstalled = true;
+
+        // Parse version from output
+        const versionMatch = versionResult.output?.match(/(\d+\.\d+\.\d+)/);
+        if (versionMatch) {
+          result.version = versionMatch[1];
+
+          // Check version compatibility
+          const isCompatible = this.checkVersionCompatibility(result.version);
+          result.isCompatible = isCompatible;
+
+          if (isCompatible) {
+            result.isAvailable = true;
+            this.outputChannel.appendLine(`[CodexProvider] Codex CLI v${result.version} is available and compatible`);
+          } else {
+            result.errorMessage = `Codex CLI version ${result.version} is not compatible. Minimum required version is ${this.getMinimumRequiredVersion()}`;
+            result.setupGuidance = this.getVersionUpgradeGuidance();
+            this.outputChannel.appendLine(`[CodexProvider] ${result.errorMessage}`);
+          }
+        } else {
+          result.errorMessage = 'Unable to parse Codex CLI version from output';
+          result.setupGuidance = this.getInstallationGuidance();
+          this.outputChannel.appendLine(`[CodexProvider] ${result.errorMessage}`);
+        }
+      } else {
+        result.errorMessage = `Codex CLI command failed with exit code ${versionResult.exitCode}`;
+        if (versionResult.error) {
+          result.errorMessage += `: ${versionResult.error}`;
+        }
+        result.setupGuidance = this.getInstallationGuidance();
+        this.outputChannel.appendLine(`[CodexProvider] ${result.errorMessage}`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      if (errorMessage.includes('ENOENT') || errorMessage.includes('command not found')) {
+        result.errorMessage = `Codex CLI is not installed or not found in PATH`;
+        result.setupGuidance = this.getInstallationGuidance();
+      } else if (errorMessage.includes('EACCES')) {
+        result.errorMessage = `Permission denied when trying to execute Codex CLI`;
+        result.setupGuidance = this.getPermissionGuidance();
+      } else {
+        result.errorMessage = `Failed to check Codex CLI availability: ${errorMessage}`;
+        result.setupGuidance = this.getTroubleshootingGuidance();
+      }
+
+      this.outputChannel.appendLine(`[CodexProvider] ${result.errorMessage}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Check if the given version is compatible with the extension
+   */
+  private checkVersionCompatibility(version: string): boolean {
+    const minVersion = this.getMinimumRequiredVersion();
+    return this.compareVersions(version, minVersion) >= 0;
+  }
+
+  /**
+   * Get the minimum required Codex CLI version
+   */
+  private getMinimumRequiredVersion(): string {
+    return '1.0.0'; // This should be configurable or defined in constants
+  }
+
+  /**
+   * Compare two semantic version strings
+   * Returns: -1 if v1 < v2, 0 if v1 === v2, 1 if v1 > v2
+   */
+  private compareVersions(v1: string, v2: string): number {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+
+    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+      const part1 = parts1[i] || 0;
+      const part2 = parts2[i] || 0;
+
+      if (part1 < part2) return -1;
+      if (part1 > part2) return 1;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Get installation guidance for Codex CLI
+   */
+  private getInstallationGuidance(): string {
+    return this.setupService.getInstallationGuidance();
+  }
+
+  /**
+   * Get version upgrade guidance
+   */
+  private getVersionUpgradeGuidance(): string {
+    const minVersion = this.getMinimumRequiredVersion();
+    return this.setupService.getVersionUpgradeGuidance('unknown', minVersion);
+  }
+
+  /**
+   * Get permission guidance for Codex CLI
+   */
+  private getPermissionGuidance(): string {
+    return this.setupService.getPermissionGuidance();
+  }
+
+  /**
+   * Get general troubleshooting guidance
+   */
+  private getTroubleshootingGuidance(): string {
+    return this.setupService.getTroubleshootingGuidance();
+  }
+
+  /**
+   * Show setup guidance to the user with actionable options
+   */
+  async showSetupGuidance(availabilityResult: CodexAvailabilityResult): Promise<void> {
+    await this.setupService.showSetupGuidance(availabilityResult);
+  }
+
+  /**
    * Execute Codex CLI with the given prompt and options
    */
   async executeCodex(prompt: string, options?: CodexOptions): Promise<CodexResult> {
-    const isAvailable = await this.checkCodexAvailability();
-    if (!isAvailable) {
-      throw new Error('Codex CLI is not available. Please ensure it is installed and accessible.');
+    const availabilityResult = await this.checkCodexInstallationAndCompatibility();
+    if (!availabilityResult.isAvailable) {
+      await this.showSetupGuidance(availabilityResult);
+      throw new Error(availabilityResult.errorMessage || 'Codex CLI is not available. Please ensure it is installed and accessible.');
     }
 
     try {
@@ -149,9 +304,10 @@ export class CodexProvider {
    * Invoke Codex in a new terminal on the right side (split view)
    */
   async invokeCodexSplitView(prompt: string, title: string = 'Kiro for Codex'): Promise<vscode.Terminal> {
-    const isAvailable = await this.checkCodexAvailability();
-    if (!isAvailable) {
-      throw new Error('Codex CLI is not available. Please ensure it is installed and accessible.');
+    const availabilityResult = await this.checkCodexInstallationAndCompatibility();
+    if (!availabilityResult.isAvailable) {
+      await this.showSetupGuidance(availabilityResult);
+      throw new Error(availabilityResult.errorMessage || 'Codex CLI is not available. Please ensure it is installed and accessible.');
     }
 
     try {
@@ -250,5 +406,20 @@ export class CodexProvider {
    */
   getCodexConfig(): CodexConfig {
     return { ...this.codexConfig };
+  }
+
+  /**
+   * Get Codex availability status without showing user guidance
+   */
+  async getCodexAvailabilityStatus(): Promise<CodexAvailabilityResult> {
+    return await this.checkCodexInstallationAndCompatibility();
+  }
+
+  /**
+   * Check if Codex CLI is ready for use (available and compatible)
+   */
+  async isCodexReady(): Promise<boolean> {
+    const result = await this.checkCodexInstallationAndCompatibility();
+    return result.isAvailable;
   }
 }

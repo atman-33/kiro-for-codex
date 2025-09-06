@@ -20,7 +20,7 @@ export class Uri {
       scheme: 'file'
     };
   }
-  
+
   static parse(value: string) {
     return {
       fsPath: value,
@@ -68,11 +68,20 @@ export const workspace = {
   }],
   openTextDocument: jest.fn(),
   createFileSystemWatcher: jest.fn(),
-  textDocuments: []
+  textDocuments: [],
+  getConfiguration: jest.fn(() => ({
+    get: jest.fn((key: string, defaultValue: any) => defaultValue),
+    update: jest.fn(),
+    has: jest.fn(() => true),
+    inspect: jest.fn()
+  })),
+  onDidChangeConfiguration: jest.fn(() => ({
+    dispose: jest.fn()
+  }))
 };
 
 export class RelativePattern {
-  constructor(public folder: any, public pattern: string) {}
+  constructor(public folder: any, public pattern: string) { }
 }
 
 export enum ViewColumn {
@@ -130,8 +139,8 @@ export class TreeItem {
   constructor(
     public label: string,
     public collapsibleState?: any
-  ) {}
-  
+  ) { }
+
   contextValue?: string;
   tooltip?: string;
   command?: any;

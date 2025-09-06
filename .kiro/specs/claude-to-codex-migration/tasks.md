@@ -13,7 +13,7 @@
   - Create migration utilities for existing Claude Code settings
   - _Requirements: 2.1, 2.2, 5.1, 5.2_
 
-- [ ] 3. Implement Codex CLI availability checking
+- [x] 3. Implement Codex CLI availability checking
   - Create Codex CLI installation detection functionality
   - Implement version compatibility checking
   - Add setup guidance for missing Codex CLI installation
