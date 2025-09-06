@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI, ENABLE_HOOKS_UI, ENABLE_AGENTS_UI } from './constants';
+import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI, ENABLE_HOOKS_UI, ENABLE_AGENTS_UI, ENABLE_SPEC_AGENTS } from './constants';
 import { AgentManager } from './features/agents/agent-manager';
 import { SpecManager } from './features/spec/spec-manager';
 import { SteeringManager } from './features/steering/steering-manager';
@@ -270,7 +270,12 @@ function registerCommands(
         }
     });
 
+    // Guard: "New Spec with Agents" is disabled for Codex build
     const createSpecWithAgentsCommand = vscode.commands.registerCommand('kfc.spec.createWithAgents', async () => {
+        if (!ENABLE_SPEC_AGENTS) {
+            vscode.window.showInformationMessage('New Spec with Agents is disabled in this build.');
+            return;
+        }
         try {
             await specManager.createWithAgents();
         } catch (error) {

@@ -96,7 +96,7 @@
       },
       {
         "view": "kfc.views.specExplorer",
-        "contents": "Build complex features with structured planning\n\n[$(plus) Create New Spec](command:kfc.spec.create)\n\n[$(sparkle) Create New Spec With Agents](command:kfc.spec.createWithAgents)"
+        "contents": "Build complex features with structured planning\n\n[$(plus) Create New Spec](command:kfc.spec.create)"
       },
       {
         "view": "kfc.views.hooksStatus",
@@ -140,7 +140,8 @@
         "command": "kfc.spec.createWithAgents",
         "title": "New Spec with Agents",
         "category": "Kiro for Codex",
-        "icon": "$(sparkle)"
+        "icon": "$(sparkle)",
+        "enablement": "false"
       },
       {
         "command": "kfc.steering.create",
@@ -257,11 +258,11 @@
           "when": "view == kfc.views.specExplorer",
           "group": "navigation@1"
         },
-        {
-          "command": "kfc.spec.createWithAgents",
-          "when": "view == kfc.views.specExplorer",
-          "group": "navigation@2"
-        },
+      {
+        "command": "kfc.spec.createWithAgents",
+        "when": "false",
+        "group": "navigation@2"
+      },
         {
           "command": "kfc.spec.refresh",
           "when": "view == kfc.views.specExplorer",
