@@ -14,7 +14,8 @@ export const DEFAULT_CONFIG = {
     views: {
         specs: true,
         steering: true,
-        mcp: true,
+        // Temporarily hide MCP view until CLI commands are available
+        mcp: false,
         hooks: true,
         settings: false
     },
@@ -35,6 +36,9 @@ export const DEFAULT_CONFIG = {
 // Legacy exports for backward compatibility (can be removed after updating all references)
 export const DEFAULT_PATHS = DEFAULT_CONFIG.paths;
 export const DEFAULT_VIEW_VISIBILITY = DEFAULT_CONFIG.views;
+
+// Feature flag to fully disable MCP UI and background loading
+export const ENABLE_MCP_UI = false as const;
 
 // Minimum supported Codex CLI version (hardcoded requirement)
 export const MIN_CODEX_CLI_VERSION = '0.28.0' as const;

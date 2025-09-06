@@ -30,7 +30,7 @@
     "compile-web": "webpack --mode development",
     "watch-web": "webpack --mode development --watch",
     "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
-    "test": "jest",
+    "test": "jest -i",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
@@ -64,7 +64,7 @@
         {
           "id": "kfc.views.mcpServerStatus",
           "name": "MCP Servers",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.mcp.visible"
+          "when": "false"
         },
         {
           "id": "kfc.views.hooksStatus",
@@ -98,7 +98,7 @@
       },
       {
         "view": "kfc.views.mcpServerStatus",
-        "contents": "Connect to external tools and services\nUse 'codex mcp add' to configure servers"
+        "contents": "MCP is temporarily disabled in this build"
       }
     ],
     "commands": [
