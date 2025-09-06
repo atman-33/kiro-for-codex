@@ -1,9 +1,9 @@
 import * as Handlebars from 'handlebars';
-import { 
-  PromptTemplate, 
-  PromptMetadata, 
+import {
   PromptFrontmatter,
-  ValidationResult 
+  PromptMetadata,
+  PromptTemplate,
+  ValidationResult
 } from '../types/prompt.types';
 
 // Import all prompts from index
@@ -55,10 +55,10 @@ export class PromptLoader {
    */
   private registerPrompt(template: PromptTemplate): void {
     const { id } = template.frontmatter;
-    
+
     // Store the template
     this.prompts.set(id, template);
-    
+
     // Compile the template
     try {
       const compiled = Handlebars.compile(template.content);
@@ -85,7 +85,7 @@ export class PromptLoader {
   public renderPrompt(promptId: string, variables: Record<string, any> = {}): string {
     const template = this.loadPrompt(promptId);
     const compiled = this.compiledTemplates.get(promptId);
-    
+
     if (!compiled) {
       throw new Error(`Compiled template not found: ${promptId}`);
     }
@@ -130,7 +130,7 @@ export class PromptLoader {
   public listPrompts(): PromptMetadata[] {
     const metadata: PromptMetadata[] = [];
 
-    for (const [id, template] of this.prompts) {
+    this.prompts.forEach((template, id) => {
       const category = id.split('-')[0]; // Extract category from ID
       metadata.push({
         id,
@@ -139,7 +139,7 @@ export class PromptLoader {
         description: template.frontmatter.description,
         category
       });
-    }
+    });
 
     return metadata;
   }

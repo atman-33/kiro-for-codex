@@ -1,23 +1,25 @@
 import * as vscode from 'vscode';
-import { ClaudeCodeProvider } from './providers/claudeCodeProvider';
+import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE } from './constants';
+import { AgentManager } from './features/agents/agentManager';
+import { PermissionManager } from './features/permission/permissionManager';
 import { SpecManager } from './features/spec/specManager';
 import { SteeringManager } from './features/steering/steeringManager';
-import { SpecExplorerProvider } from './providers/specExplorerProvider';
-import { SteeringExplorerProvider } from './providers/steeringExplorerProvider';
+import { AgentsExplorerProvider } from './providers/agentsExplorerProvider';
+import { ClaudeCodeProvider } from './providers/claudeCodeProvider';
+import { CodexProvider } from './providers/codexProvider';
 import { HooksExplorerProvider } from './providers/hooksExplorerProvider';
 import { MCPExplorerProvider } from './providers/mcpExplorerProvider';
 import { OverviewProvider } from './providers/overviewProvider';
-import { AgentsExplorerProvider } from './providers/agentsExplorerProvider';
-import { AgentManager } from './features/agents/agentManager';
-import { ConfigManager } from './utils/configManager';
-import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE } from './constants';
-import { PromptLoader } from './services/promptLoader';
-import { UpdateChecker } from './utils/updateChecker';
-import { PermissionManager } from './features/permission/permissionManager';
-import { NotificationUtils } from './utils/notificationUtils';
+import { SpecExplorerProvider } from './providers/specExplorerProvider';
 import { SpecTaskCodeLensProvider } from './providers/specTaskCodeLensProvider';
+import { SteeringExplorerProvider } from './providers/steeringExplorerProvider';
+import { PromptLoader } from './services/promptLoader';
+import { ConfigManager } from './utils/configManager';
+import { NotificationUtils } from './utils/notificationUtils';
+import { UpdateChecker } from './utils/updateChecker';
 
 let claudeCodeProvider: ClaudeCodeProvider;
+let codexProvider: CodexProvider;
 let specManager: SpecManager;
 let steeringManager: SteeringManager;
 let permissionManager: PermissionManager;
@@ -53,6 +55,9 @@ export async function activate(context: vscode.ExtensionContext) {
     // Initialize Claude Code SDK provider with output channel
     claudeCodeProvider = new ClaudeCodeProvider(context, outputChannel);
 
+    // Initialize Codex provider for spec management
+    codexProvider = new CodexProvider(context, outputChannel);
+
     // 创建并初始化 PermissionManager
     permissionManager = new PermissionManager(context, outputChannel);
 
@@ -60,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await permissionManager.initializePermissions();
 
     // Initialize feature managers with output channel
-    specManager = new SpecManager(claudeCodeProvider, outputChannel);
+    specManager = new SpecManager(codexProvider, outputChannel);
     steeringManager = new SteeringManager(claudeCodeProvider, outputChannel);
 
     // Initialize Agent Manager and agents
@@ -106,23 +111,23 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Register CodeLens provider for spec tasks
     const specTaskCodeLensProvider = new SpecTaskCodeLensProvider();
-    
+
     // 使用更明确的文档选择器
     const selector: vscode.DocumentSelector = [
-        { 
-            language: 'markdown', 
+        {
+            language: 'markdown',
             pattern: '**/.claude/specs/*/tasks.md',
             scheme: 'file'
         }
     ];
-    
+
     const disposable = vscode.languages.registerCodeLensProvider(
         selector,
         specTaskCodeLensProvider
     );
-    
+
     context.subscriptions.push(disposable);
-    
+
     outputChannel.appendLine('CodeLens provider for spec tasks registered');
 }
 

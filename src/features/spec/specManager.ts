@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { ClaudeCodeProvider } from '../../providers/claudeCodeProvider';
+import * as vscode from 'vscode';
+import { CodexProvider } from '../../providers/codexProvider';
+import { PromptLoader } from '../../services/promptLoader';
 import { ConfigManager } from '../../utils/configManager';
 import { NotificationUtils } from '../../utils/notificationUtils';
-import { PromptLoader } from '../../services/promptLoader';
 
 export type SpecDocumentType = 'requirements' | 'design' | 'tasks';
 
@@ -12,7 +12,7 @@ export class SpecManager {
     private promptLoader: PromptLoader;
 
     constructor(
-        private claudeProvider: ClaudeCodeProvider,
+        private codexProvider: CodexProvider,
         private outputChannel: vscode.OutputChannel
     ) {
         this.configManager = ConfigManager.getInstance();
@@ -25,6 +25,14 @@ export class SpecManager {
     }
 
     async create() {
+        // Check Codex CLI availability first
+        const isCodexReady = await this.codexProvider.isCodexReady();
+        if (!isCodexReady) {
+            const availabilityResult = await this.codexProvider.getCodexAvailabilityStatus();
+            await this.codexProvider.showSetupGuidance(availabilityResult);
+            return;
+        }
+
         // Get feature description only
         const description = await vscode.window.showInputBox({
             title: '✨ Create New Spec ✨',
@@ -44,24 +52,33 @@ export class SpecManager {
         }
 
         // Show notification immediately after user input
-        NotificationUtils.showAutoDismissNotification('Claude is creating your spec. Check the terminal for progress.');
+        NotificationUtils.showAutoDismissNotification('Codex is creating your spec. Check the terminal for progress.');
 
-        // Let Claude handle everything - directory creation, naming, and file creation
-        // Load and render the spec creation prompt
-        const prompt = this.promptLoader.renderPrompt('create-spec', {
+        // Let Codex handle everything - directory creation, naming, and file creation
+        // Load and render the Codex-optimized spec creation prompt
+        const prompt = this.promptLoader.renderPrompt('create-spec-codex', {
             description,
             workspacePath: workspaceFolder.uri.fsPath,
-            specBasePath: this.getSpecBasePath()
+            specBasePath: this.getSpecBasePath(),
+            approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
         });
 
-        // Send to Claude and get the terminal
-        const terminal = await this.claudeProvider.invokeClaudeSplitView(prompt, 'KFC - Creating Spec');
+        // Send to Codex and get the terminal
+        const terminal = await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Creating Spec');
 
         // Set up automatic terminal renaming when spec folder is created
         this.setupSpecFolderWatcher(workspaceFolder, terminal);
     }
 
     async createWithAgents() {
+        // Check Codex CLI availability first
+        const isCodexReady = await this.codexProvider.isCodexReady();
+        if (!isCodexReady) {
+            const availabilityResult = await this.codexProvider.getCodexAvailabilityStatus();
+            await this.codexProvider.showSetupGuidance(availabilityResult);
+            return;
+        }
+
         // Get feature description only
         const description = await vscode.window.showInputBox({
             title: '✨ Create New Spec with Agents ✨',
@@ -81,23 +98,32 @@ export class SpecManager {
         }
 
         // Show notification immediately after user input
-        NotificationUtils.showAutoDismissNotification('Claude is creating your spec with specialized agents. Check the terminal for progress.');
+        NotificationUtils.showAutoDismissNotification('Codex is creating your spec with specialized agents. Check the terminal for progress.');
 
-        // Use the specialized subagent prompt
+        // Use the specialized subagent prompt optimized for Codex
         const prompt = this.promptLoader.renderPrompt('create-spec-with-agents', {
             description,
             workspacePath: workspaceFolder.uri.fsPath,
-            specBasePath: this.getSpecBasePath()
+            specBasePath: this.getSpecBasePath(),
+            approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
         });
 
-        // Send to Claude and get the terminal
-        const terminal = await this.claudeProvider.invokeClaudeSplitView(prompt, 'KFC - Creating Spec (Agents)');
+        // Send to Codex and get the terminal
+        const terminal = await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Creating Spec (Agents)');
 
         // Set up automatic terminal renaming when spec folder is created
         this.setupSpecFolderWatcher(workspaceFolder, terminal);
     }
 
     async implTask(taskFilePath: string, taskDescription: string) {
+        // Check Codex CLI availability first
+        const isCodexReady = await this.codexProvider.isCodexReady();
+        if (!isCodexReady) {
+            const availabilityResult = await this.codexProvider.getCodexAvailabilityStatus();
+            await this.codexProvider.showSetupGuidance(availabilityResult);
+            return;
+        }
+
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
             vscode.window.showErrorMessage('No workspace folder open');
@@ -105,14 +131,16 @@ export class SpecManager {
         }
 
         // Show notification immediately after user input
-        NotificationUtils.showAutoDismissNotification('Claude is implementing your task. Check the terminal for progress.');
+        NotificationUtils.showAutoDismissNotification('Codex is implementing your task. Check the terminal for progress.');
 
-        const prompt = this.promptLoader.renderPrompt('impl-task', {
+        const prompt = this.promptLoader.renderPrompt('impl-task-codex', {
             taskFilePath,
-            taskDescription
+            taskDescription,
+            approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
+            workingDirectory: workspaceFolder.uri.fsPath
         });
 
-        await this.claudeProvider.invokeClaudeSplitView(prompt, 'KFC - Implementing Task');
+        await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Implementing Task');
     }
 
     /**
@@ -149,7 +177,7 @@ export class SpecManager {
             const specName = path.basename(uri.fsPath);
             this.outputChannel.appendLine(`[SpecManager] New spec detected: ${specName}`);
             try {
-                await this.claudeProvider.renameTerminal(terminal, `Spec: ${specName}`);
+                await this.codexProvider.renameTerminal(terminal, `Spec: ${specName}`);
             } catch (error) {
                 this.outputChannel.appendLine(`[SpecManager] Failed to rename terminal: ${error}`);
             }
@@ -275,7 +303,7 @@ This document has not been created yet.`;
         } catch {
             // Directory doesn't exist, create it
             try {
-                this.outputChannel.appendLine('[SpecManager] Creating .claude/specs directory');
+                this.outputChannel.appendLine('[SpecManager] Creating specs directory');
                 await vscode.workspace.fs.createDirectory(vscode.Uri.file(path.dirname(specsPath)));
                 await vscode.workspace.fs.createDirectory(vscode.Uri.file(specsPath));
             } catch {
@@ -292,5 +320,76 @@ This document has not been created yet.`;
             // Directory doesn't exist yet
             return [];
         }
+    }
+
+    /**
+     * Execute a task using Codex CLI with enhanced error handling
+     */
+    async executeTask(taskFilePath: string, taskDescription: string, options?: { approvalMode?: string; }): Promise<void> {
+        // Check Codex CLI availability first
+        const isCodexReady = await this.codexProvider.isCodexReady();
+        if (!isCodexReady) {
+            const availabilityResult = await this.codexProvider.getCodexAvailabilityStatus();
+            await this.codexProvider.showSetupGuidance(availabilityResult);
+            throw new Error('Codex CLI is not available');
+        }
+
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+            throw new Error('No workspace folder open');
+        }
+
+        try {
+            // Set approval mode if provided
+            if (options?.approvalMode) {
+                this.codexProvider.setApprovalMode(options.approvalMode as any);
+            }
+
+            // Show notification
+            NotificationUtils.showAutoDismissNotification('Codex is executing your task. Check the terminal for progress.');
+
+            // Render the prompt with Codex-specific optimizations
+            const prompt = this.promptLoader.renderPrompt('impl-task-codex', {
+                taskFilePath,
+                taskDescription,
+                approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
+                workingDirectory: workspaceFolder.uri.fsPath
+            });
+
+            // Execute using Codex CLI
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Executing Task');
+
+        } catch (error) {
+            this.outputChannel.appendLine(`[SpecManager] Error executing task: ${error}`);
+            vscode.window.showErrorMessage(`Failed to execute task: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Get Codex CLI status and configuration
+     */
+    async getCodexStatus(): Promise<{
+        isReady: boolean;
+        config: any;
+        availabilityResult?: any;
+    }> {
+        const isReady = await this.codexProvider.isCodexReady();
+        const config = this.codexProvider.getCodexConfig();
+
+        if (!isReady) {
+            const availabilityResult = await this.codexProvider.getCodexAvailabilityStatus();
+            return { isReady, config, availabilityResult };
+        }
+
+        return { isReady, config };
+    }
+
+    /**
+     * Update Codex approval mode for spec operations
+     */
+    setCodexApprovalMode(mode: 'interactive' | 'auto-edit' | 'full-auto'): void {
+        this.codexProvider.setApprovalMode(mode as any);
+        this.outputChannel.appendLine(`[SpecManager] Codex approval mode set to: ${mode}`);
     }
 }

@@ -10,7 +10,7 @@ export interface ProcessResult {
 export interface TerminalOptions {
     name: string;
     cwd?: string;
-    location?: vscode.TerminalLocation | { viewColumn: vscode.ViewColumn };
+    location?: vscode.TerminalLocation | { viewColumn: vscode.ViewColumn; };
     hideFromUser?: boolean;
 }
 
@@ -65,7 +65,7 @@ export class ProcessManager {
             childProcess.on('close', (code) => {
                 this.activeProcesses.delete(processId);
                 this.outputChannel.appendLine(`[ProcessManager] Process completed with exit code: ${code}`);
-                
+
                 resolve({
                     exitCode: code || 0,
                     output: output.trim(),
@@ -122,8 +122,8 @@ export class ProcessManager {
      * Create a hidden terminal for background execution with shell integration
      */
     async executeCommandWithShellIntegration(
-        command: string, 
-        cwd?: string, 
+        command: string,
+        cwd?: string,
         timeout: number = 30000
     ): Promise<ProcessResult> {
         return new Promise((resolve, reject) => {
@@ -168,7 +168,7 @@ export class ProcessManager {
                     clearInterval(checkShellIntegration);
                     clearTimeout(timeoutId);
                     terminal.dispose();
-                    
+
                     this.outputChannel.appendLine(`[ProcessManager] Shell integration not available, using fallback`);
                     this.executeCommand(command, cwd).then(resolve).catch(reject);
                 }
@@ -193,9 +193,9 @@ export class ProcessManager {
      */
     killAllProcesses(): void {
         this.outputChannel.appendLine(`[ProcessManager] Killing all active processes`);
-        for (const [id, process] of this.activeProcesses) {
+        this.activeProcesses.forEach((process, id) => {
             process.kill('SIGTERM');
-        }
+        });
         this.activeProcesses.clear();
     }
 
@@ -219,7 +219,7 @@ export class ProcessManager {
 
         for (let i = 0; i < command.length; i++) {
             const char = command[i];
-            
+
             if ((char === '"' || char === "'") && !inQuotes) {
                 inQuotes = true;
                 quoteChar = char;

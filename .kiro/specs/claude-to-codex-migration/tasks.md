@@ -25,7 +25,7 @@
   - Create template system for different Codex approval modes
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 5. Update SpecManager for Codex integration
+- [x] 5. Update SpecManager for Codex integration
   - Modify SpecManager to use CodexProvider instead of ClaudeCodeProvider
   - Update spec creation workflow for Codex CLI
   - Implement task execution using Codex CLI commands
