@@ -200,9 +200,17 @@ export class SpecManager {
     /**
      * Dispose watcher and its event handler
      */
-    private disposeWatcher(disposable: vscode.Disposable, watcher: vscode.FileSystemWatcher): void {
-        disposable.dispose();
-        watcher.dispose();
+    private disposeWatcher(disposable: vscode.Disposable | undefined, watcher: vscode.FileSystemWatcher | undefined): void {
+        try {
+            disposable?.dispose();
+        } catch {
+            // ignore
+        }
+        try {
+            watcher?.dispose();
+        } catch {
+            // ignore
+        }
         this.outputChannel.appendLine(`[SpecManager] Watcher disposed`);
     }
 

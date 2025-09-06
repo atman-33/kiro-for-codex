@@ -11,12 +11,11 @@ export class CommandBuilder {
      * Build a complete Codex CLI command with all options
      */
     buildCommand(promptFilePath: string, options: CommandOptions): string {
-        // Legacy string command (POSIX-style). Retained for split-view terminals.
+        // POSIX terminals (Split View)
         const parts: string[] = [options.codexPath || 'codex'];
         const approvalMode = options.approvalMode || options.defaultApprovalMode;
         if (approvalMode) parts.push(this.buildApprovalModeFlag(approvalMode));
-        if (options.model || options.defaultModel) parts.push(`--model "${options.model || options.defaultModel}"`);
-        if (options.timeout) parts.push(`--timeout ${Math.floor(options.timeout / 1000)}`);
+        if (options.model || options.defaultModel) parts.push(`-m "${options.model || options.defaultModel}"`);
         if (options.workingDirectory) parts.push(this.buildWorkingDirectoryFlag(options.workingDirectory));
         parts.push(`"$(cat "${promptFilePath}")"`);
         return parts.join(' ');
@@ -29,17 +28,15 @@ export class CommandBuilder {
         const args: string[] = [];
         const approvalMode = options.approvalMode || options.defaultApprovalMode;
         if (approvalMode) {
-            args.push('--approval-mode', approvalMode);
+            const flag = this.buildApprovalModeFlag(approvalMode);
+            if (flag === '--full-auto') args.push(flag);
+            else args.push('-a', flag.replace(/^-a\s*/, ''));
         }
         if (options.model || options.defaultModel) {
-            args.push('--model', String(options.model || options.defaultModel));
-        }
-        if (options.timeout) {
-            args.push('--timeout', String(Math.floor(options.timeout / 1000)));
+            args.push('-m', String(options.model || options.defaultModel));
         }
         if (options.workingDirectory) {
-            // Some CLIs support --cwd; if unsupported, the caller should set process cwd
-            args.push('--cwd', options.workingDirectory);
+            args.push('-C', options.workingDirectory);
         }
         return args;
     }
@@ -50,13 +47,13 @@ export class CommandBuilder {
     buildApprovalModeFlag(mode: ApprovalMode): string {
         switch (mode) {
             case ApprovalMode.Interactive:
-                return '--approval-mode interactive';
+                return '-a on-request';
             case ApprovalMode.AutoEdit:
-                return '--approval-mode auto-edit';
+                return '-a on-failure';
             case ApprovalMode.FullAuto:
-                return '--approval-mode full-auto';
+                return '--full-auto';
             default:
-                return '--approval-mode interactive';
+                return '-a on-request';
         }
     }
 
@@ -64,7 +61,7 @@ export class CommandBuilder {
      * Build working directory flag for Codex CLI
      */
     buildWorkingDirectoryFlag(path: string): string {
-        return `--cwd "${path}"`;
+        return `-C "${path}"`;
     }
 
     /**
@@ -98,22 +95,15 @@ export class CommandBuilder {
         // Add approval mode flag
         const approvalMode = options.approvalMode || options.defaultApprovalMode;
         if (approvalMode) {
-            parts.push('--approval-mode', this.escapeShellArg(approvalMode));
+            const flag = this.buildApprovalModeFlag(approvalMode);
+            if (flag === '--full-auto') parts.push(flag);
+            else parts.push('-a', this.escapeShellArg(flag.replace(/^-a\s*/, '')));
         }
-
-        // Add model flag if specified
         if (options.model || options.defaultModel) {
-            parts.push('--model', this.escapeShellArg(options.model || options.defaultModel || ''));
+            parts.push('-m', this.escapeShellArg(options.model || options.defaultModel || ''));
         }
-
-        // Add timeout flag if specified
-        if (options.timeout) {
-            parts.push('--timeout', this.escapeShellArg(Math.floor(options.timeout / 1000).toString()));
-        }
-
-        // Add working directory flag if specified
         if (options.workingDirectory) {
-            parts.push('--cwd', this.escapeShellArg(options.workingDirectory));
+            parts.push('-C', this.escapeShellArg(options.workingDirectory));
         }
 
         // Add the prompt file using command substitution with escaped path

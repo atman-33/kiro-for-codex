@@ -22,7 +22,8 @@ describe('CommandBuilder', () => {
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
             expect(command).toContain('codex');
-            expect(command).toContain('--approval-mode interactive');
+            // New CLI uses short flag and on-request for interactive
+            expect(command).toContain('-a on-request');
             expect(command).toContain(`"$(cat "${promptFilePath}")"`);
         });
 
@@ -38,22 +39,10 @@ describe('CommandBuilder', () => {
 
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
-            expect(command).toContain('--model "gpt-4"');
+            expect(command).toContain('-m "gpt-4"');
         });
 
-        it('should include timeout flag when specified', () => {
-            const promptFilePath = '/tmp/prompt.md';
-            const options: CommandOptions = {
-                codexPath: 'codex',
-                defaultApprovalMode: ApprovalMode.Interactive,
-                timeout: 60000,
-                terminalDelay: 1000,
-            };
-
-            const command = commandBuilder.buildCommand(promptFilePath, options);
-
-            expect(command).toContain('--timeout 60');
-        });
+        // Timeout flag is not used by the current CLI; no expectation here
 
         it('should include working directory flag when specified', () => {
             const promptFilePath = '/tmp/prompt.md';
@@ -67,7 +56,7 @@ describe('CommandBuilder', () => {
 
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
-            expect(command).toContain('--cwd "/workspace/project"');
+            expect(command).toContain('-C "/workspace/project"');
         });
 
         it('should override default approval mode with provided option', () => {
@@ -82,8 +71,8 @@ describe('CommandBuilder', () => {
 
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
-            expect(command).toContain('--approval-mode full-auto');
-            expect(command).not.toContain('--approval-mode interactive');
+            expect(command).toContain('--full-auto');
+            expect(command).not.toContain('-a on-request');
         });
 
         it('should use custom codex path', () => {
@@ -104,39 +93,39 @@ describe('CommandBuilder', () => {
     describe('buildApprovalModeFlag', () => {
         it('should build interactive approval mode flag', () => {
             const flag = commandBuilder.buildApprovalModeFlag(ApprovalMode.Interactive);
-            expect(flag).toBe('--approval-mode interactive');
+            expect(flag).toBe('-a on-request');
         });
 
         it('should build auto-edit approval mode flag', () => {
             const flag = commandBuilder.buildApprovalModeFlag(ApprovalMode.AutoEdit);
-            expect(flag).toBe('--approval-mode auto-edit');
+            expect(flag).toBe('-a on-failure');
         });
 
         it('should build full-auto approval mode flag', () => {
             const flag = commandBuilder.buildApprovalModeFlag(ApprovalMode.FullAuto);
-            expect(flag).toBe('--approval-mode full-auto');
+            expect(flag).toBe('--full-auto');
         });
 
         it('should default to interactive for unknown mode', () => {
             const flag = commandBuilder.buildApprovalModeFlag('unknown' as ApprovalMode);
-            expect(flag).toBe('--approval-mode interactive');
+            expect(flag).toBe('-a on-request');
         });
     });
 
     describe('buildWorkingDirectoryFlag', () => {
         it('should build working directory flag with quoted path', () => {
             const flag = commandBuilder.buildWorkingDirectoryFlag('/path/to/workspace');
-            expect(flag).toBe('--cwd "/path/to/workspace"');
+            expect(flag).toBe('-C "/path/to/workspace"');
         });
 
         it('should handle paths with spaces', () => {
             const flag = commandBuilder.buildWorkingDirectoryFlag('/path with spaces/workspace');
-            expect(flag).toBe('--cwd "/path with spaces/workspace"');
+            expect(flag).toBe('-C "/path with spaces/workspace"');
         });
 
         it('should handle Windows paths', () => {
             const flag = commandBuilder.buildWorkingDirectoryFlag('C:\\Users\\Developer\\Project');
-            expect(flag).toBe('--cwd "C:\\Users\\Developer\\Project"');
+            expect(flag).toBe('-C "C:\\Users\\Developer\\Project"');
         });
     });
 
@@ -180,7 +169,8 @@ describe('CommandBuilder', () => {
 
             expect(command).toContain("'gpt-4'\\''malicious'");
             expect(command).toContain("'/path'\\''with'\\''quotes'");
-            expect(command).toContain("'interactive'");
+            // Interactive maps to 'on-request' now
+            expect(command).toContain("'on-request'");
         });
 
         it('should escape shell arguments properly', () => {
@@ -214,7 +204,7 @@ describe('CommandBuilder', () => {
             const command = commandBuilder.buildSecureCommand(promptFilePath, options);
 
             // Should use defaultModel when model is empty
-            expect(command).toContain("--model 'fallback-model'");
+            expect(command).toContain("-m 'fallback-model'");
         });
     });
 
@@ -234,10 +224,9 @@ describe('CommandBuilder', () => {
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
             expect(command).toContain('/usr/local/bin/codex');
-            expect(command).toContain('--approval-mode auto-edit');
-            expect(command).toContain('--model "gpt-4-turbo"');
-            expect(command).toContain('--timeout 120');
-            expect(command).toContain('--cwd "/workspace/my-project"');
+            expect(command).toContain('-a on-failure');
+            expect(command).toContain('-m "gpt-4-turbo"');
+            expect(command).toContain('-C "/workspace/my-project"');
             expect(command).toContain(`"$(cat "${promptFilePath}")"`);
         });
 
@@ -257,9 +246,12 @@ describe('CommandBuilder', () => {
             const parts = command.split(' ');
 
             expect(parts[0]).toBe('codex');
-            expect(parts.indexOf('--approval-mode')).toBeLessThan(parts.indexOf('--model'));
-            expect(parts.indexOf('--model')).toBeLessThan(parts.indexOf('--timeout'));
-            expect(parts.indexOf('--timeout')).toBeLessThan(parts.indexOf('--cwd'));
+            // FullAuto uses --full-auto instead of -a
+            expect(parts.indexOf('--full-auto')).toBeGreaterThan(-1);
+            expect(parts.indexOf('-m')).toBeGreaterThan(-1);
+            expect(parts.indexOf('-C')).toBeGreaterThan(-1);
+            expect(parts.indexOf('--full-auto')).toBeLessThan(parts.indexOf('-m'));
+            expect(parts.indexOf('-m')).toBeLessThan(parts.indexOf('-C'));
         });
     });
 
@@ -289,7 +281,7 @@ describe('CommandBuilder', () => {
 
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
-            // Zero timeout should not be included (falsy check in implementation)
+            // Timeout flag is not emitted by current implementation
             expect(command).not.toContain('--timeout');
         });
 
@@ -304,7 +296,8 @@ describe('CommandBuilder', () => {
 
             const command = commandBuilder.buildCommand(promptFilePath, options);
 
-            expect(command).toContain('--timeout 999999');
+            // Timeout flag not supported; ensure it isn't present
+            expect(command).not.toContain('--timeout');
         });
 
         it('should handle special characters in file path', () => {
