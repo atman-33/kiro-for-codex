@@ -427,34 +427,154 @@ IMPORTANT:
 
 exports[`Prompt 快照测试 INT-17: create custom steering prompt 快照测试 1`] = `
 "
-<system>
-You are helping to create steering documents for a project. Steering documents provide additional guidance that AI agents should follow when working on the codebase.
+# Task: Create Custom Steering Document
 
-IMPORTANT: The content you generate will be wrapped in the following format when provided to AI agents:
-"I am providing you some additional guidance that you should follow for your entire execution. These are intended to steer you in the right direction. You should follow these instructions for all following responses."
+## Context
+You are creating a steering document that will guide Codex CLI when working on this codebase. Steering documents provide project-specific instructions that ensure consistent code quality and adherence to established patterns.
 
-Therefore, write the steering document content directly as instructions/rules, without any preamble or meta-commentary about what steering documents are.
+**Steering Path:** /snapshot/test/.codex/steering
+**Approval Mode:** 
 
-Steering document content should:
+## Guidance Requirements
+API design patterns and best practices
 
-- Be written as direct instructions to the AI agent
-- Focus on project-specific conventions, patterns, and rules
-- Be concise and actionable
-- Include specific examples from this codebase when relevant
-- Avoid generic advice that would apply to any project
-</system>
+## Expected Output
+A comprehensive steering document that provides clear, actionable guidance for Codex CLI when working on this project.
 
-# Create Custom Steering Document
+## Constraints
+- Write instructions as direct commands to Codex CLI
+- Focus on project-specific conventions and patterns
+- Include concrete examples from the actual codebase
+- Avoid generic programming advice
+- Ensure instructions are compatible with Codex CLI processing
 
-Based on this guidance need: "API design patterns and best practices"
+## Codex CLI Steering Guidelines
 
-Please:
+### Instruction Format
+- Use imperative mood ("Use X", "Avoid Y", "Always Z")
+- Be specific and actionable
+- Include code examples where relevant
+- Reference actual files and patterns from the project
+- Structure information hierarchically for easy parsing
 
-1. Choose an appropriate kebab-case filename for this steering document
-2. Create the document in the /snapshot/test/.claude/steering directory
-3. Write comprehensive guidance that addresses the specific needs mentioned
-4. If a project documentation file exists, add or update the "## Steering Documents" section to include this new document with its description and path
-"
+### Content Categories
+
+#### Code Style and Conventions
+- Naming conventions for files, functions, and variables
+- Code formatting and structure requirements
+- Comment and documentation standards
+- Import/export patterns
+
+#### Architecture Patterns
+- Component organization principles
+- Interface and type definitions
+- Error handling approaches
+- Testing strategies and patterns
+
+#### Project-Specific Rules
+- Framework-specific best practices
+- Build and deployment considerations
+- Performance optimization guidelines
+- Security requirements
+
+#### Integration Guidelines
+- How to work with existing APIs
+- Database interaction patterns
+- External service integration
+- Configuration management
+
+## Approval Mode Considerations
+
+### Interactive Mode
+- Provide examples and explanations for each guideline
+- Include rationale for project-specific decisions
+- Allow for iterative refinement of guidelines
+- Structure content for easy review and modification
+
+### Auto-Edit Mode
+- Focus on clear, unambiguous instructions
+- Minimize subjective or interpretive guidance
+- Provide specific code patterns and examples
+- Ensure guidelines are immediately actionable
+
+### Full-Auto Mode
+- Create comprehensive, self-contained guidance
+- Include all necessary context and examples
+- Anticipate common scenarios and edge cases
+- Provide complete decision-making framework
+
+## Document Structure
+
+\`\`\`markdown
+# [Steering Document Title]
+
+## Overview
+Brief description of the guidance provided in this document.
+
+## Core Principles
+- Fundamental rules that apply across the project
+- Non-negotiable requirements and constraints
+
+## Code Conventions
+### Naming Conventions
+- Specific patterns for different types of identifiers
+- Examples from the actual codebase
+
+### File Organization
+- Directory structure requirements
+- File naming patterns
+- Module organization principles
+
+### Code Style
+- Formatting requirements
+- Comment standards
+- Import/export patterns
+
+## Architecture Guidelines
+### Component Design
+- Interface definitions and patterns
+- Dependency management
+- Error handling approaches
+
+### Testing Requirements
+- Test structure and organization
+- Coverage expectations
+- Mock and stub patterns
+
+## Project-Specific Rules
+### [Domain-Specific Area 1]
+- Specific requirements for this area
+- Examples and patterns to follow
+
+### [Domain-Specific Area 2]
+- Additional project-specific guidance
+- Integration patterns and requirements
+
+## Examples
+### Good Patterns
+\`\`\`typescript
+// Example of preferred approach
+\`\`\`
+
+### Anti-Patterns
+\`\`\`typescript
+// Example of what to avoid
+\`\`\`
+
+## References
+- Links to relevant documentation
+- Related files and examples in the codebase
+\`\`\`
+
+## Success Criteria
+- Steering document provides clear, actionable guidance
+- Instructions are specific to this project's needs
+- Examples reference actual codebase patterns
+- Content is optimized for Codex CLI processing
+- Document follows established steering format
+- Guidelines improve code consistency and quality
+
+Begin by analyzing the project structure and identifying the specific guidance needs described in the requirements."
 `;
 
 exports[`Prompt 快照测试 INT-18: refine steering prompt 快照测试 1`] = `

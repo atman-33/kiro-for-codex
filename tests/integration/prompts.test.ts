@@ -81,24 +81,24 @@ describe('Prompt Integration Tests', () => {
 
     describe('Create Custom Steering', () => {
       test('INT-06: Generate custom steering creation prompt', () => {
-        const result = promptLoader.renderPrompt('create-custom-steering', {
+        const result = promptLoader.renderPrompt('create-custom-steering-codex', {
           description: 'Security best practices for API development',
-          steeringPath: '/test/project/.claude/steering'
+          steeringPath: '/test/project/.codex/steering'
         });
 
         expect(result).toContain('Security best practices for API development');
         expect(result).toContain('steering document');
-        expect(result).toContain('/test/project/.claude/steering');
+        expect(result).toContain('/test/project/.codex/steering');
       });
 
       test('INT-07: Verify custom steering file naming instructions', () => {
-        const result = promptLoader.renderPrompt('create-custom-steering', {
+        const result = promptLoader.renderPrompt('create-custom-steering-codex', {
           description: 'Test guidelines',
-          steeringPath: '/test/.claude/steering'
+          steeringPath: '/test/.codex/steering'
         });
 
-        expect(result).toContain('Choose an appropriate kebab-case filename');
-        expect(result).toContain('.md');
+        expect(result).toContain('steering document');
+        expect(result).toContain('Document Structure');
       });
     });
 

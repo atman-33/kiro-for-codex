@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll } from '@jest/globals';
+import { beforeAll, describe, expect, test } from '@jest/globals';
 import { PromptLoader } from '../../src/services/promptLoader';
 
 describe('Prompt 快照测试', () => {
@@ -28,9 +28,9 @@ describe('Prompt 快照测试', () => {
   });
 
   test('INT-17: create custom steering prompt 快照测试', () => {
-    const result = promptLoader.renderPrompt('create-custom-steering', {
+    const result = promptLoader.renderPrompt('create-custom-steering-codex', {
       description: 'API design patterns and best practices',
-      steeringPath: '/snapshot/test/.claude/steering'
+      steeringPath: '/snapshot/test/.codex/steering'
     });
 
     expect(result).toMatchSnapshot();

@@ -96,12 +96,8 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
                 workspaceFolder,
                 '.codex/agents/**/*.md'
             );
-            const codexAgentsPattern = new vscode.RelativePattern(
-                workspaceFolder,
-                '.codex/agents/**/*.md'
-            );
 
-            this.fileWatcher = vscode.workspace.createFileSystemWatcher(kiroAgentsPattern);
+            this.fileWatcher = vscode.workspace.createFileSystemWatcher(codexAgentsPattern);
             const codexWatcher = vscode.workspace.createFileSystemWatcher(codexAgentsPattern);
 
             // File watcher changes should refresh without loading animation
@@ -119,19 +115,14 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
 
         // Watch user agents directory (including subdirectories)
         const userCodexAgentsPath = path.join(require('os').homedir(), '.codex/agents');
-        const userCodexAgentsPath = path.join(require('os').homedir(), '.codex/agents');
 
-        const userKiroAgentsPattern = new vscode.RelativePattern(
-            userKiroAgentsPath,
-            '**/*.md'
-        );
         const userCodexAgentsPattern = new vscode.RelativePattern(
             userCodexAgentsPath,
             '**/*.md'
         );
 
         try {
-            this.userFileWatcher = vscode.workspace.createFileSystemWatcher(userKiroAgentsPattern);
+            this.userFileWatcher = vscode.workspace.createFileSystemWatcher(userCodexAgentsPattern);
             const userCodexWatcher = vscode.workspace.createFileSystemWatcher(userCodexAgentsPattern);
 
             // File watcher changes should refresh without loading animation
