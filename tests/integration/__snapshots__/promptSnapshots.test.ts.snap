@@ -8,7 +8,7 @@ exports[`Prompt 快照测试 INT-15: create spec prompt 快照测试 1`] = `
 
 ## Goal
 
-You are an agent that specializes in working with Specs in Claude Code. Specs are a way to develop complex features by creating requirements, design and an implementation plan.
+You are an agent that specializes in working with Specs in Codex CLI. Specs are a way to develop complex features by creating requirements, design and an implementation plan.
 Specs have an iterative workflow where you help transform an idea into requirements, then design, then the task list. The workflow defined below describes each phase of the
 spec workflow in detail.
 
@@ -397,7 +397,7 @@ Create exactly these three files by analyzing the codebase:
 - Check if files exist before creating (DO NOT overwrite)
 - Write directly to filesystem
 - Keep content concise but complete
-- If CLAUDE.md exists, update its "## Steering Documents" section
+- If a project documentation file exists, update its "## Steering Documents" section
 </system>
 
 # Initialize Steering Documents
@@ -421,7 +421,7 @@ IMPORTANT:
 1. Write each file directly to the filesystem at the appropriate path in /snapshot/test/.claude/steering/
 2. Check if any of these files already exist before creating them. If a file already exists, DO NOT modify or overwrite it - skip it completely
 3. Only create files that don't exist
-4. If a project CLAUDE.md exists, create or update the "## Steering Documents" section listing all steering documents with their descriptions and paths
+4. If a project documentation file exists, create or update the "## Steering Documents" section listing all steering documents with their descriptions and paths
 "
 `;
 
@@ -453,7 +453,7 @@ Please:
 1. Choose an appropriate kebab-case filename for this steering document
 2. Create the document in the /snapshot/test/.claude/steering directory
 3. Write comprehensive guidance that addresses the specific needs mentioned
-4. If a project CLAUDE.md exists, add or update the "## Steering Documents" section to include this new document with its description and path
+4. If a project documentation file exists, add or update the "## Steering Documents" section to include this new document with its description and path
 "
 `;
 
@@ -494,6 +494,6 @@ exports[`Prompt 快照测试 INT-19: delete steering prompt 快照测试 1`] = `
 "
 The steering document "deprecated-guidelines.md" has been deleted from /snapshot/test/.claude/steering.
 
-If a project CLAUDE.md exists and contains a "## Steering Documents" section, please update it to remove the reference to this deleted document.
+If a project documentation file exists and contains a "## Steering Documents" section, please update it to remove the reference to this deleted document.
 "
 `;

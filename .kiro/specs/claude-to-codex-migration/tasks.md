@@ -85,7 +85,7 @@
   - Update all configuration descriptions and error messages to English
   - _Requirements: 8.1, 8.2, 8.3_
 
-- [ ] 15. Clean up Claude Code dependencies
+- [x] 15. Clean up Claude Code dependencies
   - Remove Claude Code specific imports and references
   - Delete unused Claude Code permission management code
   - Update all documentation and comments

@@ -1,24 +1,22 @@
-# Kiro for Claude Code
+# Kiro for Codex
 
-[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/heisebaiyun.kiro-for-cc.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
-[![Downloads](https://img.shields.io/vscode-marketplace/d/heisebaiyun.kiro-for-cc.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
-[![GitHub stars](https://img.shields.io/github/stars/notdp/kiro-for-cc.svg?style=flat-square)](https://github.com/notdp/kiro-for-cc/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/notdp/kiro-for-cc.svg?style=flat-square)](https://github.com/notdp/kiro-for-cc/issues)
-
-[中文版](./README.zh-CN.md)
+[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/atman-33.kiro-for-codex.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=atman-33.kiro-for-codex)
+[![Downloads](https://img.shields.io/vscode-marketplace/d/atman-33.kiro-for-codex.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=atman-33.kiro-for-codex)
+[![GitHub stars](https://img.shields.io/github/stars/atman-33/kiro-for-codex.svg?style=flat-square)](https://github.com/atman-33/kiro-for-codex/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/atman-33/kiro-for-codex.svg?style=flat-square)](https://github.com/atman-33/kiro-for-codex/issues)
 
 > [!IMPORTANT]
-> **🎉 New: Sub Agent Support Now Available!**  
-> Enhanced Claude Code workflow capabilities through Sub Agent feature. Create specs with parallel processing using specialized agents for requirements, design, and tasks.
+> **🎉 New: Agent Support Now Available!**  
+> Enhanced Codex CLI workflow capabilities through Agent feature. Create specs with parallel processing using specialized agents for requirements, design, and tasks.
 
-A VSCode extension that brings spec-driven development to Claude Code. Manage your specs and steering documents visually while leveraging Claude Code's powerful AI capabilities.
+A VSCode extension that brings spec-driven development to Codex CLI. Manage your specs and steering documents visually while leveraging Codex CLI's powerful AI capabilities.
 
-**NEW: Create SPEC with Sub Agents:**
+**NEW: Create SPEC with Agents:**
 
-1. Click the Kiro for CC icon in the activity bar
+1. Click the Kiro for Codex icon in the activity bar
 2. In the SPEC view header, click the "New Spec with Agents" button (with sparkle icon ✨)
 3. Enter a feature description
-4. Claude will automatically:
+4. Codex CLI will automatically:
    - Load the spec workflow system prompt
    - Delegate work to specialized agents (requirements, design, tasks)
    - Process each phase in parallel with dedicated context windows
@@ -28,26 +26,26 @@ A VSCode extension that brings spec-driven development to Claude Code. Manage yo
   <img src="screenshots/new-spec-with-agents.png" width="600" alt="New Spec with Agents">
 </p>
 
-> **Note**: Sub agents may occasionally experience longer execution times due to a known bug. To maintain compatibility, both the original (`+` button) and new Sub Agent methods are available. The traditional method remains stable if you encounter any issues.
+> **Note**: Agents may occasionally experience longer execution times. To maintain compatibility, both the original (`+` button) and new Agent methods are available. The traditional method remains stable if you encounter any issues.
 
 ## Features
 
 ### 📝 SPEC Management
 
-- **Create Specs**: Generate requirements, design, and task documents with Claude's help
+- **Create Specs**: Generate requirements, design, and task documents with Codex CLI's help
 - **Visual Explorer**: Browse and manage specs in the sidebar
 - **Spec Workflow**: Requirements → Design → Tasks with review at each step
-- **NEW: Sub Agent Support**: Create specs using specialized agents for parallel processing
+- **NEW: Agent Support**: Create specs using specialized agents for parallel processing
 
 ### 🤖 AGENT Management
 
-- **User & Project Agents**: View and manage Claude Code agents at user and project levels
+- **User & Project Agents**: View and manage Codex CLI agents at user and project levels
 - **Built-in Agents**: Pre-configured spec workflow agents (requirements, design, tasks, judge, etc.)
 - **Agent Explorer**: Browse and edit agent configurations with syntax highlighting
 
 ### 🎯 STEERING Management
 
-- **CLAUDE.md**: Browse and edit global/project-specific guidelines
+- **Steering Documents**: Browse and edit global/project-specific guidelines
 - **Generated Docs**: Product, tech, and structure steering documents
 
 ### 🔌 MCP Management
@@ -56,7 +54,7 @@ A VSCode extension that brings spec-driven development to Claude Code. Manage yo
 
 ### 🪝 HOOKS Management
 
-- **Agent Hooks**: View Claude Code hooks
+- **Agent Hooks**: View Codex CLI hooks
 
 ### ⚙️ Others
 
@@ -64,15 +62,15 @@ A VSCode extension that brings spec-driven development to Claude Code. Manage yo
 
 ## Screenshot
 
-![Kiro for Claude Code Extension](./screenshots/image.png)
+![Kiro for Codex Extension](./screenshots/image.png)
 
-*The extension provides a comprehensive sidebar interface with organized views for specs, steering documents, MCP servers, and hooks management. All your Claude Code enhancement tools in one place.*
+*The extension provides a comprehensive sidebar interface with organized views for specs, steering documents, MCP servers, and hooks management. All your Codex CLI enhancement tools in one place.*
 
 ## Installation
 
 ### Prerequisites
 
-1. **Claude Code Installation**: Ensure Claude Code is installed and configured
+1. **Codex CLI Installation**: Ensure Codex CLI is installed and configured
 
 2. **Compatibility**:
 
@@ -91,38 +89,38 @@ A VSCode extension that brings spec-driven development to Claude Code. Manage yo
 
 1. Open VSCode
 2. Go to Extensions (Cmd+Shift+X)
-3. Search for "Kiro for Claude Code"
+3. Search for "Kiro for Codex"
 4. Click Install
 
 Or via command line:
 
 ```bash
-code --install-extension heisebaiyun.kiro-for-cc
+code --install-extension atman-33.kiro-for-codex
 ```
 
 **Cursor users:**
 The extension is available on OpenVSX Registry. In Cursor:
 
 1. Go to Extensions
-2. Search for "Kiro for Claude Code"
+2. Search for "Kiro for Codex"
 3. Click Install
 
 Or via command line:
 
 ```bash
-cursor --install-extension heisebaiyun.kiro-for-cc
+cursor --install-extension atman-33.kiro-for-codex
 ```
 
 ### From VSIX file
 
-Download the latest `.vsix` file from [GitHub Releases](https://github.com/notdp/kiro-for-cc/releases/latest), then:
+Download the latest `.vsix` file from [GitHub Releases](https://github.com/atman-33/kiro-for-codex/releases/latest), then:
 
 ```bash
 # VSCode
-code --install-extension kiro-for-cc-{latest-version}.vsix
+code --install-extension kiro-for-codex-{latest-version}.vsix
 
 # Cursor
-cursor --install-extension kiro-for-cc-{latest-version}.vsix
+cursor --install-extension kiro-for-codex-{latest-version}.vsix
 ```
 
 Replace `{latest-version}` with the actual version number, e.g., `0.2.4`.
@@ -132,10 +130,10 @@ Replace `{latest-version}` with the actual version number, e.g., `0.2.4`.
 ### Creating a Spec
 
 **Traditional Method:**
-1. Click the Kiro for CC icon in the activity bar
+1. Click the Kiro for Codex icon in the activity bar
 2. In the SPEC view, click the `+` button
 3. Enter a feature description
-4. Claude will generate the requirements document
+4. Codex CLI will generate the requirements document
 5. Review and approve before proceeding to design
 6. Generate tasks after design is complete
 
@@ -156,14 +154,14 @@ Create project-specific guidance:
 
 ## Configuration
 
-Settings are stored in `.claude/settings/kfc-settings.json`:
+Settings are stored in `.kiro/settings/kfc-settings.json`:
 
 ```json
 {
   "paths": {
-    "specs": ".claude/specs",
-    "steering": ".claude/steering",
-    "settings": ".claude/settings"
+    "specs": ".kiro/specs",
+    "steering": ".kiro/steering",
+    "settings": ".kiro/settings"
   },
   "views": {
     "specs": {
@@ -190,14 +188,14 @@ Settings are stored in `.claude/settings/kfc-settings.json`:
 The extension creates the following structure in your workspace:
 
 ```plain
-.claude/                      # Extension data directory
-├── specs/                    # Feature specifications
+.kiro/                       # Extension data directory
+├── specs/                   # Feature specifications
 │   └── {spec-name}/
-│       ├── requirements.md   # What to build
-│       ├── design.md        # How to build
-│       └── tasks.md         # Implementation steps
-├── agents/                  # Claude Code agents
-│   └── kfc/                 # Built-in agents (auto-initialized)
+│       ├── requirements.md  # What to build
+│       ├── design.md       # How to build
+│       └── tasks.md        # Implementation steps
+├── agents/                 # Codex CLI agents
+│   └── kfc/                # Built-in agents (auto-initialized)
 │       ├── spec-requirements.md
 │       ├── spec-design.md
 │       ├── spec-tasks.md
@@ -205,12 +203,12 @@ The extension creates the following structure in your workspace:
 │       ├── spec-impl.md
 │       ├── spec-test.md
 │       └── spec-system-prompt-loader.md
-├── steering/                # AI guidance documents
-│   ├── product.md          # Product conventions
-│   ├── tech.md             # Technical standards
-│   └── structure.md        # Code organization
+├── steering/               # AI guidance documents
+│   ├── product.md         # Product conventions
+│   ├── tech.md            # Technical standards
+│   └── structure.md       # Code organization
 ├── settings/
-│   └── kfc-settings.json   # Extension settings
+│   └── kfc-settings.json  # Extension settings
 ```
 
 ## Development
@@ -225,8 +223,8 @@ The extension creates the following structure in your workspace:
 
 ```bash
 # Clone the repository
-git clone https://github.com/notdp/kiro-for-cc.git
-cd kiro-for-cc
+git clone https://github.com/atman-33/kiro-for-codex.git
+cd kiro-for-codex
 
 # Install dependencies
 npm install
@@ -250,7 +248,7 @@ npm run watch
 # Build VSIX package
 npm run package
 
-# Output: kiro-for-cc-{latest-version}.vsix
+# Output: kiro-for-codex-{latest-version}.vsix
 ```
 
 ### Project Structure
@@ -267,7 +265,7 @@ src/
 │   └── agents/
 │       └── agentManager.ts   # Agent initialization and management
 ├── providers/                # VSCode TreeDataProviders
-│   ├── claudeCodeProvider.ts # Claude CLI integration
+│   ├── codexProvider.ts      # Codex CLI integration
 │   ├── specExplorerProvider.ts
 │   ├── steeringExplorerProvider.ts
 │   ├── agentsExplorerProvider.ts    # NEW: Agent explorer

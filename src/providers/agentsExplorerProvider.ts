@@ -92,16 +92,16 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
 
         // Watch project agents directory
         if (workspaceFolder) {
-            const claudeAgentsPattern = new vscode.RelativePattern(
+            const kiroAgentsPattern = new vscode.RelativePattern(
                 workspaceFolder,
-                '.claude/agents/**/*.md'
+                '.kiro/agents/**/*.md'
             );
             const codexAgentsPattern = new vscode.RelativePattern(
                 workspaceFolder,
                 '.codex/agents/**/*.md'
             );
 
-            this.fileWatcher = vscode.workspace.createFileSystemWatcher(claudeAgentsPattern);
+            this.fileWatcher = vscode.workspace.createFileSystemWatcher(kiroAgentsPattern);
             const codexWatcher = vscode.workspace.createFileSystemWatcher(codexAgentsPattern);
 
             // File watcher changes should refresh without loading animation
@@ -118,11 +118,11 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
         }
 
         // Watch user agents directory (including subdirectories)
-        const userClaudeAgentsPath = path.join(require('os').homedir(), '.claude/agents');
+        const userKiroAgentsPath = path.join(require('os').homedir(), '.kiro/agents');
         const userCodexAgentsPath = path.join(require('os').homedir(), '.codex/agents');
 
-        const userClaudeAgentsPattern = new vscode.RelativePattern(
-            userClaudeAgentsPath,
+        const userKiroAgentsPattern = new vscode.RelativePattern(
+            userKiroAgentsPath,
             '**/*.md'
         );
         const userCodexAgentsPattern = new vscode.RelativePattern(
@@ -131,7 +131,7 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
         );
 
         try {
-            this.userFileWatcher = vscode.workspace.createFileSystemWatcher(userClaudeAgentsPattern);
+            this.userFileWatcher = vscode.workspace.createFileSystemWatcher(userKiroAgentsPattern);
             const userCodexWatcher = vscode.workspace.createFileSystemWatcher(userCodexAgentsPattern);
 
             // File watcher changes should refresh without loading animation

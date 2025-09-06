@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
 
 export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<HookItem | undefined | null | void> = new vscode.EventEmitter<HookItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<HookItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private isLoading: boolean = false;
-    
+
     constructor(private context: vscode.ExtensionContext) {
         // Start with loading state
         this.isLoading = true;
@@ -15,7 +15,7 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
             this._onDidChangeTreeData.fire();
         });
     }
-    
+
     refresh(): void {
         this.isLoading = true;
         this._onDidChangeTreeData.fire(); // Fire immediately to show loading state
@@ -24,21 +24,21 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
             this._onDidChangeTreeData.fire(); // Fire again to show the loaded hooks
         });
     }
-    
+
     private async loadHooks(): Promise<void> {
         // Simulate async loading (reading files is actually quite fast)
         await new Promise(resolve => setTimeout(resolve, 100));
     }
-    
+
     getTreeItem(element: HookItem): vscode.TreeItem {
         return element;
     }
-    
+
     async getChildren(element?: HookItem): Promise<HookItem[]> {
         if (!vscode.workspace.workspaceFolders) {
             return [];
         }
-        
+
         if (!element) {
             // Show loading state
             if (this.isLoading) {
@@ -53,13 +53,13 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                     )
                 ];
             }
-            
-            // Show Claude Code hooks directly at root level
-            const hooks = await this.getClaudeCodeHooks();
+
+            // Show Codex hooks directly at root level
+            const hooks = await this.getCodexHooks();
             if (hooks.length === 0) {
                 return [
                     new HookItem(
-                        'No Claude Code hooks configured',
+                        'No Codex hooks configured',
                         vscode.TreeItemCollapsibleState.None,
                         'no-hooks',
                         'no-hooks',
@@ -68,12 +68,12 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                     )
                 ];
             }
-            
+
             return hooks.map(hook => new HookItem(
                 hook.name,
                 vscode.TreeItemCollapsibleState.Collapsed,
                 'hook',
-                `claude-hook-${hook.name}`,
+                `codex-hook-${hook.name}`,
                 undefined, // 移除 command，让点击默认展开/折叠
                 this.context,
                 hook.enabled,
@@ -84,7 +84,7 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
             // Show hook details as children
             const config = element.hookConfig;
             const items: HookItem[] = [];
-            
+
             // Show each trigger configuration
             if (Array.isArray(config)) {
                 config.forEach((trigger, index) => {
@@ -104,13 +104,13 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                     ));
                 });
             }
-            
+
             return items;
         } else if (element.contextValue === 'hook-trigger' && element.hookConfig) {
             // Show trigger details
             const trigger = element.hookConfig;
             const items: HookItem[] = [];
-            
+
             if (trigger.matcher !== undefined) {
                 items.push(new HookItem(
                     `Matcher: ${trigger.matcher || '(empty)'}`,
@@ -121,7 +121,7 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                     this.context
                 ));
             }
-            
+
             if (trigger.hooks && Array.isArray(trigger.hooks)) {
                 trigger.hooks.forEach((hook: any, index: number) => {
                     if (hook.type === 'command') {
@@ -140,21 +140,21 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                     }
                 });
             }
-            
+
             return items;
         }
-        
+
         return [];
     }
-    
-    private async getClaudeCodeHooks(): Promise<{name: string, enabled: boolean, config: any, configPath: string}[]> {
-        const hooks: {name: string, enabled: boolean, config: any, configPath: string}[] = [];
-        
-        // Check workspace .claude/settings.json first
+
+    private async getCodexHooks(): Promise<{ name: string, enabled: boolean, config: any, configPath: string; }[]> {
+        const hooks: { name: string, enabled: boolean, config: any, configPath: string; }[] = [];
+
+        // Check workspace .kiro/settings.json first
         if (vscode.workspace.workspaceFolders) {
             const workspaceConfigPath = path.join(
                 vscode.workspace.workspaceFolders[0].uri.fsPath,
-                '.claude',
+                '.kiro',
                 'settings.json'
             );
             if (fs.existsSync(workspaceConfigPath)) {
@@ -171,16 +171,16 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                         });
                     }
                 } catch (error) {
-                    console.error('Failed to read workspace Claude Code hooks:', error);
+                    console.error('Failed to read workspace Codex hooks:', error);
                 }
             }
         }
-        
-        // Then check global ~/.claude/settings.json
+
+        // Then check global ~/.kiro/settings.json
         try {
-            const claudeConfigPath = path.join(process.env.HOME || '', '.claude', 'settings.json');
-            if (fs.existsSync(claudeConfigPath)) {
-                const config = JSON.parse(fs.readFileSync(claudeConfigPath, 'utf8'));
+            const kiroConfigPath = path.join(process.env.HOME || '', '.kiro', 'settings.json');
+            if (fs.existsSync(kiroConfigPath)) {
+                const config = JSON.parse(fs.readFileSync(kiroConfigPath, 'utf8'));
                 if (config.hooks) {
                     Object.entries(config.hooks).forEach(([name, value]) => {
                         // Only add if not already added from workspace
@@ -189,14 +189,14 @@ export class HooksExplorerProvider implements vscode.TreeDataProvider<HookItem> 
                                 name,
                                 enabled: true,
                                 config: value,
-                                configPath: claudeConfigPath
+                                configPath: kiroConfigPath
                             });
                         }
                     });
                 }
             }
         } catch (error) {
-            console.error('Failed to read global Claude Code hooks:', error);
+            console.error('Failed to read global Codex hooks:', error);
         }
         return hooks;
     }
@@ -215,7 +215,7 @@ class HookItem extends vscode.TreeItem {
         public readonly configPath?: string
     ) {
         super(label, collapsibleState);
-        
+
         // Set appropriate icons
         if (contextValue === 'loading') {
             this.iconPath = new vscode.ThemeIcon('sync~spin');
@@ -243,12 +243,12 @@ class HookItem extends vscode.TreeItem {
         } else {
             this.iconPath = new vscode.ThemeIcon('activate-breakpoints');
         }
-        
+
         // 不需要显示 Active/Inactive，因为出现在配置文件中的都是激活的
-        
+
         // Set tooltips
         if (contextValue === 'no-hooks') {
-            this.tooltip = 'Configure hooks in Claude Code CLI';
+            this.tooltip = 'Configure hooks in Codex CLI';
         } else if (contextValue === 'hook-detail' && label.startsWith('Command:')) {
             this.tooltip = label.substring(9); // Show full command in tooltip
         } else {

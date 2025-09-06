@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # 需要完整历史来获取提交记录
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -73,7 +73,7 @@ jobs:
           generate_release_notes: true
           name: Release v${{ steps.get_version.outputs.VERSION }}
           body: |
-            ## 🎉 Kiro for Claude Code v${{ steps.get_version.outputs.VERSION }}
+            ## 🎉 Kiro for Codex v${{ steps.get_version.outputs.VERSION }}
             
             ${{ steps.extract_changelog.outputs.CHANGELOG }}
             
@@ -82,26 +82,26 @@ jobs:
             **From Extension Marketplace:**
             ```bash
             # VSCode (from VSCode Marketplace)
-            code --install-extension heisebaiyun.kiro-for-cc
+            code --install-extension atman-33.kiro-for-codex
             
             # Cursor (from OpenVSX)
-            cursor --install-extension heisebaiyun.kiro-for-cc
+            cursor --install-extension atman-33.kiro-for-codex
             ```
             
             **From VSIX file:**
             Download the `.vsix` file from assets below and install:
             ```bash
             # VSCode
-            code --install-extension kiro-for-cc-${{ steps.get_version.outputs.VERSION }}.vsix
+            code --install-extension kiro-for-codex-${{ steps.get_version.outputs.VERSION }}.vsix
             
             # Cursor
-            cursor --install-extension kiro-for-cc-${{ steps.get_version.outputs.VERSION }}.vsix
+            cursor --install-extension kiro-for-codex-${{ steps.get_version.outputs.VERSION }}.vsix
             ```
             
             ### Links
-            - [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=heisebaiyun.kiro-for-cc)
-            - [OpenVSX Registry](https://open-vsx.org/extension/heisebaiyun/kiro-for-cc)
-            - [Documentation](https://github.com/notdp/kiro-for-cc#readme)
+            - [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=atman-33.kiro-for-codex)
+            - [OpenVSX Registry](https://open-vsx.org/extension/atman-33/kiro-for-codex)
+            - [Documentation](https://github.com/atman-33/kiro-for-codex#readme)
             
             ---
             See below for auto-generated release notes.
@@ -115,7 +115,7 @@ jobs:
         
       - name: Create OpenVSX namespace (if needed)
         run: |
-          ovsx create-namespace heisebaiyun -p ${{ secrets.OVSX_PAT }} || echo "Namespace already exists"
+          ovsx create-namespace atman-33 -p ${{ secrets.OVSX_PAT }} || echo "Namespace already exists"
         continue-on-error: true
         
       - name: Publish to OpenVSX

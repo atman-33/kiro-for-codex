@@ -1,6 +1,6 @@
 # Codex CLI Prompt Optimization System
 
-This directory contains Codex CLI optimized prompt templates and supporting documentation for the Claude to Codex migration project.
+This directory contains Codex CLI optimized prompt templates and supporting documentation for the Codex CLI integration project.
 
 ## Overview
 
@@ -32,7 +32,7 @@ src/prompts/codex/
 
 ### 3. Template System
 - **Backward Compatibility**: Original templates remain available as fallbacks
-- **Seamless Migration**: Gradual transition from Claude Code to Codex CLI
+- **Seamless Integration**: Optimized templates for Codex CLI
 - **Configuration-Driven**: Easy switching between original and optimized templates
 
 ## Template Categories
@@ -55,7 +55,7 @@ src/prompts/codex/
 
 ### Template Selection
 The system automatically selects the appropriate template based on:
-1. **Provider Type**: Codex CLI vs Claude Code
+1. **Provider Type**: Codex CLI integration
 2. **Approval Mode**: Interactive, Auto-Edit, or Full-Auto
 3. **Configuration**: User preferences and system settings
 

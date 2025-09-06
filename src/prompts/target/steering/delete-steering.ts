@@ -5,7 +5,7 @@ export const frontmatter = {
   "id": "delete-steering",
   "name": "Delete Steering",
   "version": "1.0.0",
-  "description": "Prompt for updating CLAUDE.md after deleting a steering document",
+  "description": "Prompt for updating project documentation after deleting a steering document",
   "variables": {
     "documentName": {
       "type": "string",
@@ -20,7 +20,7 @@ export const frontmatter = {
   }
 };
 
-export const content = "\nThe steering document \"{{documentName}}\" has been deleted from {{steeringPath}}.\n\nIf a project CLAUDE.md exists and contains a \"## Steering Documents\" section, please update it to remove the reference to this deleted document.\n";
+export const content = "\nThe steering document \"{{documentName}}\" has been deleted from {{steeringPath}}.\n\nIf a project documentation file exists and contains a \"## Steering Documents\" section, please update it to remove the reference to this deleted document.\n";
 
 export default {
   frontmatter,

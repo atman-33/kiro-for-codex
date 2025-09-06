@@ -35,7 +35,7 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
 
     async getChildren(element?: SteeringItem): Promise<SteeringItem[]> {
         if (!element) {
-            // Root level - show loading state or CLAUDE.md files
+            // Root level - show loading state or KIRO.md files
             const items: SteeringItem[] = [];
 
             if (this.isLoading) {

@@ -12,7 +12,7 @@ export class SpecTaskCodeLensProvider implements vscode.CodeLensProvider {
 
     public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         // Pattern is already filtered by registration, but double-check for tasks.md
-        if (!document.fileName.includes('.claude/specs/') || !document.fileName.endsWith('tasks.md')) {
+        if (!document.fileName.includes('.kiro/specs/') && !document.fileName.endsWith('tasks.md')) {
             return [];
         }
 

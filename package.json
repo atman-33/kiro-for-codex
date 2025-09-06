@@ -198,18 +198,6 @@
         "icon": "$(ellipsis)"
       },
       {
-        "command": "kfc.permission.check",
-        "title": "Check Permission Status",
-        "category": "Kiro for Codex",
-        "icon": "$(info)"
-      },
-      {
-        "command": "kfc.permission.reset",
-        "title": "Reset Permissions",
-        "category": "Kiro for Codex",
-        "icon": "$(debug-restart)"
-      },
-      {
         "command": "kfc.spec.implTask",
         "title": "Implement Task",
         "category": "Kiro for Codex"

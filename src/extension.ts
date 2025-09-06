@@ -100,13 +100,8 @@ export async function activate(context: vscode.ExtensionContext) {
     // Register CodeLens provider for spec tasks
     const specTaskCodeLensProvider = new SpecTaskCodeLensProvider();
 
-    // Use document selector for both .claude and .kiro spec directories
+    // Use document selector for .kiro spec directories
     const selector: vscode.DocumentSelector = [
-        {
-            language: 'markdown',
-            pattern: '**/.claude/specs/*/tasks.md',
-            scheme: 'file'
-        },
         {
             language: 'markdown',
             pattern: '**/.kiro/specs/*/tasks.md',
@@ -141,37 +136,16 @@ async function initializeDefaultSettings() {
         // Directory might already exist
     }
 
-    // Also maintain .claude directory for backward compatibility
-    const claudeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.claude');
-    const claudeSettingsDir = vscode.Uri.joinPath(claudeDir, 'settings');
-
-    try {
-        await vscode.workspace.fs.createDirectory(claudeDir);
-        await vscode.workspace.fs.createDirectory(claudeSettingsDir);
-    } catch (error) {
-        // Directory might already exist
-    }
-
-    // Create kfc-settings.json in .kiro directory (primary location)
+    // Create kfc-settings.json in .kiro directory
     const kiroSettingsFile = vscode.Uri.joinPath(kiroSettingsDir, CONFIG_FILE_NAME);
-    const claudeSettingsFile = vscode.Uri.joinPath(claudeSettingsDir, CONFIG_FILE_NAME);
 
     try {
         // Check if file exists in .kiro directory
         await vscode.workspace.fs.stat(kiroSettingsFile);
     } catch (error) {
-        // File doesn't exist in .kiro, check .claude for migration
-        let defaultSettings;
-        try {
-            // Try to read from .claude directory for migration
-            const claudeSettingsContent = await vscode.workspace.fs.readFile(claudeSettingsFile);
-            defaultSettings = JSON.parse(claudeSettingsContent.toString());
-            outputChannel.appendLine('Migrated settings from .claude to .kiro directory');
-        } catch (claudeError) {
-            // No existing settings, use defaults
-            const configManager = ConfigManager.getInstance();
-            defaultSettings = configManager.getSettings();
-        }
+        // File doesn't exist, create with defaults
+        const configManager = ConfigManager.getInstance();
+        const defaultSettings = configManager.getSettings();
 
         await vscode.workspace.fs.writeFile(
             kiroSettingsFile,
@@ -314,7 +288,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
         vscode.commands.registerCommand('kfc.steering.delete', async (item: any) => {
             outputChannel.appendLine(`[Steering] Deleting: ${item.label}`);
 
-            // Use SteeringManager to delete the document and update CLAUDE.md
+            // Use SteeringManager to delete the document
             const result = await steeringManager.delete(item.label, item.resourcePath);
 
             if (!result.success && result.error) {
@@ -349,8 +323,8 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             const document = event.document;
             const filePath = document.fileName;
 
-            // Check if this is an agent file in .kiro or .claude directories
-            if ((filePath.includes('.kiro/agents/') || filePath.includes('.claude/agents/')) && filePath.endsWith('.md')) {
+            // Check if this is an agent file in .kiro directories
+            if (filePath.includes('.kiro/agents/') && filePath.endsWith('.md')) {
                 // Show confirmation dialog
                 const result = await vscode.window.showWarningMessage(
                     'Are you sure you want to save changes to this agent file?',
@@ -375,7 +349,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
     );
 
     // Codex integration commands
-    // (removed unused Claude Code specific commands)
+    // Codex CLI integration commands
 
     // Hooks commands
     context.subscriptions.push(
@@ -489,8 +463,7 @@ function setupFileWatchers(
     mcpExplorer: MCPExplorerProvider,
     agentsExplorer: AgentsExplorerProvider
 ) {
-    // Watch for changes in .claude, .kiro, and .codex directories with debouncing
-    const kfcWatcher = vscode.workspace.createFileSystemWatcher('**/.claude/**/*');
+    // Watch for changes in .kiro and .codex directories with debouncing
     const kiroWatcher = vscode.workspace.createFileSystemWatcher('**/.kiro/**/*');
     const codexWatcher = vscode.workspace.createFileSystemWatcher('**/.codex/**/*');
 
@@ -510,10 +483,6 @@ function setupFileWatchers(
         }, 1000); // Increase debounce time to 1 second
     };
 
-    kfcWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
-    kfcWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
-    kfcWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
-
     kiroWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
     kiroWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
     kiroWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
@@ -522,41 +491,32 @@ function setupFileWatchers(
     codexWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
     codexWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
 
-    context.subscriptions.push(kfcWatcher, kiroWatcher, codexWatcher);
+    context.subscriptions.push(kiroWatcher, codexWatcher);
 
-    // Watch for changes in Codex and Claude settings
-    const claudeSettingsWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.claude/settings.json')
-    );
-
+    // Watch for changes in Kiro settings
     const kiroSettingsWatcher = vscode.workspace.createFileSystemWatcher(
         new vscode.RelativePattern(process.env.HOME || '', '.kiro/settings.json')
     );
-
-    claudeSettingsWatcher.onDidChange(() => {
-        hooksExplorer.refresh();
-        mcpExplorer.refresh();
-    });
 
     kiroSettingsWatcher.onDidChange(() => {
         hooksExplorer.refresh();
         mcpExplorer.refresh();
     });
 
-    context.subscriptions.push(claudeSettingsWatcher, kiroSettingsWatcher);
+    context.subscriptions.push(kiroSettingsWatcher);
 
-    // Watch for changes in CLAUDE.md files
-    const globalClaudeMdWatcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(process.env.HOME || '', '.claude/CLAUDE.md')
+    // Watch for changes in KIRO.md files
+    const globalKiroMdWatcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(process.env.HOME || '', '.kiro/KIRO.md')
     );
-    const projectClaudeMdWatcher = vscode.workspace.createFileSystemWatcher('**/CLAUDE.md');
+    const projectKiroMdWatcher = vscode.workspace.createFileSystemWatcher('**/KIRO.md');
 
-    globalClaudeMdWatcher.onDidCreate(() => steeringExplorer.refresh());
-    globalClaudeMdWatcher.onDidDelete(() => steeringExplorer.refresh());
-    projectClaudeMdWatcher.onDidCreate(() => steeringExplorer.refresh());
-    projectClaudeMdWatcher.onDidDelete(() => steeringExplorer.refresh());
+    globalKiroMdWatcher.onDidCreate(() => steeringExplorer.refresh());
+    globalKiroMdWatcher.onDidDelete(() => steeringExplorer.refresh());
+    projectKiroMdWatcher.onDidCreate(() => steeringExplorer.refresh());
+    projectKiroMdWatcher.onDidDelete(() => steeringExplorer.refresh());
 
-    context.subscriptions.push(globalClaudeMdWatcher, projectClaudeMdWatcher);
+    context.subscriptions.push(globalKiroMdWatcher, projectKiroMdWatcher);
 }
 
 export function deactivate() {

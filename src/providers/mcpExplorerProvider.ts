@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as vscode from 'vscode';
 
 const execAsync = promisify(exec);
 
@@ -200,13 +200,13 @@ export class MCPExplorerProvider implements vscode.TreeDataProvider<MCPItem> {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             const cwd = workspaceFolder ? workspaceFolder.uri.fsPath : undefined;
 
-            // Execute claude mcp list command in the workspace directory
-            const { stdout, stderr } = await execAsync('claude mcp list', { cwd });
+            // Execute codex mcp list command in the workspace directory
+            const { stdout, stderr } = await execAsync('codex mcp list', { cwd });
 
 
             // Only log errors, not normal output
             if (stderr) {
-                this.outputChannel.appendLine(`claude mcp list stderr: ${stderr}`);
+                this.outputChannel.appendLine(`codex mcp list stderr: ${stderr}`);
 
                 if (!stdout) {
                     return;
@@ -239,7 +239,7 @@ export class MCPExplorerProvider implements vscode.TreeDataProvider<MCPItem> {
             const colonIndex = line.indexOf(':');
             if (colonIndex > 0) {
                 const name = line.substring(0, colonIndex).trim();
-                
+
                 // Parse status from the line
                 let status: 'connected' | 'disconnected' = 'disconnected';
                 if (line.includes('✓ Connected')) {
@@ -247,7 +247,7 @@ export class MCPExplorerProvider implements vscode.TreeDataProvider<MCPItem> {
                 } else if (line.includes('✗ Failed to connect')) {
                     status = 'disconnected';
                 }
-                
+
                 this.servers.set(name, {
                     name,
                     type: 'stdio', // Default, will be updated with details
@@ -279,7 +279,7 @@ export class MCPExplorerProvider implements vscode.TreeDataProvider<MCPItem> {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             const cwd = workspaceFolder ? workspaceFolder.uri.fsPath : undefined;
 
-            const { stdout, stderr } = await execAsync(`claude mcp get ${name}`, { cwd });
+            const { stdout, stderr } = await execAsync(`codex mcp get ${name}`, { cwd });
 
             if (stderr) {
                 this.outputChannel.appendLine(`Error getting details for ${name}: ${stderr}`);
@@ -368,10 +368,10 @@ export class MCPExplorerProvider implements vscode.TreeDataProvider<MCPItem> {
                     }
                 }
             } else if (trimmed.startsWith('To remove this server')) {
-                // Parse remove command: "To remove this server, run: claude mcp remove "playwright" -s user"
-                const match = trimmed.match(/claude mcp remove "(.+?)" -s (.+)$/);
+                // Parse remove command: "To remove this server, run: codex mcp remove "playwright" -s user"
+                const match = trimmed.match(/codex mcp remove "(.+?)" -s (.+)$/);
                 if (match) {
-                    server.removeCommand = `claude mcp remove "${match[1]}" -s ${match[2]}`;
+                    server.removeCommand = `codex mcp remove "${match[1]}" -s ${match[2]}`;
                 }
             }
         }
@@ -431,14 +431,14 @@ class MCPItem extends vscode.TreeItem {
         // Set tooltips
         if (contextValue === 'mcp-server' && serverInfo) {
             let tooltipText = `MCP Server: ${label}\nType: ${serverInfo.type}\nScope: ${serverInfo.scope}`;
-            
+
             // Add status info to tooltip
             if (serverInfo.status === 'disconnected') {
                 tooltipText += '\nStatus: ✗ Failed to connect';
             } else if (serverInfo.status === 'connected') {
                 tooltipText += '\nStatus: ✓ Connected';
             }
-            
+
             this.tooltip = tooltipText;
         } else if (contextValue === 'mcp-detail') {
             this.tooltip = label;
