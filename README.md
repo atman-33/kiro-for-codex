@@ -74,14 +74,14 @@ A VSCode extension that brings spec-driven development to Codex CLI. Manage your
 
 2. **Compatibility**:
 
-| Platform                  | Support | Notes                                    | Status   |
-| ------------------------- | ------- | ---------------------------------------- | -------- |
-| macOS                     | ✅       | Fully supported                          | released |
-| Linux                     | ✅       | Fully supported                          | released |
-| Windows (WSL)             | ✅       | Supported with automatic path conversion | released |
-| Windows (CMD)             | ❌       | Not supported                            | TBD      |
-| Windows (PowerShell)      | ❌       | Not supported                            | TBD      |
-| Windows (MinTTY Git Bash) | ❌       | Not supported                            | TBD      |
+| Platform                  | Support | Notes                                     | Status   |
+| ------------------------- | ------- | ----------------------------------------- | -------- |
+| macOS                     | ✅       | Fully supported                           | released |
+| Linux                     | ✅       | Fully supported                           | released |
+| Windows (WSL)             | ✅       | Supported with conditional path conversion | released |
+| Windows (CMD)             | ❌       | Not supported                             | TBD      |
+| Windows (PowerShell)      | ✅       | Supported (split view via Get-Content)    | beta     |
+| Windows (MinTTY Git Bash) | ❌       | Not supported                             | TBD      |
 
 ### From Extension Marketplace
 
@@ -255,33 +255,31 @@ npm run package
 
 ```plain
 src/
-├── extension.ts              # Extension entry point, command registration
-├── constants.ts              # Configuration constants
-├── features/                 # Business logic
+├── extension.ts                 # Extension entry point, command registration
+├── constants.ts                 # Configuration constants
+├── features/                    # Business logic
 │   ├── spec/
-│   │   └── specManager.ts    # Spec lifecycle management
+│   │   └── spec-manager.ts       # Spec lifecycle management
 │   ├── steering/
-│   │   └── steeringManager.ts # Steering document management
+│   │   └── steering-manager.ts  # Steering document management
 │   └── agents/
-│       └── agentManager.ts   # Agent initialization and management
-├── providers/                # VSCode TreeDataProviders
-│   ├── codexProvider.ts      # Codex CLI integration
-│   ├── specExplorerProvider.ts
-│   ├── steeringExplorerProvider.ts
-│   ├── agentsExplorerProvider.ts    # NEW: Agent explorer
-│   ├── hooksExplorerProvider.ts
-│   ├── mcpExplorerProvider.ts
-│   └── overviewProvider.ts
-├── prompts/                  # AI prompt templates
-│   ├── specPrompts.ts        # Spec generation prompts
-│   ├── steeringPrompts.ts    # Steering doc prompts
+│       └── agent-manager.ts      # Agent initialization and management
+├── providers/                   # VSCode TreeDataProviders
+│   ├── codex-provider.ts        # Codex CLI integration
+│   ├── spec-explorer-provider.ts
+│   ├── steering-explorer-provider.ts
+│   ├── agents-explorer-provider.ts   # Agent explorer
+│   ├── hooks-explorer-provider.ts
+│   ├── mcp-explorer-provider.ts
+│   └── overview-provider.ts
+├── prompts/                     # AI prompt templates
 │   └── spec/
 │       └── create-spec-with-agents.md # NEW: Sub agent workflow
-├── resources/                # Built-in resources
-│   ├── agents/              # Pre-configured agents
-│   └── prompts/             # System prompts
+├── resources/                   # Built-in resources
+│   ├── agents/                 # Pre-configured agents
+│   └── prompts/                # System prompts
 └── utils/
-    └── configManager.ts      # Configuration management
+    └── config-manager.ts         # Configuration management
 ```
 
 ### Key Architecture Concepts
