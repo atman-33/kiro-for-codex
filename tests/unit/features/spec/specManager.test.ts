@@ -141,7 +141,7 @@ describe('SpecManager with CodexProvider Integration', () => {
       expect(mockCodexProvider.isCodexReady).toHaveBeenCalled();
       expect(mockCodexProvider.invokeCodexSplitView).toHaveBeenCalledWith(
         expect.any(String),
-        'Kiro - Creating Spec'
+        'Codex -Creating Spec'
       );
     });
 
@@ -164,7 +164,7 @@ describe('SpecManager with CodexProvider Integration', () => {
       expect(mockCodexProvider.isCodexReady).toHaveBeenCalled();
       expect(mockCodexProvider.invokeCodexSplitView).toHaveBeenCalledWith(
         expect.any(String),
-        'Kiro - Implementing Task'
+        'Codex -Implementing Task'
       );
     });
 

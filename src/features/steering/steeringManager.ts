@@ -48,14 +48,14 @@ export class SteeringManager {
             // Ensure directory exists
             await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
 
-            // Use Codex-optimized prompt template
-            const prompt = this.promptLoader.renderPrompt('create-custom-steering-codex', {
+            // Use mapping to resolve optimized template at runtime
+            const prompt = this.promptLoader.renderPrompt('create-custom-steering', {
                 description,
                 steeringPath: this.getSteeringBasePath(),
                 approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
             });
 
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Create Steering');
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Create Steering');
 
             // Show auto-dismiss notification
             await NotificationUtils.showAutoDismissNotification('Codex is creating a steering document based on your needs. Check the terminal for progress.');
@@ -135,12 +135,12 @@ export class SteeringManager {
             title: 'Analyzing project and generating steering documents...',
             cancellable: false
         }, async () => {
-            const prompt = this.promptLoader.renderPrompt('init-steering-codex', {
+            const prompt = this.promptLoader.renderPrompt('init-steering', {
                 steeringPath: this.getSteeringBasePath(),
                 approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
             });
 
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Init Steering');
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Init Steering');
 
             // Auto-dismiss notification after 3 seconds
             await NotificationUtils.showAutoDismissNotification('Steering documents generation started. Check the terminal for progress.');
@@ -154,7 +154,7 @@ export class SteeringManager {
         });
 
         // Send to Codex
-        await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Refine Steering');
+        await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Refine Steering');
 
         // Show auto-dismiss notification
         await NotificationUtils.showAutoDismissNotification('Codex is refining the steering document. Check the terminal for progress.');
@@ -213,7 +213,7 @@ Create the file as AGENTS.md in the project root directory.
 
 Begin by analyzing the project structure and creating the AGENTS.md configuration file.`;
 
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Create AGENTS.md');
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Create AGENTS.md');
 
             await NotificationUtils.showAutoDismissNotification('Codex is creating AGENTS.md configuration. Check the terminal for progress.');
         } catch (error) {

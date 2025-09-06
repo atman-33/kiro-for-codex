@@ -56,7 +56,7 @@ export class SpecManager {
 
         // Let Codex handle everything - directory creation, naming, and file creation
         // Load and render the Codex-optimized spec creation prompt
-        const prompt = this.promptLoader.renderPrompt('create-spec-codex', {
+        const prompt = this.promptLoader.renderPrompt('create-spec', {
             description,
             workspacePath: workspaceFolder.uri.fsPath,
             specBasePath: this.getSpecBasePath(),
@@ -64,7 +64,7 @@ export class SpecManager {
         });
 
         // Send to Codex and get the terminal
-        const terminal = await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Creating Spec');
+        const terminal = await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Creating Spec');
 
         // Set up automatic terminal renaming when spec folder is created
         this.setupSpecFolderWatcher(workspaceFolder, terminal);
@@ -109,7 +109,7 @@ export class SpecManager {
         });
 
         // Send to Codex and get the terminal
-        const terminal = await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Creating Spec (Agents)');
+        const terminal = await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Creating Spec (Agents)');
 
         // Set up automatic terminal renaming when spec folder is created
         this.setupSpecFolderWatcher(workspaceFolder, terminal);
@@ -133,14 +133,14 @@ export class SpecManager {
         // Show notification immediately after user input
         NotificationUtils.showAutoDismissNotification('Codex is implementing your task. Check the terminal for progress.');
 
-        const prompt = this.promptLoader.renderPrompt('impl-task-codex', {
+        const prompt = this.promptLoader.renderPrompt('impl-task', {
             taskFilePath,
             taskDescription,
             approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
             workingDirectory: workspaceFolder.uri.fsPath
         });
 
-        await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Implementing Task');
+        await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Implementing Task');
     }
 
     /**
@@ -357,7 +357,7 @@ This document has not been created yet.`;
             });
 
             // Execute using Codex CLI
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Kiro - Executing Task');
+            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Executing Task');
 
         } catch (error) {
             this.outputChannel.appendLine(`[SpecManager] Error executing task: ${error}`);
