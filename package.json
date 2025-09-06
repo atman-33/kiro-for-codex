@@ -50,36 +50,43 @@
         {
           "id": "kfc.views.specExplorer",
           "name": "Specs",
+          "icon": "symbol-structure",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.specs.visible"
         },
         {
           "id": "kfc.views.promptsExplorer",
           "name": "Prompts",
+          "icon": "symbol-string",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.prompts.visible"
         },
         {
           "id": "kfc.views.agentsExplorer",
           "name": "Agents",
+          "icon": "account",
           "when": "false"
         },
         {
           "id": "kfc.views.steeringExplorer",
           "name": "Steering",
+          "icon": "symbol-parameter",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.steering.visible"
         },
         {
           "id": "kfc.views.mcpServerStatus",
           "name": "MCP Servers",
+          "icon": "server",
           "when": "false"
         },
         {
           "id": "kfc.views.hooksStatus",
           "name": "Hooks",
+          "icon": "plug",
           "when": "false"
         },
         {
           "id": "kfc.views.overview",
           "name": "Settings",
+          "icon": "gear",
           "visibility": "collapsed",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.settings.visible"
         }
