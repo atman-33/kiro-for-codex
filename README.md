@@ -6,65 +6,39 @@
 [![GitHub issues](https://img.shields.io/github/issues/atman-33/kiro-for-codex.svg?style=flat-square)](https://github.com/atman-33/kiro-for-codex/issues)
 
 > [!IMPORTANT]
-> **🎉 New: Agent Support Now Available!**  
-> Enhanced Codex CLI workflow capabilities through Agent feature. Create specs with parallel processing using specialized agents for requirements, design, and tasks.
+>   
+> 
 
-A VSCode extension that brings spec-driven development to Codex CLI. Manage your specs and steering documents visually while leveraging Codex CLI's powerful AI capabilities.
+A VSCode extension that brings spec‑driven development to Codex CLI. Manage your specs, steering documents, and custom prompts visually while leveraging Codex CLI's powerful AI capabilities.
 
-**NEW: Create SPEC with Agents:**
 
-1. Click the Kiro for Codex icon in the activity bar
-2. In the SPEC view header, click the "New Spec with Agents" button (with sparkle icon ✨)
-3. Enter a feature description
-4. Codex CLI will automatically:
-   - Load the spec workflow system prompt
-   - Delegate work to specialized agents (requirements, design, tasks)
-   - Process each phase in parallel with dedicated context windows
-5. Review outputs as agents complete their work
-
-<p align="center">
-  <img src="screenshots/new-spec-with-agents.png" width="600" alt="New Spec with Agents">
-</p>
-
-> **Note**: Agents may occasionally experience longer execution times. To maintain compatibility, both the original (`+` button) and new Agent methods are available. The traditional method remains stable if you encounter any issues.
+> **Note**: Agents, MCP, and Hooks UIs are disabled in this build. "New Spec with Agents" flow is also disabled.
 
 ## Features
 
 ### 📝 SPEC Management
 
-- **Create Specs**: Generate requirements, design, and task documents with Codex CLI's help
+- **Create Specs**: Generate requirements, design, and task documents with Codex CLI
 - **Visual Explorer**: Browse and manage specs in the sidebar
 - **Spec Workflow**: Requirements → Design → Tasks with review at each step
-- **NEW: Agent Support**: Create specs using specialized agents for parallel processing
+- **CodeLens for Tasks**: Execute an individual task from `tasks.md` via Codex and auto‑check it off
 
-### 🤖 AGENT Management
+### ⚠️ Temporarily Disabled Views/Flows
 
-- **User & Project Agents**: View and manage Codex CLI agents at user and project levels
-- **Built-in Agents**: Pre-configured spec workflow agents (requirements, design, tasks, judge, etc.)
-- **Agent Explorer**: Browse and edit agent configurations with syntax highlighting
+- AGENTS, HOOKS, MCP views: hidden in this build
+- "New Spec with Agents" flow: disabled
 
 ### 🎯 STEERING Management
 
 - **Steering Documents**: Browse and edit global/project-specific guidelines
 - **Generated Docs**: Product, tech, and structure steering documents
 
-### 🔌 MCP Management
-
-- **MCP Servers**: View configured global and workspace MCP servers
-
-### 🪝 HOOKS Management
-
-- **Agent Hooks**: View Codex CLI hooks
-
-### ⚙️ Others
-
-- **Settings Management**: Centralized configuration
 
 ## Screenshot
 
 ![Kiro for Codex Extension](./screenshots/image.png)
 
-*The extension provides a comprehensive sidebar interface with organized views for specs, steering documents, MCP servers, and hooks management. All your Codex CLI enhancement tools in one place.*
+*The extension provides an organized sidebar for OVERVIEW, SPEC, STEERING, and PROMPTS. Other views are hidden in this build.*
 
 ## Installation
 
@@ -79,9 +53,7 @@ A VSCode extension that brings spec-driven development to Codex CLI. Manage your
 | macOS                     | ✅       | Fully supported                           | released |
 | Linux                     | ✅       | Fully supported                           | released |
 | Windows (WSL)             | ✅       | Supported with conditional path conversion | released |
-| Windows (CMD)             | ❌       | Not supported                             | TBD      |
-| Windows (PowerShell)      | ✅       | Supported (split view via Get-Content)    | beta     |
-| Windows (MinTTY Git Bash) | ❌       | Not supported                             | TBD      |
+| Windows (PowerShell)      | ✅       | Recommended on Windows                    | beta     |
 
 ### From Extension Marketplace
 
@@ -137,6 +109,8 @@ Replace `{latest-version}` with the actual version number, e.g., `0.2.4`.
 5. Review and approve before proceeding to design
 6. Generate tasks after design is complete
 
+Tip: From `tasks.md`, use the inline CodeLens action to execute a single task and auto‑check it off.
+
 ### Spec Workflow
 
 1. **Requirements**: Define what you want to build
@@ -152,6 +126,40 @@ Create project-specific guidance:
 - Generate initial docs (product, tech, structure)
 - Documents are stored in `.codex/steering/`
 
+### Prompts
+
+Create and run project prompts:
+
+1. Open the Prompts view (activity bar → Kiro for Codex → Prompts)
+2. Click `+ Create Prompt` to scaffold `.codex/prompts/<name>.md`
+3. Write your instructions in Markdown (no front‑matter required)
+4. Click the prompt item to run; its contents are sent to Codex CLI in a split terminal
+
+
+### Overview
+
+The Overview view provides quick access to settings, availability checks, and helpful entry points.
+
+## Commands (Quick Reference)
+
+Core commands registered by the extension:
+
+- `kfc.spec.create`: Create a new spec (requirements → design → tasks)
+- `kfc.spec.createWithAgents`: Disabled in this build
+- `kfc.spec.navigate.requirements` / `kfc.spec.navigate.design` / `kfc.spec.navigate.tasks`: Open spec documents
+- `kfc.spec.implTask`: Run an individual task from `tasks.md`
+- `kfc.spec.refresh`: Refresh the SPEC explorer
+- `kfc.steering.create`: Create a custom steering document
+- `kfc.steering.generateInitial`: Analyze the project and generate initial steering docs
+- `kfc.steering.refine`: Refine an existing steering document
+- `kfc.steering.delete`: Delete a steering document and update docs
+- `kfc.prompts.create` / `kfc.prompts.run` / `kfc.prompts.refresh`: Manage and run prompts
+- `kfc.settings.open`: Open workspace settings file `.codex/settings/kfc-settings.json`
+- `kfc.menu.open`: Toggle visibility of views (Specs / Steering; others when enabled)
+- `kfc.codex.checkAvailability`: Check Codex CLI availability and version
+- `kfc.checkForUpdates`: Manually trigger the extension update checker
+
+
 ## Configuration
 
 Settings are stored in `.codex/settings/kfc-settings.json`:
@@ -161,7 +169,8 @@ Settings are stored in `.codex/settings/kfc-settings.json`:
   "paths": {
     "specs": ".codex/specs",
     "steering": ".codex/steering",
-    "settings": ".codex/settings"
+    "settings": ".codex/settings",
+    "prompts": ".codex/prompts"
   },
   "views": {
     "specs": {
@@ -170,15 +179,22 @@ Settings are stored in `.codex/settings/kfc-settings.json`:
     "steering": {
       "visible": true
     },
-    "mcp": {
+    "prompts": {
       "visible": true
     },
-    "hooks": {
-      "visible": true
-    },
+    "mcp": { "visible": false },
+    "hooks": { "visible": false },
+    "agents": { "visible": false },
     "settings": {
       "visible": false
     }
+  },
+  "codex": {
+    "path": "codex",
+    "defaultApprovalMode": "interactive",
+    "defaultModel": "gpt-5",
+    "timeout": 30000,
+    "terminalDelay": 1000
   }
 }
 ```
@@ -192,21 +208,14 @@ The extension creates the following structure in your workspace:
 ├── specs/                   # Feature specifications
 │   └── {spec-name}/
 │       ├── requirements.md  # What to build
-│       ├── design.md       # How to build
-│       └── tasks.md        # Implementation steps
-├── agents/                 # Codex CLI agents
-│   └── kfc/                # Built-in agents (auto-initialized)
-│       ├── spec-requirements.md
-│       ├── spec-design.md
-│       ├── spec-tasks.md
-│       ├── spec-judge.md
-│       ├── spec-impl.md
-│       ├── spec-test.md
-│       └── spec-system-prompt-loader.md
+│       ├── design.md        # How to build
+│       └── tasks.md         # Implementation steps
+├── prompts/                 # Project prompts (Markdown)
+│   └── <your-prompt>.md
 ├── steering/               # AI guidance documents
-│   ├── product.md         # Product conventions
-│   ├── tech.md            # Technical standards
-│   └── structure.md       # Code organization
+│   ├── product.md          # Product conventions
+│   ├── tech.md             # Technical standards
+│   └── structure.md        # Code organization
 ├── settings/
 │   └── kfc-settings.json  # Extension settings
 ```
@@ -268,13 +277,12 @@ src/
 │   ├── codex-provider.ts        # Codex CLI integration
 │   ├── spec-explorer-provider.ts
 │   ├── steering-explorer-provider.ts
-│   ├── agents-explorer-provider.ts   # Agent explorer
-│   ├── hooks-explorer-provider.ts
-│   ├── mcp-explorer-provider.ts
+│   ├── prompts-explorer-provider.ts
 │   └── overview-provider.ts
 ├── prompts/                     # AI prompt templates
 │   └── spec/
 │       └── create-spec-with-agents.md # NEW: Sub agent workflow
+│       # Note: Agents flow is currently disabled at runtime
 ├── resources/                   # Built-in resources
 │   ├── agents/                 # Pre-configured agents
 │   └── prompts/                # System prompts
@@ -288,6 +296,17 @@ src/
 - **Provider Pattern**: Tree views extend `vscode.TreeDataProvider`
 - **Command Pattern**: All commands follow `kfc.{feature}.{action}` naming
 - **Configuration**: Centralized through `ConfigManager` for flexibility
+
+### Testing
+
+- Run tests: `npm test`
+- Watch mode: `npm run test:watch`
+- Coverage: `npm run test:coverage` (output in `coverage/`)
+
+### Windows Notes
+
+- WSL paths are auto‑converted when detected.
+- PowerShell or WSL is recommended; legacy CMD and MinTTY Git Bash may not work reliably.
 
 ## License
 
