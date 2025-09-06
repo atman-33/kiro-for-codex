@@ -54,7 +54,7 @@
         {
           "id": "kfc.views.agentsExplorer",
           "name": "Agents",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.agents.visible"
+          "when": "false"
         },
         {
           "id": "kfc.views.steeringExplorer",
@@ -320,8 +320,8 @@
         },
         "kfc.views.agents.visible": {
           "type": "boolean",
-          "default": true,
-          "description": "Show Agents view"
+          "default": false,
+          "description": "Show Agents view (temporarily disabled)"
         },
         "kfc.views.hooks.visible": {
           "type": "boolean",

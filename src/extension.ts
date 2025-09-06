@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI, ENABLE_HOOKS_UI } from './constants';
+import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI, ENABLE_HOOKS_UI, ENABLE_AGENTS_UI } from './constants';
 import { AgentManager } from './features/agents/agent-manager';
 import { SpecManager } from './features/spec/spec-manager';
 import { SteeringManager } from './features/steering/steering-manager';
@@ -56,9 +56,11 @@ export async function activate(context: vscode.ExtensionContext) {
     specManager = new SpecManager(codexProvider, outputChannel);
     steeringManager = new SteeringManager(codexProvider, outputChannel);
 
-    // Initialize Agent Manager and agents
+    // Initialize Agent Manager (UI may be disabled separately)
     agentManager = new AgentManager(context, outputChannel, codexProvider);
-    await agentManager.initializeBuiltInAgents();
+    if (ENABLE_AGENTS_UI) {
+        await agentManager.initializeBuiltInAgents();
+    }
 
     // Register tree data providers
     const overviewProvider = new OverviewProvider(context);
@@ -72,7 +74,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const mcpExplorer: MCPExplorerProvider | undefined = ENABLE_MCP_UI
         ? new MCPExplorerProvider(context, outputChannel)
         : undefined;
-    const agentsExplorer = new AgentsExplorerProvider(context, agentManager, outputChannel);
+    const agentsExplorer = ENABLE_AGENTS_UI ? new AgentsExplorerProvider(context, agentManager, outputChannel) : undefined;
 
     // Set managers
     specExplorer.setSpecManager(specManager);
@@ -81,9 +83,13 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.registerTreeDataProvider('kfc.views.overview', overviewProvider),
         vscode.window.registerTreeDataProvider('kfc.views.specExplorer', specExplorer),
-        vscode.window.registerTreeDataProvider('kfc.views.agentsExplorer', agentsExplorer),
         vscode.window.registerTreeDataProvider('kfc.views.steeringExplorer', steeringExplorer)
     );
+    if (ENABLE_AGENTS_UI && agentsExplorer) {
+        context.subscriptions.push(
+            vscode.window.registerTreeDataProvider('kfc.views.agentsExplorer', agentsExplorer)
+        );
+    }
     if (ENABLE_HOOKS_UI && hooksExplorer) {
         context.subscriptions.push(
             vscode.window.registerTreeDataProvider('kfc.views.hooksStatus', hooksExplorer)
@@ -234,7 +240,7 @@ async function toggleViews() {
 }
 
 
-function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecExplorerProvider, steeringExplorer: SteeringExplorerProvider, hooksExplorer: HooksExplorerProvider | undefined, mcpExplorer: MCPExplorerProvider | undefined, agentsExplorer: AgentsExplorerProvider, updateChecker: UpdateChecker) {
+function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecExplorerProvider, steeringExplorer: SteeringExplorerProvider, hooksExplorer: HooksExplorerProvider | undefined, mcpExplorer: MCPExplorerProvider | undefined, agentsExplorer: AgentsExplorerProvider | undefined, updateChecker: UpdateChecker) {
 
     // Spec commands
     const createSpecCommand = vscode.commands.registerCommand('kfc.spec.create', async () => {
@@ -336,10 +342,12 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
         }),
 
         // Agents commands
-        vscode.commands.registerCommand('kfc.agents.refresh', async () => {
-            outputChannel.appendLine('[Manual Refresh] Refreshing agents explorer...');
-            agentsExplorer.refresh();
-        })
+        ...(ENABLE_AGENTS_UI && agentsExplorer ? [
+            vscode.commands.registerCommand('kfc.agents.refresh', async () => {
+                outputChannel.appendLine('[Manual Refresh] Refreshing agents explorer...');
+                agentsExplorer.refresh();
+            })
+        ] : [])
     );
 
     // Add file save confirmation for agent files
@@ -493,7 +501,7 @@ function setupFileWatchers(
     steeringExplorer: SteeringExplorerProvider,
     hooksExplorer: HooksExplorerProvider | undefined,
     mcpExplorer: MCPExplorerProvider | undefined,
-    agentsExplorer: AgentsExplorerProvider
+    agentsExplorer: AgentsExplorerProvider | undefined
 ) {
     // Watch for changes in .codex directories with debouncing
     const codexWatcher = vscode.workspace.createFileSystemWatcher('**/.codex/**/*');
@@ -510,7 +518,7 @@ function setupFileWatchers(
             steeringExplorer.refresh();
             hooksExplorer?.refresh();
             mcpExplorer?.refresh();
-            agentsExplorer.refresh();
+            agentsExplorer?.refresh();
         }, 1000); // Increase debounce time to 1 second
     };
 

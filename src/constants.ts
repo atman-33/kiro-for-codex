@@ -44,5 +44,8 @@ export const ENABLE_MCP_UI = false as const;
 // Feature flag to fully disable Hooks UI and background loading
 export const ENABLE_HOOKS_UI = false as const;
 
+// Feature flag to fully disable Agents UI and background loading
+export const ENABLE_AGENTS_UI = false as const;
+
 // Minimum supported Codex CLI version (hardcoded requirement)
 export const MIN_CODEX_CLI_VERSION = '0.28.0' as const;
