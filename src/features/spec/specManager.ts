@@ -349,7 +349,7 @@ This document has not been created yet.`;
             NotificationUtils.showAutoDismissNotification('Codex is executing your task. Check the terminal for progress.');
 
             // Render the prompt with Codex-specific optimizations
-            const prompt = this.promptLoader.renderPrompt('impl-task-codex', {
+            const prompt = this.promptLoader.renderPrompt('impl-task', {
                 taskFilePath,
                 taskDescription,
                 approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,

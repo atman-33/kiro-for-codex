@@ -38,12 +38,11 @@ src/prompts/codex/
 ## Template Categories
 
 ### Spec Templates
-- `create-spec-codex.md`: Optimized spec creation workflow
-- `impl-task-codex.md`: Optimized task implementation
+- Uses the original templates (`create-spec.md`, `impl-task.md`, `create-spec-with-agents.md`).
 
 ### Steering Templates
 - `create-custom-steering-codex.md`: Optimized custom steering creation
-- `init-steering-codex.md`: Optimized steering initialization
+- Uses the original template for initialization (`init-steering.md`).
 
 ### Agent Templates
 - `spec-requirements-codex.md`: Optimized requirements agent

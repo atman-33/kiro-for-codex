@@ -3,18 +3,15 @@
     "spec": {
       "create-spec": {
         "original": "src/prompts/spec/create-spec.md",
-        "codex_optimized": "src/prompts/spec/create-spec-codex.md",
-        "description": "Spec creation workflow optimized for Codex CLI"
+        "description": "Spec creation workflow (uses original template)"
       },
       "create-spec-with-agents": {
         "original": "src/prompts/spec/create-spec-with-agents.md",
-        "codex_optimized": "src/prompts/spec/create-spec-codex.md",
-        "description": "Agent-based spec creation optimized for Codex CLI"
+        "description": "Agent-based spec creation (uses original template)"
       },
       "impl-task": {
         "original": "src/prompts/spec/impl-task.md",
-        "codex_optimized": "src/prompts/spec/impl-task-codex.md",
-        "description": "Task implementation optimized for Codex CLI"
+        "description": "Task implementation (uses original template)"
       }
     },
     "steering": {
@@ -25,8 +22,7 @@
       },
       "init-steering": {
         "original": "src/prompts/steering/init-steering.md",
-        "codex_optimized": "src/prompts/steering/init-steering-codex.md",
-        "description": "Steering initialization optimized for Codex CLI"
+        "description": "Steering initialization (uses original template)"
       },
       "refine-steering": {
         "original": "src/prompts/steering/refine-steering.md",
