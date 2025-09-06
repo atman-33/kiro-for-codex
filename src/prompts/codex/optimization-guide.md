@@ -63,32 +63,88 @@ This guide provides comprehensive instructions for optimizing prompts for Codex 
 ```markdown
 # Code Generation Best Practices
 
-## Interface Definitions
+## Interface Definitions (Functional Approach)
 ```typescript
-// Always provide complete interface definitions
+// Always provide complete interface definitions using functional patterns
 interface ComponentInterface {
-    method1(param: Type): ReturnType;
-    method2(param1: Type1, param2: Type2): Promise<ReturnType>;
+    readonly process: (param: Type) => ReturnType;
+    readonly validate: (param1: Type1, param2: Type2) => Promise<ValidationResult>;
+    readonly transform: (data: InputType) => OutputType;
 }
 ```
 
-## Implementation Patterns
+## Implementation Patterns (Functional)
 ```typescript
-// Provide clear implementation patterns
-class ConcreteImplementation implements ComponentInterface {
-    // Include comprehensive error handling
-    // Follow existing codebase conventions
-    // Add appropriate logging and monitoring
+// Provide clear functional implementation patterns
+const createComponentImplementation = (
+    config: ComponentConfig
+): ComponentInterface => ({
+    process: (param) => {
+        // Include comprehensive error handling
+        // Follow functional programming principles
+        // Use immutable operations
+        return processWithConfig(param, config);
+    },
+    
+    validate: async (param1, param2) => {
+        // Functional validation approach
+        const validationRules = getValidationRules(config);
+        return validateParams(param1, param2, validationRules);
+    },
+    
+    transform: (data) => {
+        // Pure function transformation
+        return pipe(
+            normalizeData,
+            applyBusinessRules,
+            formatOutput
+        )(data);
+    }
+});
+
+// Use classes only when absolutely necessary
+class ComplexStatefulComponent implements ComponentInterface {
+    private readonly state: ComponentState;
+    
+    constructor(initialState: ComponentState) {
+        this.state = initialState;
+    }
+    
+    // Use arrow functions for methods
+    public readonly process = (param: Type): ReturnType => {
+        // Implementation with state management
+    };
 }
 ```
 
-## Testing Patterns
+## Testing Patterns (Functional)
 ```typescript
-// Include comprehensive testing patterns
+// Include comprehensive testing patterns for functional code
 describe('ComponentImplementation', () => {
-    // Setup, test cases, assertions
-    // Cover edge cases and error scenarios
-    // Use appropriate mocking strategies
+    const mockConfig = createMockConfig();
+    const component = createComponentImplementation(mockConfig);
+    
+    describe('process', () => {
+        it('should process data immutably', () => {
+            const input = createTestInput();
+            const result = component.process(input);
+            
+            // Verify input wasn't mutated
+            expect(input).toEqual(createTestInput());
+            expect(result).toEqual(expectedOutput);
+        });
+    });
+    
+    // Test pure functions separately
+    describe('utility functions', () => {
+        it('should transform data predictably', () => {
+            const input = createTestData();
+            const result = transformData(input);
+            
+            // Pure function should always return same output for same input
+            expect(result).toEqual(transformData(input));
+        });
+    });
 });
 ```
 ```
@@ -234,6 +290,179 @@ variables:
 [Comprehensive validation approach]
 ```
 
+## TypeScript Functional Programming Guidelines
+
+### Core Principles
+1. **Functional Programming First**: Prefer functional patterns over object-oriented approaches
+2. **Arrow Functions Preferred**: Use arrow functions for better readability and lexical scoping
+3. **Classes Only When Necessary**: Use classes only for complex state management or when absolutely required
+4. **Immutability**: Favor immutable data structures and pure functions
+5. **Composition Over Inheritance**: Build functionality through composition rather than class hierarchies
+
+### Function Definition Patterns
+```typescript
+// ✅ Preferred: Arrow functions with explicit types
+const processUser = (user: User): ProcessedUser => {
+    return {
+        ...user,
+        processedAt: new Date(),
+        status: 'processed'
+    };
+};
+
+// ✅ For complex functions with multiple operations
+const validateAndProcessUsers = (users: User[]): Result<ProcessedUser[], ValidationError> => {
+    const validUsers = users.filter(isValidUser);
+    const processedUsers = validUsers.map(processUser);
+    
+    return validUsers.length === users.length
+        ? success(processedUsers)
+        : error(new ValidationError('Some users failed validation'));
+};
+
+// ❌ Avoid: Traditional function declarations
+function processUser(user: User): ProcessedUser {
+    // Less preferred approach
+}
+
+// ❌ Avoid: Classes for simple operations
+class UserProcessor {
+    process(user: User): ProcessedUser {
+        // Unnecessary class for simple operation
+    }
+}
+```
+
+### When to Use Classes
+Classes should only be used in these specific scenarios:
+
+```typescript
+// ✅ Acceptable: Complex state management with multiple related methods
+class StateMachine {
+    private state: MachineState;
+    private history: StateTransition[];
+    
+    constructor(initialState: MachineState) {
+        this.state = initialState;
+        this.history = [];
+    }
+    
+    // Use arrow functions for methods to maintain 'this' binding
+    public transition = (event: StateEvent): void => {
+        const previousState = this.state;
+        this.state = this.calculateNextState(event);
+        this.history.push({ from: previousState, to: this.state, event });
+    };
+    
+    public canTransition = (event: StateEvent): boolean => {
+        return this.getValidTransitions().includes(event);
+    };
+}
+
+// ✅ Acceptable: Implementing interfaces that require instance methods
+class DatabaseConnection implements Connection {
+    private pool: ConnectionPool;
+    
+    constructor(config: DatabaseConfig) {
+        this.pool = createPool(config);
+    }
+    
+    public query = async <T>(sql: string, params: unknown[]): Promise<T[]> => {
+        // Implementation
+    };
+}
+
+// ❌ Avoid: Simple data processing that can be functional
+class MathUtils {
+    static add(a: number, b: number): number {
+        return a + b; // This should just be a function
+    }
+}
+```
+
+### Composition Patterns
+```typescript
+// ✅ Preferred: Composition with functions
+interface UserService {
+    validate: (user: User) => ValidationResult;
+    process: (user: User) => ProcessedUser;
+    save: (user: ProcessedUser) => Promise<void>;
+}
+
+const createUserService = (
+    validator: UserValidator,
+    processor: UserProcessor,
+    repository: UserRepository
+): UserService => ({
+    validate: (user) => validator.validate(user),
+    process: (user) => processor.process(user),
+    save: (user) => repository.save(user)
+});
+
+// ✅ Function composition for complex operations
+const processUserPipeline = (user: User): Promise<ProcessedUser> => {
+    return pipe(
+        validateUser,
+        transformUser,
+        enrichUser,
+        saveUser
+    )(user);
+};
+```
+
+### Immutability Patterns
+```typescript
+// ✅ Preferred: Immutable updates
+const updateUserStatus = (user: User, status: UserStatus): User => ({
+    ...user,
+    status,
+    updatedAt: new Date()
+});
+
+// ✅ Immutable array operations
+const addUserToList = (users: User[], newUser: User): User[] => [
+    ...users,
+    newUser
+];
+
+const removeUserFromList = (users: User[], userId: string): User[] =>
+    users.filter(user => user.id !== userId);
+
+// ❌ Avoid: Mutating objects directly
+const updateUserStatusMutable = (user: User, status: UserStatus): void => {
+    user.status = status; // Mutates the original object
+    user.updatedAt = new Date();
+};
+```
+
+### Error Handling with Functional Patterns
+```typescript
+// ✅ Preferred: Result/Either pattern for error handling
+type Result<T, E> = Success<T> | Failure<E>;
+
+interface Success<T> {
+    readonly kind: 'success';
+    readonly value: T;
+}
+
+interface Failure<E> {
+    readonly kind: 'failure';
+    readonly error: E;
+}
+
+const success = <T>(value: T): Success<T> => ({ kind: 'success', value });
+const failure = <E>(error: E): Failure<E> => ({ kind: 'failure', error });
+
+const processUserSafely = (user: User): Result<ProcessedUser, ProcessingError> => {
+    try {
+        const processed = processUser(user);
+        return success(processed);
+    } catch (error) {
+        return failure(new ProcessingError(error.message));
+    }
+};
+```
+
 ## Language and Style Guidelines
 
 ### Technical Writing Best Practices
@@ -242,6 +471,51 @@ variables:
 - Use consistent terminology throughout
 - Avoid jargon unless necessary and defined
 - Structure sentences for easy parsing
+
+### TypeScript Best Practices
+```typescript
+// Prefer functional programming patterns over object-oriented
+// Use arrow functions for better readability and lexical scoping
+const processData = (data: InputType[]): OutputType[] => {
+    return data
+        .filter(item => item.isValid)
+        .map(item => transformItem(item))
+        .sort((a, b) => a.priority - b.priority);
+};
+
+// Use classes only when absolutely necessary (e.g., for complex state management)
+// Prefer composition over inheritance
+interface DataProcessor {
+    process: (data: InputType) => OutputType;
+    validate: (data: InputType) => boolean;
+}
+
+const createDataProcessor = (config: ProcessorConfig): DataProcessor => ({
+    process: (data) => {
+        // Functional implementation
+        return processWithConfig(data, config);
+    },
+    validate: (data) => validateData(data, config.rules)
+});
+
+// Avoid classes unless they provide clear benefits
+// Only use classes for:
+// 1. Complex state management with multiple related methods
+// 2. When implementing interfaces that require instance methods
+// 3. When inheritance provides clear architectural benefits
+class ComplexStateMachine {
+    private state: MachineState;
+    
+    constructor(initialState: MachineState) {
+        this.state = initialState;
+    }
+    
+    // Use arrow functions for methods to maintain 'this' binding
+    public transition = (event: StateEvent): void => {
+        this.state = this.calculateNextState(event);
+    };
+}
+```
 
 ### Code Documentation Standards
 ```typescript
@@ -252,12 +526,13 @@ variables:
  * @returns Clear description of return value
  * @throws {ErrorType} Description of when this error is thrown
  * @example
- * // Clear usage example
- * const result = functionName(param1, param2);
+ * // Clear usage example with functional approach
+ * const result = processFunction(param1, param2);
  */
-function functionName(param1: Type1, param2: Type2): ReturnType {
+const processFunction = (param1: Type1, param2: Type2): ReturnType => {
     // Implementation with clear inline comments
-}
+    // Prefer immutable operations and pure functions
+};
 ```
 
 ### Error Message Guidelines
@@ -365,6 +640,12 @@ throw new ValidationError(
 - Include comprehensive validation criteria
 - Follow existing codebase patterns
 - Implement robust error handling
+- **TypeScript Specific:**
+  - Prefer functional programming patterns over object-oriented
+  - Use arrow functions for better readability and lexical scoping
+  - Favor composition over inheritance
+  - Use immutable data structures and pure functions
+  - Implement type-safe error handling with Result/Either patterns
 
 ### Don'ts
 - Use vague or ambiguous language
@@ -375,6 +656,12 @@ throw new ValidationError(
 - Ignore existing codebase conventions
 - Implement minimal error handling
 - Forget to include success criteria
+- **TypeScript Specific:**
+  - Don't use classes unless absolutely necessary
+  - Avoid traditional function declarations in favor of arrow functions
+  - Don't mutate objects directly - use immutable patterns
+  - Avoid inheritance hierarchies - prefer composition
+  - Don't ignore TypeScript's strict type checking capabilities
 
 ### Continuous Improvement
 - Regularly review and update prompt templates
