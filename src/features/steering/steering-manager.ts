@@ -222,11 +222,11 @@ Begin by analyzing the project structure and creating the AGENTS.md configuratio
     }
 
     /**
-     * Create global configuration file in user's home directory
+     * Create global Codex configuration file (~/.codex/config.toml)
      */
     async createUserConfiguration() {
         const codexDir = path.join(process.env.HOME || '', '.codex');
-        const filePath = path.join(codexDir, 'global-config.md');
+        const filePath = path.join(codexDir, 'config.toml');
 
         // Ensure directory exists
         try {
@@ -239,7 +239,7 @@ Begin by analyzing the project structure and creating the AGENTS.md configuratio
         try {
             await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
             const overwrite = await vscode.window.showWarningMessage(
-                'Global configuration file already exists. Overwrite?',
+                'Global configuration file (~/.codex/config.toml) already exists. Overwrite?',
                 'Overwrite',
                 'Cancel'
             );
@@ -250,27 +250,26 @@ Begin by analyzing the project structure and creating the AGENTS.md configuratio
             // File doesn't exist, continue
         }
 
-        // Create initial content with Codex-specific guidance
-        const initialContent = `# Global Codex Configuration
+        // Create initial TOML content for Codex CLI
+        const initialContent = `# Codex Global Configuration (TOML)
+# This file controls default behavior for Codex CLI across all projects.
 
-## Purpose
-This file contains global configuration and guidance for Codex CLI when working across different projects.
+[cli]
+# One of: on-request, on-failure, full-auto
+default_approval_mode = "on-request"
+default_model = "gpt-5"
+timeout_ms = 30000
 
-## Global Preferences
-- Default approval mode: interactive
-- Preferred code style: consistent with project conventions
-- Documentation style: clear and concise
+[preferences]
+# Values are advisory and may be used by prompts/tools
+code_style = "follow-project"
+documentation_style = "concise"
 
-## Cross-Project Guidelines
-- Always follow existing project patterns
-- Maintain consistent naming conventions
-- Write comprehensive tests for new functionality
-- Document complex logic and decisions
-
-## Codex CLI Settings
-- Use project-specific steering documents when available
-- Respect existing code architecture and patterns
-- Prioritize readability and maintainability
+# Cross‑project guidance (comments only)
+# - Follow existing project patterns
+# - Maintain consistent naming conventions
+# - Write comprehensive tests for new functionality
+# - Document complex logic and decisions
 `;
 
         await vscode.workspace.fs.writeFile(
@@ -283,6 +282,6 @@ This file contains global configuration and guidance for Codex CLI when working 
         await vscode.window.showTextDocument(document);
 
         // Auto-dismiss notification
-        await NotificationUtils.showAutoDismissNotification('Created global Codex configuration file');
+        await NotificationUtils.showAutoDismissNotification('Created ~/.codex/config.toml');
     }
 }

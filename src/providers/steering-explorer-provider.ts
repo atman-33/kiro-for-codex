@@ -51,7 +51,7 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
             }
 
             // Check existence of files
-            const globalConfigFile = path.join(process.env.HOME || '', '.codex', 'global-config.md');
+            const globalConfigFile = path.join(process.env.HOME || '', '.codex', 'config.toml');
             const globalExists = fs.existsSync(globalConfigFile);
 
             let projectDocFile = '';
@@ -194,7 +194,7 @@ class SteeringItem extends vscode.TreeItem {
         } else if (contextValue === 'config-global') {
             this.iconPath = new vscode.ThemeIcon('globe');
             this.tooltip = `Global Configuration: ${resourcePath}`;
-            this.description = '~/.codex/global-config.md';
+            this.description = '~/.codex/config.toml';
         } else if (contextValue === 'agents-project') {
             this.iconPath = new vscode.ThemeIcon('robot');
             this.tooltip = `Agents Configuration: ${resourcePath}`;
