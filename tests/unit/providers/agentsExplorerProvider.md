@@ -1,227 +1,227 @@
-# AgentsExplorerProvider 单元测试用例
+# AgentsExplorerProvider Unit Test Cases
 
-## 测试文件
+## Test File
 
 `agentsExplorerProvider.test.ts`
 
-## 测试目的
+## Test Purpose
 
-确保 AgentsExplorerProvider 正确实现 VSCode TreeDataProvider 接口，提供 agents 的树形视图展示功能。该模块负责在 VSCode 侧边栏中展示用户级和项目级的 agents，并提供交互功能。
+Ensure that AgentsExplorerProvider correctly implements the VSCode TreeDataProvider interface, providing tree view display functionality for agents. This module is responsible for displaying user-level and project-level agents in the VSCode sidebar and providing interactive functionality.
 
-## 测试用例概览
+## Test Case Overview
 
-| 用例 ID    | 功能描述                   | 测试类型 |
-| ---------- | -------------------------- | -------- |
-| TC-AEP-001 | 构造函数初始化             | 正向测试 |
-| TC-AEP-002 | 获取根节点（用户和项目组） | 正向测试 |
-| TC-AEP-003 | 显示 loading 状态          | 正向测试 |
-| TC-AEP-004 | 获取组内的 agents          | 正向测试 |
-| TC-AEP-005 | 处理无工作区情况           | 边界测试 |
-| TC-AEP-006 | Agent 节点属性             | 正向测试 |
-| TC-AEP-007 | 组节点属性                 | 正向测试 |
-| TC-AEP-008 | 设置项目 agents 文件监视   | 正向测试 |
-| TC-AEP-009 | 设置用户 agents 文件监视   | 正向测试 |
-| TC-AEP-010 | 文件变化触发刷新           | 正向测试 |
-| TC-AEP-011 | 手动刷新功能               | 正向测试 |
-| TC-AEP-012 | 刷新时数据更新             | 正向测试 |
-| TC-AEP-013 | 处理 AgentManager 错误     | 异常测试 |
-| TC-AEP-014 | 处理文件监视器创建失败     | 异常测试 |
-| TC-AEP-015 | dispose 方法清理资源       | 正向测试 |
+| Case ID    | Function Description                    | Test Type     |
+| ---------- | --------------------------------------- | ------------- |
+| TC-AEP-001 | Constructor initialization              | Positive test |
+| TC-AEP-002 | Get root nodes (user and project groups)| Positive test |
+| TC-AEP-003 | Display loading state                   | Positive test |
+| TC-AEP-004 | Get agents within groups                | Positive test |
+| TC-AEP-005 | Handle no workspace scenario            | Boundary test |
+| TC-AEP-006 | Agent node properties                   | Positive test |
+| TC-AEP-007 | Group node properties                   | Positive test |
+| TC-AEP-008 | Set up project agents file watching    | Positive test |
+| TC-AEP-009 | Set up user agents file watching       | Positive test |
+| TC-AEP-010 | File changes trigger refresh           | Positive test |
+| TC-AEP-011 | Manual refresh functionality            | Positive test |
+| TC-AEP-012 | Data update during refresh             | Positive test |
+| TC-AEP-013 | Handle AgentManager errors             | Exception test|
+| TC-AEP-014 | Handle file watcher creation failure   | Exception test|
+| TC-AEP-015 | dispose method resource cleanup        | Positive test |
 
-## 测试环境
+## Test Environment
 
-- 测试框架：Jest
-- 模拟：vscode TreeDataProvider API、AgentManager、文件监视器
-- 测试数据：模拟的 agent 列表和树节点
+- Test Framework: Jest
+- Mocks: vscode TreeDataProvider API, AgentManager, file watchers
+- Test Data: Mock agent lists and tree nodes
 
-## 测试用例
+## Test Cases
 
-### 1. 构造函数和初始化
+### 1. Constructor and Initialization
 
-#### TC-AEP-001: 构造函数初始化
+#### TC-AEP-001: Constructor initialization
 
-- **描述**: 验证 AgentsExplorerProvider 正确初始化
-- **前置条件**: 有效的 context、agentManager 和 outputChannel
-- **测试步骤**:
-  1. 创建 AgentsExplorerProvider 实例
-  2. 验证文件监视器设置
-- **预期结果**:
-  - 实例正确创建
-  - 文件监视器正确设置
+- **Description**: Verify AgentsExplorerProvider initializes correctly
+- **Preconditions**: Valid context, agentManager and outputChannel
+- **Test Steps**:
+  1. Create AgentsExplorerProvider instance
+  2. Verify file watcher setup
+- **Expected Results**:
+  - Instance created correctly
+  - File watchers set up correctly
 
-### 2. 树形结构生成
+### 2. Tree Structure Generation
 
-#### TC-AEP-002: 获取根节点（用户和项目组）
+#### TC-AEP-002: Get root nodes (user and project groups)
 
-- **描述**: 验证根级别显示用户和项目 agent 组
-- **前置条件**: 有工作区文件夹
-- **测试步骤**:
-  1. 调用 getChildren() 无参数
-  2. 验证返回的节点
-- **预期结果**:
-  - 返回两个节点：User Agents 和 Project Agents
-  - User Agents 在前，Project Agents 在后
-  - 正确的图标和展开状态
+- **Description**: Verify root level displays user and project agent groups
+- **Preconditions**: Has workspace folder
+- **Test Steps**:
+  1. Call getChildren() with no parameters
+  2. Verify returned nodes
+- **Expected Results**:
+  - Returns two nodes: User Agents and Project Agents
+  - User Agents first, Project Agents second
+  - Correct icons and expansion state
 
-#### TC-AEP-003: 显示 loading 状态
+#### TC-AEP-003: Display loading state
 
-- **描述**: 验证刷新时显示 loading 动画
-- **前置条件**: 调用 refresh() 方法
-- **测试步骤**:
-  1. 调用 refresh()
-  2. 立即调用 getChildren()
-  3. 等待 loading 完成后再次调用
-- **预期结果**:
-  - 第一次返回 loading 节点
-  - loading 节点使用 sync~spin 图标
-  - 完成后返回正常节点
+- **Description**: Verify loading animation displays during refresh
+- **Preconditions**: Call refresh() method
+- **Test Steps**:
+  1. Call refresh()
+  2. Immediately call getChildren()
+  3. Wait for loading completion then call again
+- **Expected Results**:
+  - First call returns loading node
+  - Loading node uses sync~spin icon
+  - After completion returns normal nodes
 
-#### TC-AEP-004: 获取组内的 agents
+#### TC-AEP-004: Get agents within groups
 
-- **描述**: 验证获取特定组下的 agent 列表
-- **前置条件**: AgentManager 返回模拟 agents
-- **测试步骤**:
-  1. 创建组节点
-  2. 调用 getChildren(groupNode)
-  3. 验证返回的 agent 节点
-- **预期结果**:
-  - 返回对应类型的所有 agents
-  - 每个 agent 节点包含正确信息
-  - 使用 robot 图标
+- **Description**: Verify getting agent list under specific group
+- **Preconditions**: AgentManager returns mock agents
+- **Test Steps**:
+  1. Create group node
+  2. Call getChildren(groupNode)
+  3. Verify returned agent nodes
+- **Expected Results**:
+  - Returns all agents of corresponding type
+  - Each agent node contains correct information
+  - Uses robot icon
 
-#### TC-AEP-005: 处理无工作区情况
+#### TC-AEP-005: Handle no workspace scenario
 
-- **描述**: 验证无工作区时返回空列表
-- **前置条件**: vscode.workspace.workspaceFolders 为 undefined
-- **测试步骤**:
-  1. 模拟无工作区
-  2. 调用 getChildren()
-- **预期结果**: 返回空数组
+- **Description**: Verify returns empty list when no workspace
+- **Preconditions**: vscode.workspace.workspaceFolders is undefined
+- **Test Steps**:
+  1. Mock no workspace
+  2. Call getChildren()
+- **Expected Results**: Returns empty array
 
-### 3. 树节点属性
+### 3. Tree Node Properties
 
-#### TC-AEP-006: Agent 节点属性
+#### TC-AEP-006: Agent node properties
 
-- **描述**: 验证 agent 节点的属性设置
-- **前置条件**: 创建包含完整信息的 agent
-- **测试步骤**:
-  1. 创建 AgentItem 实例
-  2. 验证各属性
-- **预期结果**:
-  - 正确的标签和图标
-  - tooltip 显示描述
-  - description 显示工具数量
-  - 包含打开文件的命令
+- **Description**: Verify agent node property settings
+- **Preconditions**: Create agent with complete information
+- **Test Steps**:
+  1. Create AgentItem instance
+  2. Verify all properties
+- **Expected Results**:
+  - Correct label and icon
+  - Tooltip displays description
+  - Description shows tool count
+  - Contains command to open file
 
-#### TC-AEP-007: 组节点属性
+#### TC-AEP-007: Group node properties
 
-- **描述**: 验证组节点的属性设置
-- **前置条件**: 创建用户组和项目组节点
-- **测试步骤**:
-  1. 创建不同类型的组节点
-  2. 验证属性
-- **预期结果**:
-  - User Agents 使用 globe 图标
-  - Project Agents 使用 root-folder 图标
-  - 正确的 tooltip 文本
+- **Description**: Verify group node property settings
+- **Preconditions**: Create user group and project group nodes
+- **Test Steps**:
+  1. Create different types of group nodes
+  2. Verify properties
+- **Expected Results**:
+  - User Agents uses globe icon
+  - Project Agents uses root-folder icon
+  - Correct tooltip text
 
-### 4. 文件监视功能
+### 4. File Watching Functionality
 
-#### TC-AEP-008: 设置项目 agents 文件监视
+#### TC-AEP-008: Set up project agents file watching
 
-- **描述**: 验证项目 agents 目录监视器设置
-- **前置条件**: 有工作区文件夹
-- **测试步骤**:
-  1. 创建 provider 实例
-  2. 验证文件监视器创建
-- **预期结果**:
-  - 创建 .claude/agents/**/*.md 监视器
-  - 监听 create、change、delete 事件
+- **Description**: Verify project agents directory watcher setup
+- **Preconditions**: Has workspace folder
+- **Test Steps**:
+  1. Create provider instance
+  2. Verify file watcher creation
+- **Expected Results**:
+  - Creates .claude/agents/**/*.md watcher
+  - Listens for create, change, delete events
 
-#### TC-AEP-009: 设置用户 agents 文件监视
+#### TC-AEP-009: Set up user agents file watching
 
-- **描述**: 验证用户 agents 目录监视器设置
-- **前置条件**: 用户目录存在
-- **测试步骤**:
-  1. 创建 provider 实例
-  2. 验证用户目录监视器
-- **预期结果**:
-  - 创建 ~/.claude/agents/**/*.md 监视器
-  - 处理监视器创建错误
+- **Description**: Verify user agents directory watcher setup
+- **Preconditions**: User directory exists
+- **Test Steps**:
+  1. Create provider instance
+  2. Verify user directory watcher
+- **Expected Results**:
+  - Creates ~/.claude/agents/**/*.md watcher
+  - Handles watcher creation errors
 
-#### TC-AEP-010: 文件变化触发刷新
+#### TC-AEP-010: File changes trigger refresh
 
-- **描述**: 验证文件变化触发视图刷新
-- **前置条件**: 文件监视器已设置
-- **测试步骤**:
-  1. 触发文件创建事件
-  2. 触发文件修改事件
-  3. 触发文件删除事件
-- **预期结果**:
-  - 每个事件触发 _onDidChangeTreeData
-  - 不显示 loading 动画
+- **Description**: Verify file changes trigger view refresh
+- **Preconditions**: File watchers are set up
+- **Test Steps**:
+  1. Trigger file creation event
+  2. Trigger file modification event
+  3. Trigger file deletion event
+- **Expected Results**:
+  - Each event triggers _onDidChangeTreeData
+  - No loading animation displayed
 
-### 5. 刷新机制
+### 5. Refresh Mechanism
 
-#### TC-AEP-011: 手动刷新功能
+#### TC-AEP-011: Manual refresh functionality
 
-- **描述**: 验证手动刷新显示 loading 动画
-- **前置条件**: Provider 已初始化
-- **测试步骤**:
-  1. 调用 refresh() 方法
-  2. 验证 loading 状态
-  3. 验证完成后状态
-- **预期结果**:
-  - 设置 isLoading 为 true
-  - 触发树更新事件
-  - 100ms 后恢复正常
+- **Description**: Verify manual refresh displays loading animation
+- **Preconditions**: Provider is initialized
+- **Test Steps**:
+  1. Call refresh() method
+  2. Verify loading state
+  3. Verify state after completion
+- **Expected Results**:
+  - Sets isLoading to true
+  - Triggers tree update event
+  - Returns to normal after 100ms
 
-#### TC-AEP-012: 刷新时数据更新
+#### TC-AEP-012: Data update during refresh
 
-- **描述**: 验证刷新后显示最新数据
-- **前置条件**: AgentManager 数据已更新
-- **测试步骤**:
-  1. 更新 AgentManager 返回数据
-  2. 调用 refresh()
-  3. 验证新数据显示
-- **预期结果**: 显示更新后的 agent 列表
+- **Description**: Verify latest data displays after refresh
+- **Preconditions**: AgentManager data has been updated
+- **Test Steps**:
+  1. Update AgentManager return data
+  2. Call refresh()
+  3. Verify new data display
+- **Expected Results**: Displays updated agent list
 
-### 6. 错误处理
+### 6. Error Handling
 
-#### TC-AEP-013: 处理 AgentManager 错误
+#### TC-AEP-013: Handle AgentManager errors
 
-- **描述**: 验证处理 AgentManager 抛出的错误
-- **前置条件**: AgentManager.getAgentList 抛出错误
-- **测试步骤**:
-  1. 模拟 getAgentList 抛出错误
-  2. 调用 getChildren()
-- **预期结果**:
-  - 捕获错误
-  - 返回空列表或错误节点
-  - 记录错误日志
+- **Description**: Verify handling of errors thrown by AgentManager
+- **Preconditions**: AgentManager.getAgentList throws error
+- **Test Steps**:
+  1. Mock getAgentList to throw error
+  2. Call getChildren()
+- **Expected Results**:
+  - Catches error
+  - Returns empty list or error node
+  - Logs error message
 
-#### TC-AEP-014: 处理文件监视器创建失败
+#### TC-AEP-014: Handle file watcher creation failure
 
-- **描述**: 验证文件监视器创建失败的处理
-- **前置条件**: createFileSystemWatcher 抛出错误
-- **测试步骤**:
-  1. 模拟创建监视器失败
-  2. 创建 provider 实例
-- **预期结果**:
-  - 捕获错误
-  - 记录错误信息
-  - Provider 仍能正常工作
+- **Description**: Verify handling of file watcher creation failure
+- **Preconditions**: createFileSystemWatcher throws error
+- **Test Steps**:
+  1. Mock watcher creation failure
+  2. Create provider instance
+- **Expected Results**:
+  - Catches error
+  - Logs error information
+  - Provider still works normally
 
-### 7. 资源清理
+### 7. Resource Cleanup
 
-#### TC-AEP-015: dispose 方法清理资源
+#### TC-AEP-015: dispose method resource cleanup
 
-- **描述**: 验证 dispose 正确清理资源
-- **前置条件**: Provider 已创建并设置监视器
-- **测试步骤**:
-  1. 创建 provider
-  2. 调用 dispose()
-  3. 验证资源清理
-- **预期结果**:
-  - 文件监视器被 dispose
-  - 不再响应文件变化
+- **Description**: Verify dispose correctly cleans up resources
+- **Preconditions**: Provider created and watchers set up
+- **Test Steps**:
+  1. Create provider
+  2. Call dispose()
+  3. Verify resource cleanup
+- **Expected Results**:
+  - File watchers are disposed
+  - No longer responds to file changes

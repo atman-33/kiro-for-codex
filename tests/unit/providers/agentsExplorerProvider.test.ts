@@ -324,7 +324,7 @@ describe('AgentsExplorerProvider', () => {
             expect(mockEventEmitter.fire).toHaveBeenCalledTimes(2);
         });
 
-        test('TC-AEP-012: 刷新时数据更新', async () => {
+        test('TC-AEP-012: Data update during refresh', async () => {
             // Arrange - initial data
             mockAgentManager.getAgentList.mockResolvedValue([{
                 name: 'Old Agent',
@@ -357,8 +357,8 @@ describe('AgentsExplorerProvider', () => {
         });
     });
 
-    describe('6. 错误处理', () => {
-        test('TC-AEP-013: 处理 AgentManager 错误', async () => {
+    describe('6. Error Handling', () => {
+        test('TC-AEP-013: Handle AgentManager errors', async () => {
             // Note: The actual implementation doesn't have error handling,
             // so we'll just verify that the method doesn't crash
             // when getAgentList fails
@@ -385,7 +385,7 @@ describe('AgentsExplorerProvider', () => {
             expect(agents).toEqual([]);
         });
 
-        test('TC-AEP-014: 处理文件监视器创建失败', () => {
+        test('TC-AEP-014: Handle file watcher creation failure', () => {
             // Arrange
             (vscode.workspace.createFileSystemWatcher as jest.Mock)
                 .mockImplementationOnce(() => mockFileWatcher) // First call succeeds (claude project)
@@ -406,8 +406,8 @@ describe('AgentsExplorerProvider', () => {
         });
     });
 
-    describe('7. 资源清理', () => {
-        test('TC-AEP-015: dispose 方法清理资源', () => {
+    describe('7. Resource Cleanup', () => {
+        test('TC-AEP-015: dispose method resource cleanup', () => {
             // Act
             provider.dispose();
 

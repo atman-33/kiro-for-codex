@@ -8,7 +8,7 @@ describe('Markdown Prompt Parsing', () => {
   const promptsDir = path.join(__dirname, '../../../src/prompts');
 
   describe('Markdown File Structure', () => {
-    test('MD-01: 验证所有 markdown 文件的 frontmatter', () => {
+    test('MD-01: Verify frontmatter of all markdown files', () => {
       const mdFiles = glob.sync('**/*.md', { cwd: promptsDir });
 
       expect(mdFiles.length).toBeGreaterThan(0);
@@ -37,7 +37,7 @@ describe('Markdown Prompt Parsing', () => {
       });
     });
 
-    test('MD-02: 验证 Handlebars 变量定义一致性', () => {
+    test('MD-02: Verify Handlebars variable definition consistency', () => {
       const mdFiles = glob.sync('**/*.md', { cwd: promptsDir });
 
       mdFiles.forEach((file: string) => {
@@ -71,7 +71,7 @@ describe('Markdown Prompt Parsing', () => {
   });
 
   describe('Example Markdown Prompts', () => {
-    test('MD-03: 验证 create-spec.md 文件结构', () => {
+    test('MD-03: Verify create-spec.md file structure', () => {
       const specPromptPath = path.join(promptsDir, 'spec/create-spec.md');
       const content = fs.readFileSync(specPromptPath, 'utf-8');
       const { data, content: body } = matter(content);
@@ -111,7 +111,7 @@ describe('Markdown Prompt Parsing', () => {
       expect(body).toContain('{{specBasePath}}');
     });
 
-    test('MD-04: 验证 init-steering.md 文件结构', () => {
+    test('MD-04: Verify init-steering.md file structure', () => {
       const steeringPromptPath = path.join(promptsDir, 'steering/init-steering.md');
       const content = fs.readFileSync(steeringPromptPath, 'utf-8');
       const { data, content: body } = matter(content);
@@ -124,7 +124,7 @@ describe('Markdown Prompt Parsing', () => {
   });
 
   describe('Markdown to TypeScript Compilation', () => {
-    test('MD-05: 验证编译后 TypeScript 文件一致性', () => {
+    test('MD-05: Verify compiled TypeScript file consistency', () => {
       // Compare a markdown file with its compiled TypeScript
       const mdPath = path.join(promptsDir, 'spec/create-spec.md');
       const tsPath = path.join(promptsDir, 'target/spec/create-spec.ts');
@@ -152,7 +152,7 @@ describe('Markdown Prompt Parsing', () => {
 });
 
 describe('Test with Mock Markdown Files', () => {
-  test('MD-06: 解析简单的 greeting prompt', () => {
+  test('MD-06: Parse simple greeting prompt', () => {
     const mockMarkdown = `---
 id: test-greeting
 name: Greeting Prompt
@@ -189,7 +189,7 @@ Let me help you with your request.`;
     expect(content).toContain('{{#if mood}}');
   });
 
-  test('MD-07: 解析包含 system 标签的复杂 prompt', () => {
+  test('MD-07: Parse complex prompt with system tags', () => {
     const mockMarkdown = `---
 id: complex-prompt
 name: Complex System Prompt

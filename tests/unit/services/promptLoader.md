@@ -1,57 +1,57 @@
-# PromptLoader 单元测试用例
+# PromptLoader Unit Test Cases
 
-## 测试文件
+## Test File
 
 `promptLoader.test.ts`
 
-## 测试目的
+## Test Purpose
 
-确保 PromptLoader 服务在代码更新后仍然正常工作，包括单例模式、初始化、加载、渲染和错误处理等核心功能。
+Ensure that the PromptLoader service continues to work properly after code updates, including core functionality such as singleton pattern, initialization, loading, rendering, and error handling.
 
-## 测试用例概览
+## Test Case Overview
 
-| 用例 ID | 功能描述                   | 测试类型 |
-| ------- | -------------------------- | -------- |
-| PL-01   | 获取单例实例               | 正向测试 |
-| PL-02   | 初始化加载所有 prompts     | 正向测试 |
-| PL-03   | 通过 ID 加载 prompt        | 正向测试 |
-| PL-04   | 加载不存在的 prompt        | 异常测试 |
-| PL-05   | 渲染包含所有变量的 prompt  | 正向测试 |
-| PL-06   | 渲染缺少可选变量的 prompt  | 正向测试 |
-| PL-07   | 渲染缺少必需变量的 prompt  | 异常测试 |
-| PL-08   | 渲染无变量的简单 prompt    | 正向测试 |
-| PL-09   | 获取所有 prompts 列表      | 正向测试 |
-| PL-10   | 处理无效的 Handlebars 语法 | 异常测试 |
-| PL-11   | 处理无效的 prompt 模块     | 异常测试 |
+| Case ID | Function Description                    | Test Type     |
+| ------- | --------------------------------------- | ------------- |
+| PL-01   | Get singleton instance                  | Positive test |
+| PL-02   | Initialize and load all prompts        | Positive test |
+| PL-03   | Load prompt by ID                       | Positive test |
+| PL-04   | Load non-existent prompt               | Exception test|
+| PL-05   | Render prompt with all variables       | Positive test |
+| PL-06   | Render prompt with missing optional variables | Positive test |
+| PL-07   | Render prompt with missing required variables | Exception test|
+| PL-08   | Render simple prompt without variables    | Positive test |
+| PL-09   | Get all prompts list                      | Positive test |
+| PL-10   | Handle invalid Handlebars syntax         | Exception test|
+| PL-11   | Handle invalid prompt modules             | Exception test|
 
-## 详细测试步骤
+## Detailed Test Steps
 
-### PL-01: 获取单例实例
+### PL-01: Get singleton instance
 
-**测试目的**: 验证 PromptLoader 实现了正确的单例模式
+**Test Purpose**: Verify that PromptLoader implements correct singleton pattern
 
-**准备数据**:
+**Test Data**:
 
-- 清理可能存在的实例状态
+- Clear any existing instance state
 
-**测试步骤**:
+**Test Steps**:
 
-1. 第一次调用 `PromptLoader.getInstance()`，获取实例 1
-2. 第二次调用 `PromptLoader.getInstance()`，获取实例 2
-3. 比较两个实例是否为同一对象
+1. First call to `PromptLoader.getInstance()`, get instance 1
+2. Second call to `PromptLoader.getInstance()`, get instance 2
+3. Compare if both instances are the same object
 
-**预期结果**:
+**Expected Results**:
 
-- instance1 === instance2 返回 true
-- 两次调用返回相同的对象引用
+- instance1 === instance2 returns true
+- Both calls return the same object reference
 
-### PL-02: 初始化加载所有 prompts
+### PL-02: Initialize and load all prompts
 
-**测试目的**: 验证 PromptLoader 能够成功初始化并加载所有配置的 prompt 模板
+**Test Purpose**: Verify that PromptLoader can successfully initialize and load all configured prompt templates
 
-**准备数据**:
+**Test Data**:
 
-- Mock prompts/target 模块，提供测试 prompts：
+- Mock prompts/target module, provide test prompts:
 
   ```typescript
   {
@@ -60,229 +60,229 @@
   }
   ```
 
-**测试步骤**:
+**Test Steps**:
 
-1. 创建 PromptLoader 实例
-2. 调用 `promptLoader.initialize()` 方法
-3. 尝试加载已注册的 prompts
-4. 验证加载过程没有抛出异常
+1. Create PromptLoader instance
+2. Call `promptLoader.initialize()` method
+3. Try to load registered prompts
+4. Verify loading process doesn't throw exceptions
 
-**预期结果**:
+**Expected Results**:
 
-- initialize() 执行成功，不抛出异常
-- 内部 prompts Map 包含所有 mock 的 prompts
-- 能够通过 loadPrompt() 访问已加载的 prompts
+- initialize() executes successfully without throwing exceptions
+- Internal prompts Map contains all mocked prompts
+- Can access loaded prompts through loadPrompt()
 
-### PL-03: 通过 ID 加载 prompt
+### PL-03: Load prompt by ID
 
-**测试目的**: 验证能够通过 prompt ID 正确加载对应的 prompt 对象
+**Test Purpose**: Verify ability to correctly load corresponding prompt object through prompt ID
 
-**准备数据**:
+**Test Data**:
 
-- 确保 PromptLoader 已初始化
-- 存在 ID 为 'test-prompt' 的 prompt
+- Ensure PromptLoader is initialized
+- Prompt with ID 'test-prompt' exists
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.loadPrompt('test-prompt')`
-2. 检查返回的 prompt 对象
-3. 验证 frontmatter 和 content 属性
+1. Call `promptLoader.loadPrompt('test-prompt')`
+2. Check returned prompt object
+3. Verify frontmatter and content properties
 
-**预期结果**:
+**Expected Results**:
 
-- 返回正确的 prompt 对象
+- Returns correct prompt object
 - frontmatter.id === 'test-prompt'
 - frontmatter.name === 'Test Prompt'
-- content 包含预期的模板内容
+- content contains expected template content
 
-### PL-04: 加载不存在的 prompt
+### PL-04: Load non-existent prompt
 
-**测试目的**: 验证系统能正确处理加载不存在的 prompt 的情况
+**Test Purpose**: Verify system can correctly handle loading non-existent prompts
 
-**准备数据**:
+**Test Data**:
 
-- 确保 PromptLoader 已初始化
-- 使用不存在的 prompt ID：'non-existent'
+- Ensure PromptLoader is initialized
+- Use non-existent prompt ID: 'non-existent'
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.loadPrompt('non-existent')`
-2. 捕获抛出的错误
-3. 验证错误信息
+1. Call `promptLoader.loadPrompt('non-existent')`
+2. Catch thrown error
+3. Verify error message
 
-**预期结果**:
+**Expected Results**:
 
-- 抛出错误
-- 错误信息：`Prompt not found: non-existent. Available prompts: test-prompt, simple-prompt`
-- 错误信息包含可用的 prompt 列表
+- Throws error
+- Error message: `Prompt not found: non-existent. Available prompts: test-prompt, simple-prompt`
+- Error message contains list of available prompts
 
-### PL-05: 渲染包含所有变量的 prompt
+### PL-05: Render prompt with all variables
 
-**测试目的**: 验证 Handlebars 模板引擎能正确渲染包含所有变量的 prompt
+**Test Purpose**: Verify that Handlebars template engine can correctly render prompts containing all variables
 
-**准备数据**:
+**Test Data**:
 
-- Prompt 模板：`Hello {{name}}! {{#if age}}You are {{age}} years old.{{/if}}`
-- 变量数据：`{ name: 'John', age: 30 }`
+- Prompt template: `Hello {{name}}! {{#if age}}You are {{age}} years old.{{/if}}`
+- Variable data: `{ name: 'John', age: 30 }`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.renderPrompt('test-prompt', { name: 'John', age: 30 })`
-2. 获取渲染结果
-3. 验证输出字符串
+1. Call `promptLoader.renderPrompt('test-prompt', { name: 'John', age: 30 })`
+2. Get rendering result
+3. Verify output string
 
-**预期结果**:
+**Expected Results**:
 
-- 返回：`Hello John! You are 30 years old.`
-- 所有变量正确替换
-- 条件块正确渲染
+- Returns: `Hello John! You are 30 years old.`
+- All variables correctly replaced
+- Conditional blocks correctly rendered
 
-### PL-06: 渲染缺少可选变量的 prompt
+### PL-06: Render prompt with missing optional variables
 
-**测试目的**: 验证系统能正确处理可选变量缺失的情况
+**Test Purpose**: Verify system can correctly handle missing optional variables
 
-**准备数据**:
+**Test Data**:
 
-- Prompt 模板：`Hello {{name}}! {{#if age}}You are {{age}} years old.{{/if}}`
-- 变量数据：`{ name: 'Jane' }`（缺少 age）
+- Prompt template: `Hello {{name}}! {{#if age}}You are {{age}} years old.{{/if}}`
+- Variable data: `{ name: 'Jane' }` (missing age)
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.renderPrompt('test-prompt', { name: 'Jane' })`
-2. 获取渲染结果
-3. 验证输出字符串
+1. Call `promptLoader.renderPrompt('test-prompt', { name: 'Jane' })`
+2. Get rendering result
+3. Verify output string
 
-**预期结果**:
+**Expected Results**:
 
-- 返回：`Hello Jane!`
-- 必需变量正确替换
-- 条件块因缺少变量而不渲染
+- Returns: `Hello Jane!`
+- Required variables correctly replaced
+- Conditional block doesn't render due to missing variable
 
-### PL-07: 渲染缺少必需变量的 prompt
+### PL-07: Render prompt with missing required variables
 
-**测试目的**: 验证系统能正确验证必需变量并在缺失时报错
+**Test Purpose**: Verify system can correctly validate required variables and report errors when missing
 
-**准备数据**:
+**Test Data**:
 
-- Prompt 定义中 name 为必需变量
-- 调用时不提供 name 变量：`{}`
+- Prompt definition has name as required variable
+- Call without providing name variable: `{}`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 尝试调用 `promptLoader.renderPrompt('test-prompt', {})`
-2. 捕获抛出的错误
-3. 验证错误类型和信息
+1. Try calling `promptLoader.renderPrompt('test-prompt', {})`
+2. Catch thrown error
+3. Verify error type and message
 
-**预期结果**:
+**Expected Results**:
 
-- 抛出验证错误
-- 错误信息：`Variable validation failed: Missing required variable: name`
-- 渲染前进行变量验证
+- Throws validation error
+- Error message: `Variable validation failed: Missing required variable: name`
+- Variable validation performed before rendering
 
-### PL-08: 渲染无变量的简单 prompt
+### PL-08: Render simple prompt without variables
 
-**测试目的**: 验证能够正确渲染不包含任何变量的静态 prompt
+**Test Purpose**: Verify ability to correctly render static prompts without any variables
 
-**准备数据**:
+**Test Data**:
 
-- Prompt 模板：`This is a simple prompt without any variables.`
-- 无需提供变量
+- Prompt template: `This is a simple prompt without any variables.`
+- No variables needed
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.renderPrompt('simple-prompt')`
-2. 获取渲染结果
-3. 验证输出与原始内容一致
+1. Call `promptLoader.renderPrompt('simple-prompt')`
+2. Get rendering result
+3. Verify output matches original content
 
-**预期结果**:
+**Expected Results**:
 
-- 返回：`This is a simple prompt without any variables.`
-- 内容保持不变
-- 不需要提供变量参数
+- Returns: `This is a simple prompt without any variables.`
+- Content remains unchanged
+- No need to provide variable parameters
 
-### PL-09: 获取所有 prompts 列表
+### PL-09: Get all prompts list
 
-**测试目的**: 验证能够获取所有已加载的 prompts 的元数据列表
+**Test Purpose**: Verify ability to get metadata list of all loaded prompts
 
-**准备数据**:
+**Test Data**:
 
-- 确保 PromptLoader 已初始化
-- 至少有 2 个 prompts
+- Ensure PromptLoader is initialized
+- At least 2 prompts available
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.listPrompts()`
-2. 检查返回的数组
-3. 验证每个元素的结构
+1. Call `promptLoader.listPrompts()`
+2. Check returned array
+3. Verify structure of each element
 
-**预期结果**:
+**Expected Results**:
 
-- 返回包含 2 个元素的数组
-- 每个元素包含：id、name、version、category、description
-- category 从 ID 中提取（如 'test-prompt' → 'test'）
+- Returns array containing 2 elements
+- Each element contains: id, name, version, category, description
+- category extracted from ID (e.g. 'test-prompt' → 'test')
 
-### PL-10: 处理无效的 Handlebars 语法
+### PL-10: Handle invalid Handlebars syntax
 
-**测试目的**: 验证系统能优雅地处理模板语法错误
+**Test Purpose**: Verify system can gracefully handle template syntax errors
 
-**准备数据**:
+**Test Data**:
 
-- 创建包含语法错误的 prompt：`{{#if name}}Unclosed if block`
+- Create prompt with syntax error: `{{#if name}}Unclosed if block`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 手动添加错误的 prompt 到 loader
-2. 尝试编译模板
-3. 验证错误处理
+1. Manually add erroneous prompt to loader
+2. Try to compile template
+3. Verify error handling
 
-**预期结果**:
+**Expected Results**:
 
-- Handlebars 编译时抛出错误
-- 错误被正确捕获
-- 不会导致系统崩溃
+- Handlebars throws compilation error
+- Error is correctly caught
+- Doesn't cause system crash
 
-### PL-11: 处理无效的 prompt 模块
+### PL-11: Handle invalid prompt modules
 
-**测试目的**: 验证初始化时能够跳过无效的 prompt 模块
+**Test Purpose**: Verify initialization can skip invalid prompt modules
 
-**准备数据**:
+**Test Data**:
 
-- Mock 中添加无效模块：`{ invalidPrompt: { invalid: true } }`
+- Add invalid module to mock: `{ invalidPrompt: { invalid: true } }`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 调用 `promptLoader.initialize()`
-2. 验证初始化过程
-3. 检查有效 prompts 是否正常加载
+1. Call `promptLoader.initialize()`
+2. Verify initialization process
+3. Check if valid prompts load normally
 
-**预期结果**:
+**Expected Results**:
 
-- 初始化不会因无效模块而失败
-- 有效的 prompts 正常加载
-- 无效模块被静默跳过
+- Initialization doesn't fail due to invalid modules
+- Valid prompts load normally
+- Invalid modules are silently skipped
 
-## 测试注意事项
+## Test Considerations
 
-### Mock 策略
+### Mock Strategy
 
-- 使用 Jest mock 隔离 prompts/target 模块
-- 每个测试前清理单例实例状态
-- Mock 数据应覆盖各种边界情况
+- Use Jest mock to isolate prompts/target module
+- Clear singleton instance state before each test
+- Mock data should cover various edge cases
 
-### Handlebars 特性
+### Handlebars Features
 
-- 数字 0 在条件判断中被视为 falsy
-- 空字符串也是 falsy
-- undefined 变量不会导致错误，只是不渲染
+- Number 0 is considered falsy in conditional statements
+- Empty strings are also falsy
+- undefined variables don't cause errors, just don't render
 
-### 性能考虑
+### Performance Considerations
 
-- 模板编译结果被缓存
-- 大量 prompts 时初始化可能较慢
-- 考虑懒加载优化
+- Template compilation results are cached
+- Initialization may be slow with large numbers of prompts
+- Consider lazy loading optimization
 
-### 测试隔离
+### Test Isolation
 
-- 每个测试应该独立运行
-- 使用 beforeEach 重置状态
-- 避免测试间的依赖关系
+- Each test should run independently
+- Use beforeEach to reset state
+- Avoid dependencies between tests

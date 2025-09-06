@@ -1,12 +1,12 @@
-# Prompt 快照测试用例
+# Prompt Snapshot Test Cases
 
-## 测试文件
+## Test File
 
 `promptSnapshots.test.ts`
 
-## 测试目的
+## Test Purpose
 
-使用 Jest 快照测试功能确保所有 prompt 模板的输出保持稳定，防止意外的内容改动影响用户体验。快照测试会保存每个 prompt 的完整渲染输出，并在后续运行时进行比较。
+Use Jest snapshot testing functionality to ensure all prompt template outputs remain stable, preventing accidental content changes from affecting user experience. Snapshot tests save the complete rendered output of each prompt and compare them in subsequent runs.
 
 ## 测试用例概览
 

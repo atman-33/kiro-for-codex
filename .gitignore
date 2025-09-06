@@ -17,3 +17,4 @@ coverage/
 *.snap.tmp
 .nyc_output/
 
+.tmp

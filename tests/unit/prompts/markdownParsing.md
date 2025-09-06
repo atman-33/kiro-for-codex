@@ -1,93 +1,93 @@
-# Markdown 解析测试用例
+# Markdown Parsing Test Cases
 
-## 测试文件
+## Test File
 
 `markdownParsing.test.ts`
 
-## 测试目的
+## Test Purpose
 
-确保 Markdown prompt 文件解析功能在代码更新后仍然正常工作，包括 frontmatter 解析、Handlebars 语法验证、编译一致性等核心功能。
+Ensure that Markdown prompt file parsing functionality continues to work properly after code updates, including frontmatter parsing, Handlebars syntax validation, compilation consistency, and other core features.
 
-## 测试用例概览
+## Test Case Overview
 
-| 用例 ID | 功能描述                             | 测试类型 |
-| ------- | ------------------------------------ | -------- |
-| MD-01   | 验证所有 markdown 文件的 frontmatter | 正向测试 |
-| MD-02   | 验证 Handlebars 变量定义一致性       | 正向测试 |
-| MD-03   | 验证 create-spec.md 文件结构         | 正向测试 |
-| MD-04   | 验证 init-steering.md 文件结构       | 正向测试 |
-| MD-05   | 验证编译后 TypeScript 文件一致性     | 正向测试 |
-| MD-06   | 解析简单的 greeting prompt           | 正向测试 |
-| MD-07   | 解析包含 system 标签的复杂 prompt    | 正向测试 |
+| Case ID | Function Description                           | Test Type     |
+| ------- | ---------------------------------------------- | ------------- |
+| MD-01   | Verify frontmatter of all markdown files      | Positive test |
+| MD-02   | Verify Handlebars variable definition consistency | Positive test |
+| MD-03   | Verify create-spec.md file structure          | Positive test |
+| MD-04   | Verify init-steering.md file structure        | Positive test |
+| MD-05   | Verify compiled TypeScript file consistency   | Positive test |
+| MD-06   | Parse simple greeting prompt                   | Positive test |
+| MD-07   | Parse complex prompt with system tags         | Positive test |
 
-## 详细测试步骤
+## Detailed Test Steps
 
-### MD-01: 验证所有 markdown 文件的 frontmatter
+### MD-01: Verify frontmatter of all markdown files
 
-**测试目的**: 验证项目中所有 markdown prompt 文件都包含有效且完整的 frontmatter
+**Test Purpose**: Verify that all markdown prompt files in the project contain valid and complete frontmatter
 
-**准备数据**:
+**Test Data**:
 
-- prompts 目录路径：`src/prompts`
-- 使用 glob 模式：`**/*.md`
+- prompts directory path: `src/prompts`
+- Use glob pattern: `**/*.md`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 使用 glob 查找所有 `.md` 文件
-2. 逐个读取文件内容
-3. 使用 gray-matter 解析 frontmatter
-4. 验证必需字段的存在和格式
+1. Use glob to find all `.md` files
+2. Read file contents one by one
+3. Use gray-matter to parse frontmatter
+4. Verify existence and format of required fields
 
-**预期结果**:
+**Expected Results**:
 
-- 所有文件都能成功解析
-- 每个文件的 frontmatter 包含：
-  - `id`：非空字符串
-  - `name`：非空字符串
-  - `version`：符合语义化版本格式（x.y.z）
-  - `description`：非空字符串
-- 文件内容（body）不为空
+- All files can be successfully parsed
+- Each file's frontmatter contains:
+  - `id`: non-empty string
+  - `name`: non-empty string
+  - `version`: semantic version format (x.y.z)
+  - `description`: non-empty string
+- File content (body) is not empty
 
-### MD-02: 验证 Handlebars 变量定义一致性
+### MD-02: Verify Handlebars variable definition consistency
 
-**测试目的**: 验证 markdown 内容中使用的 Handlebars 变量都在 frontmatter.variables 中定义
+**Test Purpose**: Verify that all Handlebars variables used in markdown content are defined in frontmatter.variables
 
-**准备数据**:
+**Test Data**:
 
-- 所有 markdown 文件
-- 正则表达式：`/\{\{([^}]+)\}\}/g` 用于提取变量
+- All markdown files
+- Regular expression: `/\{\{([^}]+)\}\}/g` for extracting variables
 
-**测试步骤**:
+**Test Steps**:
 
-1. 读取每个 markdown 文件
-2. 使用正则表达式提取所有 `{{variable}}` 使用
-3. 过滤掉 Handlebars 助手（if、unless、each、with）
-4. 检查每个变量是否在 frontmatter.variables 中定义
+1. Read each markdown file
+2. Use regular expression to extract all `{{variable}}` usage
+3. Filter out Handlebars helpers (if, unless, each, with)
+4. Check if each variable is defined in frontmatter.variables
 
-**预期结果**:
+**Expected Results**:
 
-- 所有使用的变量都有对应的定义
-- 不存在未定义的变量引用
-- 助手函数被正确识别和排除
+- All used variables have corresponding definitions
+- No undefined variable references exist
+- Helper functions are correctly identified and excluded
 
-### MD-03: 验证 create-spec.md 文件结构
+### MD-03: Verify create-spec.md file structure
 
-**测试目的**: 验证 spec 创建 prompt 文件的结构和内容完整性
+**Test Purpose**: Verify the structure and content integrity of the spec creation prompt file
 
-**准备数据**:
+**Test Data**:
 
-- 文件路径：`src/prompts/spec/create-spec.md`
+- File path: `src/prompts/spec/create-spec.md`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 读取 create-spec.md 文件
-2. 解析 frontmatter 和内容
-3. 验证 frontmatter 字段
-4. 验证内容结构
+1. Read create-spec.md file
+2. Parse frontmatter and content
+3. Verify frontmatter fields
+4. Verify content structure
 
-**预期结果**:
+**Expected Results**:
 
-- frontmatter 包含：
+- frontmatter contains:
 
   ```yaml
   id: create-spec
@@ -100,62 +100,62 @@
     specBasePath: { type: string, required: true, ... }
   ```
 
-- 内容包含：
-  - `<system>` 和 `</system>` 标签
-  - `{{description}}`、`{{workspacePath}}`、`{{specBasePath}}` 变量引用
+- Content contains:
+  - `<system>` and `</system>` tags
+  - `{{description}}`, `{{workspacePath}}`, `{{specBasePath}}` variable references
 
-### MD-04: 验证 init-steering.md 文件结构
+### MD-04: Verify init-steering.md file structure
 
-**测试目的**: 验证 steering 初始化 prompt 文件的结构和内容完整性
+**Test Purpose**: Verify the structure and content integrity of the steering initialization prompt file
 
-**准备数据**:
+**Test Data**:
 
-- 文件路径：`src/prompts/steering/init-steering.md`
+- File path: `src/prompts/steering/init-steering.md`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 读取 init-steering.md 文件
-2. 解析 frontmatter 和内容
-3. 验证必需的变量定义
-4. 验证内容包含必要元素
+1. Read init-steering.md file
+2. Parse frontmatter and content
+3. Verify required variable definitions
+4. Verify content contains necessary elements
 
-**预期结果**:
+**Expected Results**:
 
 - frontmatter.id === 'init-steering'
-- variables 包含 steeringPath 定义
-- 内容包含 `{{steeringPath}}` 变量引用
-- 包含 steering 文档创建说明
+- variables contains steeringPath definition
+- Content contains `{{steeringPath}}` variable reference
+- Contains steering document creation instructions
 
-### MD-05: 验证编译后 TypeScript 文件一致性
+### MD-05: Verify compiled TypeScript file consistency
 
-**测试目的**: 验证 markdown 文件编译成 TypeScript 后内容保持一致
+**Test Purpose**: Verify that content remains consistent after markdown files are compiled to TypeScript
 
-**准备数据**:
+**Test Data**:
 
-- Markdown 源文件：`src/prompts/spec/create-spec.md`
-- TypeScript 目标文件：`src/prompts/target/spec/create-spec.ts`
+- Markdown source file: `src/prompts/spec/create-spec.md`
+- TypeScript target file: `src/prompts/target/spec/create-spec.ts`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 读取 markdown 源文件，解析 frontmatter 和内容
-2. 读取对应的 TypeScript 文件
-3. 验证 TypeScript 中的 frontmatter 数据
-4. 验证内容的转义和保留
+1. Read markdown source file, parse frontmatter and content
+2. Read corresponding TypeScript file
+3. Verify frontmatter data in TypeScript
+4. Verify content escaping and preservation
 
-**预期结果**:
+**Expected Results**:
 
-- TypeScript 文件包含相同的 frontmatter 数据
-- 内容正确转义：
+- TypeScript file contains same frontmatter data
+- Content correctly escaped:
   - `\n` → `\\n`
   - `"` → `\"`
   - `\` → `\\`
-- 原始内容的语义保持不变
+- Original content semantics remain unchanged
 
-### MD-06: 解析简单的 greeting prompt
+### MD-06: Parse simple greeting prompt
 
-**测试目的**: 验证 gray-matter 能正确解析简单的 markdown prompt
+**Test Purpose**: Verify that gray-matter can correctly parse simple markdown prompts
 
-**准备数据**:
+**Test Data**:
 
 ```markdown
 ---
@@ -185,25 +185,25 @@ How are you feeling today?
 Let me help you with your request.
 ```
 
-**测试步骤**:
+**Test Steps**:
 
-1. 使用 gray-matter 解析上述 markdown 内容
-2. 验证解析后的 data（frontmatter）
-3. 验证解析后的 content（body）
+1. Use gray-matter to parse the above markdown content
+2. Verify parsed data (frontmatter)
+3. Verify parsed content (body)
 
-**预期结果**:
+**Expected Results**:
 
 - data.id === 'test-greeting'
 - data.variables.name.required === true
 - data.variables.mood.required === false
-- content 包含 'Hello {{name}}!'
-- content 包含条件块 '{{#if mood}}'
+- content contains 'Hello {{name}}!'
+- content contains conditional block '{{#if mood}}'
 
-### MD-07: 解析包含 system 标签的复杂 prompt
+### MD-07: Parse complex prompt with system tags
 
-**测试目的**: 验证能正确解析包含特殊标签和复杂结构的 prompt
+**Test Purpose**: Verify correct parsing of prompts containing special tags and complex structures
 
-**准备数据**:
+**Test Data**:
 
 ```markdown
 ---
@@ -243,41 +243,41 @@ Follow these guidelines:
 Please proceed with the task.
 ```
 
-**测试步骤**:
+**Test Steps**:
 
-1. 解析复杂的 markdown 内容
-2. 验证 frontmatter 的完整性
-3. 验证内容保留了所有特殊结构
+1. Parse complex markdown content
+2. Verify frontmatter completeness
+3. Verify content preserves all special structures
 
-**预期结果**:
+**Expected Results**:
 
 - data.version === '2.0.0'
-- 内容包含 `<system>` 和 `</system>` 标签
-- 内容包含 `{{#each context}}` 循环结构
-- 所有格式和缩进保持原样
+- Content contains `<system>` and `</system>` tags
+- Content contains `{{#each context}}` loop structure
+- All formatting and indentation preserved
 
-## 测试注意事项
+## Test Considerations
 
-### 文件系统依赖
+### File System Dependencies
 
-- 测试依赖实际的文件系统
-- 确保测试环境包含所有必需的 prompt 文件
-- 考虑使用测试专用的 fixture 文件
+- Tests depend on actual file system
+- Ensure test environment contains all required prompt files
+- Consider using test-specific fixture files
 
-### 正则表达式处理
+### Regular Expression Processing
 
-- Handlebars 变量提取需要处理各种格式
-- 注意处理嵌套的助手函数
-- 考虑空格和换行的影响
+- Handlebars variable extraction needs to handle various formats
+- Pay attention to nested helper functions
+- Consider impact of spaces and line breaks
 
-### 编译一致性
+### Compilation Consistency
 
-- 转义字符的处理要特别注意
-- 多行字符串的换行符处理
-- Unicode 字符的保留
+- Escape character handling requires special attention
+- Multi-line string line break handling
+- Unicode character preservation
 
-### 性能考虑
+### Performance Considerations
 
-- 大量文件的遍历可能较慢
-- 考虑并行处理提高效率
-- 缓存解析结果避免重复读取
+- Traversing large numbers of files may be slow
+- Consider parallel processing for efficiency
+- Cache parsing results to avoid repeated reads

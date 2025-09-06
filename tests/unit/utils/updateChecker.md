@@ -1,38 +1,38 @@
-# UpdateChecker 单元测试用例
+# UpdateChecker Unit Test Cases
 
-## 测试文件
+## Test File
 
 `updateChecker.test.ts`
 
-## 测试目的
+## Test Purpose
 
-确保 UpdateChecker 服务在代码更新后仍然正常工作，包括版本检查、通知显示、用户交互和速率限制等核心功能。
+Ensure that the UpdateChecker service continues to work properly after code updates, including core functionality such as version checking, notification display, user interaction, and rate limiting.
 
-## 测试用例概览
+## Test Case Overview
 
-| 用例 ID | 功能描述                   | 测试类型 |
-| ------- | -------------------------- | -------- |
-| UC-01   | 从 GitHub API 获取最新版本 | 正向测试 |
-| UC-02   | 处理 API 网络错误          | 异常测试 |
-| UC-03   | 处理非 200 响应            | 异常测试 |
-| UC-04   | 比较语义版本号             | 正向测试 |
-| UC-05   | 显示更新通知               | 正向测试 |
-| UC-06   | 点击查看更新日志           | 正向测试 |
-| UC-07   | 点击跳过版本               | 正向测试 |
-| UC-08   | 跳过版本后不再提示         | 正向测试 |
-| UC-09   | 24 小时内不重复检查        | 正向测试 |
-| UC-10   | 强制检查无视速率限制       | 正向测试 |
+| Case ID | Function Description                    | Test Type     |
+| ------- | --------------------------------------- | ------------- |
+| UC-01   | Get latest version from GitHub API     | Positive test |
+| UC-02   | Handle API network errors              | Exception test|
+| UC-03   | Handle non-200 responses               | Exception test|
+| UC-04   | Compare semantic version numbers       | Positive test |
+| UC-05   | Display update notification            | Positive test |
+| UC-06   | Click to view update changelog         | Positive test |
+| UC-07   | Click to skip version                  | Positive test |
+| UC-08   | No more prompts after skipping version| Positive test |
+| UC-09   | No duplicate checks within 24 hours   | Positive test |
+| UC-10   | Force check ignores rate limiting     | Positive test |
 
-## 详细测试步骤
+## Detailed Test Steps
 
-### UC-01: 从 GitHub API 获取最新版本
+### UC-01: Get latest version from GitHub API
 
-**测试目的**: 验证 UpdateChecker 能够成功从 GitHub API 获取最新版本信息
+**Test Purpose**: Verify that UpdateChecker can successfully get latest version information from GitHub API
 
-**准备数据**:
+**Test Data**:
 
-- Mock fetch 返回成功响应
-- 模拟 GitHub Release API 响应格式：
+- Mock fetch to return successful response
+- Simulate GitHub Release API response format:
 
   ```json
   {
@@ -43,253 +43,253 @@
   }
   ```
 
-**测试步骤**:
+**Test Steps**:
 
-1. 创建 UpdateChecker 实例
-2. 调用 `checkForUpdates()` 方法
-3. 验证 fetch 被正确调用
-4. 检查日志输出
+1. Create UpdateChecker instance
+2. Call `checkForUpdates()` method
+3. Verify fetch is called correctly
+4. Check log output
 
-**预期结果**:
+**Expected Results**:
 
-- fetch 调用 URL: `https://api.github.com/repos/notdp/kiro-for-cc/releases/latest`
-- 日志包含: `[UpdateChecker] Fetching latest release from GitHub...`
-- 日志包含: `[UpdateChecker] Latest release: v0.1.8`
+- fetch calls URL: `https://api.github.com/repos/notdp/kiro-for-cc/releases/latest`
+- Log contains: `[UpdateChecker] Fetching latest release from GitHub...`
+- Log contains: `[UpdateChecker] Latest release: v0.1.8`
 
-### UC-02: 处理 API 网络错误
+### UC-02: Handle API network errors
 
-**测试目的**: 验证系统能优雅地处理网络错误
+**Test Purpose**: Verify system can gracefully handle network errors
 
-**准备数据**:
+**Test Data**:
 
-- Mock fetch 抛出网络错误
-- 错误信息：`Network error`
+- Mock fetch to throw network error
+- Error message: `Network error`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 配置 fetch mock 抛出错误
-2. 调用 `checkForUpdates()`
-3. 验证错误被捕获
-4. 检查错误日志
+1. Configure fetch mock to throw error
+2. Call `checkForUpdates()`
+3. Verify error is caught
+4. Check error logs
 
-**预期结果**:
+**Expected Results**:
 
-- 不会抛出未捕获的异常
-- 日志包含: `[UpdateChecker] ERROR: Failed to fetch latest release: Error: Network error`
-- 系统继续正常运行
+- No uncaught exceptions thrown
+- Log contains: `[UpdateChecker] ERROR: Failed to fetch latest release: Error: Network error`
+- System continues running normally
 
-### UC-03: 处理非 200 响应
+### UC-03: Handle non-200 responses
 
-**测试目的**: 验证系统能正确处理 HTTP 错误状态码
+**Test Purpose**: Verify system can correctly handle HTTP error status codes
 
-**准备数据**:
+**Test Data**:
 
-- Mock fetch 返回 404 响应
-- 状态文本：`Not Found`
+- Mock fetch to return 404 response
+- Status text: `Not Found`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 配置 fetch 返回非 OK 响应
-2. 调用 `checkForUpdates()`
-3. 验证响应处理逻辑
-4. 检查日志输出
+1. Configure fetch to return non-OK response
+2. Call `checkForUpdates()`
+3. Verify response handling logic
+4. Check log output
 
-**预期结果**:
+**Expected Results**:
 
-- 不显示更新通知
-- 日志包含: `[UpdateChecker] GitHub API returned 404: Not Found`
-- 方法正常返回
+- No update notification displayed
+- Log contains: `[UpdateChecker] GitHub API returned 404: Not Found`
+- Method returns normally
 
-### UC-04: 比较语义版本号
+### UC-04: Compare semantic version numbers
 
-**测试目的**: 验证版本比较逻辑的正确性
+**Test Purpose**: Verify correctness of version comparison logic
 
-**准备数据**:
+**Test Data**:
 
-- 测试用例矩阵：
+- Test case matrix:
 
-  | 当前版本 | 最新版本 | 应该更新 |
-  | -------- | -------- | -------- |
-  | 0.1.8    | v0.1.9   | 是       |
-  | 0.1.8    | v0.2.0   | 是       |
-  | 0.1.8    | v1.0.0   | 是       |
-  | 0.1.8    | v0.1.8   | 否       |
-  | 0.1.9    | v0.1.8   | 否       |
-  | 1.0.0    | v0.9.9   | 否       |
+  | Current Version | Latest Version | Should Update |
+  | --------------- | -------------- | ------------- |
+  | 0.1.8          | v0.1.9         | Yes           |
+  | 0.1.8          | v0.2.0         | Yes           |
+  | 0.1.8          | v1.0.0         | Yes           |
+  | 0.1.8          | v0.1.8         | No            |
+  | 0.1.9          | v0.1.8         | No            |
+  | 1.0.0          | v0.9.9         | No            |
 
-**测试步骤**:
+**Test Steps**:
 
-1. 对每个测试用例：
-   - 设置当前版本
-   - Mock API 返回最新版本
-   - 调用 `checkForUpdates()`
-   - 验证是否显示通知
+1. For each test case:
+   - Set current version
+   - Mock API to return latest version
+   - Call `checkForUpdates()`
+   - Verify if notification is displayed
 
-**预期结果**:
+**Expected Results**:
 
-- 新版本时显示通知
-- 相同或旧版本时不显示通知
-- 版本号前缀 'v' 被正确处理
+- Show notification for newer versions
+- No notification for same or older versions
+- Version prefix 'v' is handled correctly
 
-### UC-05: 显示更新通知
+### UC-05: Display update notification
 
-**测试目的**: 验证更新通知的显示格式和内容
+**Test Purpose**: Verify update notification display format and content
 
-**准备数据**:
+**Test Data**:
 
-- 当前版本：0.1.8
-- 最新版本：v0.1.9
+- Current version: 0.1.8
+- Latest version: v0.1.9
 
-**测试步骤**:
+**Test Steps**:
 
-1. 配置版本差异触发更新
-2. 调用 `checkForUpdates()`
-3. 验证通知内容
-4. 检查按钮选项
+1. Configure version difference to trigger update
+2. Call `checkForUpdates()`
+3. Verify notification content
+4. Check button options
 
-**预期结果**:
+**Expected Results**:
 
-- 通知消息：`🎉 Kiro for CC 0.1.9 is available! (current: 0.1.8)`
-- 按钮选项：["View Changelog", "Skip"]
-- 使用 showInformationMessage 方法
+- Notification message: `🎉 Kiro for CC 0.1.9 is available! (current: 0.1.8)`
+- Button options: ["View Changelog", "Skip"]
+- Uses showInformationMessage method
 
-### UC-06: 点击查看更新日志
+### UC-06: Click to view update changelog
 
-**测试目的**: 验证点击"查看更新日志"按钮的行为
+**Test Purpose**: Verify behavior when clicking "View Changelog" button
 
-**准备数据**:
+**Test Data**:
 
-- Mock 用户点击 "View Changelog"
-- 预期 URL：`https://github.com/notdp/kiro-for-cc/releases/latest`
+- Mock user clicking "View Changelog"
+- Expected URL: `https://github.com/notdp/kiro-for-cc/releases/latest`
 
-**测试步骤**:
+**Test Steps**:
 
-1. 触发更新通知
-2. 模拟用户点击 "View Changelog"
-3. 等待异步操作完成
-4. 验证外部链接调用
+1. Trigger update notification
+2. Simulate user clicking "View Changelog"
+3. Wait for async operations to complete
+4. Verify external link call
 
-**预期结果**:
+**Expected Results**:
 
-- vscode.env.openExternal 被调用
-- 传入正确的 GitHub releases URL
-- 使用 vscode.Uri.parse 处理 URL
+- vscode.env.openExternal is called
+- Correct GitHub releases URL is passed
+- Uses vscode.Uri.parse to handle URL
 
-### UC-07: 点击跳过版本
+### UC-07: Click to skip version
 
-**测试目的**: 验证跳过版本功能的实现
+**Test Purpose**: Verify skip version functionality implementation
 
-**准备数据**:
+**Test Data**:
 
-- Mock 用户点击 "Skip"
-- 跳过的版本：0.1.9
+- Mock user clicking "Skip"
+- Skipped version: 0.1.9
 
-**测试步骤**:
+**Test Steps**:
 
-1. 触发更新通知
-2. 模拟用户点击 "Skip"
-3. 等待异步操作完成
-4. 验证状态保存
+1. Trigger update notification
+2. Simulate user clicking "Skip"
+3. Wait for async operations to complete
+4. Verify state saving
 
-**预期结果**:
+**Expected Results**:
 
-- globalState.update 被调用
-- 保存键：`kfc.skipVersion`
-- 保存值：`0.1.9`
-- 显示 5 秒自动消失的确认通知
+- globalState.update is called
+- Save key: `kfc.skipVersion`
+- Save value: `0.1.9`
+- Shows 5-second auto-dismiss confirmation notification
 
-### UC-08: 跳过版本后不再提示
+### UC-08: No more prompts after skipping version
 
-**测试目的**: 验证已跳过的版本不会再次提示
+**Test Purpose**: Verify that skipped versions won't prompt again
 
-**准备数据**:
+**Test Data**:
 
-- 设置已跳过版本：0.1.9
-- API 返回相同版本
+- Set skipped version: 0.1.9
+- API returns same version
 
-**测试步骤**:
+**Test Steps**:
 
-1. Mock globalState 返回跳过的版本
-2. 调用 `checkForUpdates()`
-3. 验证通知行为
+1. Mock globalState to return skipped version
+2. Call `checkForUpdates()`
+3. Verify notification behavior
 
-**预期结果**:
+**Expected Results**:
 
-- 不显示更新通知
-- 即使版本号更新也被忽略
-- 日志正常记录检查过程
+- No update notification displayed
+- Version updates are ignored even if available
+- Log normally records check process
 
-### UC-09: 24 小时内不重复检查
+### UC-09: No duplicate checks within 24 hours
 
-**测试目的**: 验证速率限制功能避免频繁检查
+**Test Purpose**: Verify rate limiting functionality prevents frequent checks
 
-**准备数据**:
+**Test Data**:
 
-- 设置上次检查时间：1 小时前
-- 检查间隔：24 小时
+- Set last check time: 1 hour ago
+- Check interval: 24 hours
 
-**测试步骤**:
+**Test Steps**:
 
-1. Mock 上次检查时间戳
-2. 调用 `checkForUpdates()`
-3. 验证 API 调用
+1. Mock last check timestamp
+2. Call `checkForUpdates()`
+3. Verify API calls
 
-**预期结果**:
+**Expected Results**:
 
-- fetch 不被调用
-- 直接返回，跳过检查
-- 减少不必要的 API 请求
+- fetch is not called
+- Returns directly, skipping check
+- Reduces unnecessary API requests
 
-### UC-10: 强制检查无视速率限制
+### UC-10: Force check ignores rate limiting
 
-**测试目的**: 验证强制检查参数能绕过速率限制
+**Test Purpose**: Verify force check parameter can bypass rate limiting
 
-**准备数据**:
+**Test Data**:
 
-- 设置上次检查时间：1 小时前
-- 使用 force 参数
+- Set last check time: 1 hour ago
+- Use force parameter
 
-**测试步骤**:
+**Test Steps**:
 
-1. Mock 上次检查时间戳
-2. 调用 `checkForUpdates(true)`
-3. 验证 API 被调用
+1. Mock last check timestamp
+2. Call `checkForUpdates(true)`
+3. Verify API is called
 
-**预期结果**:
+**Expected Results**:
 
-- fetch 被正常调用
-- 忽略速率限制
-- 更新最后检查时间
+- fetch is called normally
+- Rate limiting is ignored
+- Last check time is updated
 
-## 测试注意事项
+## Test Considerations
 
-### Mock 策略
+### Mock Strategy
 
-- 使用 Jest mock 模拟 vscode API
-- Mock fetch 全局函数
-- Mock NotificationUtils 避免实际通知
-- 每个测试前清理所有 mock
+- Use Jest mock to simulate vscode API
+- Mock fetch global function
+- Mock NotificationUtils to avoid actual notifications
+- Clean all mocks before each test
 
-### 异步处理
+### Async Processing
 
-- 通知按钮回调是异步的
-- 使用 `setTimeout(resolve, 0)` 等待异步操作
-- 确保 Promise 链完成后再验证
+- Notification button callbacks are asynchronous
+- Use `setTimeout(resolve, 0)` to wait for async operations
+- Ensure Promise chain completes before verification
 
-### 状态管理
+### State Management
 
-- globalState 用于持久化配置
-- 跳过版本信息需要持久保存
-- 最后检查时间用于速率限制
+- globalState used for persistent configuration
+- Skip version information needs persistent storage
+- Last check time used for rate limiting
 
-### 版本号处理
+### Version Number Handling
 
-- GitHub tag 可能包含 'v' 前缀
-- 内部比较时需要去除前缀
-- 支持 major.minor.patch 格式
+- GitHub tags may contain 'v' prefix
+- Need to remove prefix for internal comparison
+- Support major.minor.patch format
 
-### 错误边界
+### Error Boundaries
 
-- 网络错误不应影响扩展运行
-- API 限流返回 403 需要优雅处理
-- 无效的版本号格式需要容错
+- Network errors should not affect extension operation
+- API rate limiting returning 403 needs graceful handling
+- Invalid version number formats need fault tolerance
