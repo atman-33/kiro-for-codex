@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { MIN_CODEX_CLI_VERSION } from '../constants';
 import * as vscode from 'vscode';
 import { VSC_CONFIG_NAMESPACE } from '../constants';
 import { CodexSetupService } from '../services/codex-setup-service';
@@ -203,7 +204,7 @@ export class CodexProvider {
    * Get the minimum required Codex CLI version
    */
   private getMinimumRequiredVersion(): string {
-    return '1.0.0'; // This should be configurable or defined in constants
+    return MIN_CODEX_CLI_VERSION;
   }
 
   /**

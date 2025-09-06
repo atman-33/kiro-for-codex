@@ -70,7 +70,7 @@ A VSCode extension that brings spec-driven development to Codex CLI. Manage your
 
 ### Prerequisites
 
-1. **Codex CLI Installation**: Ensure Codex CLI is installed and configured
+1. **Codex CLI Installation**: Ensure Codex CLI (v0.28.0 or later) is installed and configured
 
 2. **Compatibility**:
 
