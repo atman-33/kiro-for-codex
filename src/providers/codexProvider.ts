@@ -4,7 +4,9 @@ import * as vscode from 'vscode';
 import { VSC_CONFIG_NAMESPACE } from '../constants';
 import { CodexSetupService } from '../services/codexSetupService';
 import { CommandBuilder } from '../services/commandBuilder';
+import { CodexErrorHandler, ErrorType } from '../services/errorHandler';
 import { ProcessManager } from '../services/processManager';
+import { RetryService } from '../services/retryService';
 import { ConfigManager } from '../utils/configManager';
 
 export enum ApprovalMode {
@@ -52,6 +54,8 @@ export class CodexProvider {
   private processManager: ProcessManager;
   private setupService: CodexSetupService;
   private codexConfig: CodexConfig;
+  private errorHandler: CodexErrorHandler;
+  private retryService: RetryService;
 
   constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     this.context = context;
@@ -60,6 +64,10 @@ export class CodexProvider {
     this.commandBuilder = new CommandBuilder();
     this.processManager = new ProcessManager(outputChannel);
     this.setupService = CodexSetupService.getInstance(outputChannel);
+
+    // Initialize error handling services
+    this.errorHandler = new CodexErrorHandler(outputChannel);
+    this.retryService = new RetryService(this.errorHandler, outputChannel);
 
     // Initialize Codex configuration with defaults
     this.codexConfig = {
@@ -257,90 +265,152 @@ export class CodexProvider {
    * Execute Codex CLI with the given prompt and options
    */
   async executeCodex(prompt: string, options?: CodexOptions): Promise<CodexResult> {
-    const availabilityResult = await this.checkCodexInstallationAndCompatibility();
-    if (!availabilityResult.isAvailable) {
-      await this.showSetupGuidance(availabilityResult);
-      throw new Error(availabilityResult.errorMessage || 'Codex CLI is not available. Please ensure it is installed and accessible.');
-    }
-
-    try {
-      // Create temporary file with the prompt
-      const promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
-
-      // Build the command with options
-      const command = this.commandBuilder.buildCommand(promptFilePath, {
-        ...this.codexConfig,
-        ...options
-      });
-
-      // Execute the command
-      const workingDir = options?.workingDirectory || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-      const result = await this.processManager.executeCommand(command, workingDir);
-
-      // Clean up temp file
-      setTimeout(async () => {
-        try {
-          await fs.promises.unlink(promptFilePath);
-          this.outputChannel.appendLine(`[CodexProvider] Cleaned up prompt file: ${promptFilePath}`);
-        } catch (e) {
-          this.outputChannel.appendLine(`[CodexProvider] Failed to cleanup temp file: ${e}`);
+    return await this.retryService.executeWithRetry(
+      async () => {
+        // Check availability first
+        const availabilityResult = await this.checkCodexInstallationAndCompatibility();
+        if (!availabilityResult.isAvailable) {
+          await this.showSetupGuidance(availabilityResult);
+          const error = new Error(availabilityResult.errorMessage || 'Codex CLI is not available');
+          // Add error type information for proper classification
+          (error as any).codexErrorType = availabilityResult.isInstalled ?
+            ErrorType.VERSION_INCOMPATIBLE : ErrorType.CLI_NOT_INSTALLED;
+          throw error;
         }
-      }, 5000);
 
-      return {
-        exitCode: result.exitCode,
-        output: result.output,
-        error: result.error,
-        filesModified: [] // TODO: Parse output to detect modified files
-      };
+        let promptFilePath: string | null = null;
 
-    } catch (error) {
-      this.outputChannel.appendLine(`[CodexProvider] Error executing Codex: ${error}`);
-      throw error;
-    }
+        try {
+          // Create temporary file with the prompt
+          promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
+
+          // Build the command with options
+          const command = this.commandBuilder.buildCommand(promptFilePath, {
+            ...this.codexConfig,
+            ...options
+          });
+
+          // Execute the command with timeout
+          const workingDir = options?.workingDirectory || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+          const timeout = options?.timeout || this.codexConfig.timeout;
+
+          const result = await Promise.race([
+            this.processManager.executeCommand(command, workingDir),
+            this.createTimeoutPromise(timeout)
+          ]);
+
+          // Validate result
+          if (result.exitCode !== 0) {
+            const error = new Error(result.error || `Codex CLI failed with exit code ${result.exitCode}`);
+            (error as any).codexErrorType = ErrorType.EXECUTION_FAILED;
+            (error as any).exitCode = result.exitCode;
+            throw error;
+          }
+
+          return {
+            exitCode: result.exitCode,
+            output: result.output,
+            error: result.error,
+            filesModified: this.parseModifiedFiles(result.output || '')
+          };
+
+        } finally {
+          // Clean up temp file
+          if (promptFilePath) {
+            this.cleanupTempFile(promptFilePath);
+          }
+        }
+      },
+      'Codex CLI Execution',
+      {
+        maxAttempts: 3,
+        baseDelay: 1000,
+        retryableErrors: [ErrorType.TIMEOUT, ErrorType.NETWORK_ERROR, ErrorType.EXECUTION_FAILED],
+        onRetry: async (attempt, error) => {
+          this.outputChannel.appendLine(`[CodexProvider] Retry attempt ${attempt} for Codex execution: ${error.message}`);
+        },
+        shouldRetry: (error, _attempt) => {
+          // Custom retry logic for specific scenarios
+          const errorType = (error as any).codexErrorType;
+
+          // Don't retry installation or permission errors
+          if (errorType === ErrorType.CLI_NOT_INSTALLED ||
+            errorType === ErrorType.PERMISSION_DENIED ||
+            errorType === ErrorType.VERSION_INCOMPATIBLE) {
+            return false;
+          }
+
+          // Retry execution failures only if exit code suggests transient issue
+          if (errorType === ErrorType.EXECUTION_FAILED) {
+            const exitCode = (error as any).exitCode;
+            // Don't retry for syntax errors (exit code 1) but retry for network issues (exit code 2)
+            return exitCode !== 1;
+          }
+
+          return true;
+        }
+      }
+    );
   }
 
   /**
    * Invoke Codex in a new terminal on the right side (split view)
    */
   async invokeCodexSplitView(prompt: string, title: string = 'Kiro for Codex'): Promise<vscode.Terminal> {
-    const availabilityResult = await this.checkCodexInstallationAndCompatibility();
-    if (!availabilityResult.isAvailable) {
-      await this.showSetupGuidance(availabilityResult);
-      throw new Error(availabilityResult.errorMessage || 'Codex CLI is not available. Please ensure it is installed and accessible.');
-    }
-
-    try {
-      // Create temp file with the prompt
-      const promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
-
-      // Build the command
-      const command = this.commandBuilder.buildCommand(promptFilePath, this.codexConfig);
-
-      // Create terminal in split view
-      const terminal = this.processManager.createTerminal(command, {
-        name: title,
-        cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-        location: { viewColumn: vscode.ViewColumn.Two }
-      });
-
-      // Clean up temp file after delay
-      setTimeout(async () => {
-        try {
-          await fs.promises.unlink(promptFilePath);
-          this.outputChannel.appendLine(`[CodexProvider] Cleaned up prompt file: ${promptFilePath}`);
-        } catch (e) {
-          this.outputChannel.appendLine(`[CodexProvider] Failed to cleanup temp file: ${e}`);
+    return await this.retryService.executeWithRetry(
+      async () => {
+        // Check availability first
+        const availabilityResult = await this.checkCodexInstallationAndCompatibility();
+        if (!availabilityResult.isAvailable) {
+          await this.showSetupGuidance(availabilityResult);
+          const error = new Error(availabilityResult.errorMessage || 'Codex CLI is not available');
+          (error as any).codexErrorType = availabilityResult.isInstalled ?
+            ErrorType.VERSION_INCOMPATIBLE : ErrorType.CLI_NOT_INSTALLED;
+          throw error;
         }
-      }, 30000);
 
-      return terminal;
+        let promptFilePath: string | null = null;
 
-    } catch (error) {
-      this.outputChannel.appendLine(`[CodexProvider] Error invoking Codex split view: ${error}`);
-      vscode.window.showErrorMessage(`Failed to run Codex: ${error}`);
-      throw error;
-    }
+        try {
+          // Create temp file with the prompt
+          promptFilePath = await this.createTempFile(prompt, 'codex-prompt');
+
+          // Build the command
+          const command = this.commandBuilder.buildCommand(promptFilePath, this.codexConfig);
+
+          // Create terminal in split view
+          const terminal = this.processManager.createTerminal(command, {
+            name: title,
+            cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+            location: { viewColumn: vscode.ViewColumn.Two }
+          });
+
+          // Schedule cleanup of temp file
+          if (promptFilePath) {
+            this.scheduleCleanup(promptFilePath, 30000);
+          }
+
+          return terminal;
+
+        } catch (error) {
+          // Clean up immediately on error
+          if (promptFilePath) {
+            this.cleanupTempFile(promptFilePath);
+          }
+          throw error;
+        }
+      },
+      'Codex Split View',
+      {
+        maxAttempts: 2, // Fewer retries for terminal operations
+        baseDelay: 500,
+        retryableErrors: [ErrorType.FILE_ACCESS_ERROR, ErrorType.TEMP_FILE_ERROR],
+        onFailure: async (error, _attempts) => {
+          const codexError = this.errorHandler.analyzeError(error);
+          await this.errorHandler.showErrorToUser(codexError);
+        }
+      }
+    );
   }
 
   /**
@@ -352,7 +422,21 @@ export class CodexProvider {
     this.outputChannel.appendLine(prompt);
     this.outputChannel.appendLine(`========================================`);
 
-    return this.executeCodex(prompt, options);
+    try {
+      return await this.executeCodex(prompt, options);
+    } catch (error) {
+      // For headless mode, we want to handle errors more gracefully
+      const codexError = this.errorHandler.analyzeError(error instanceof Error ? error : String(error), {
+        mode: 'headless',
+        prompt: prompt.substring(0, 100) + '...' // Truncated for logging
+      });
+
+      // Log the error but don't show UI for headless operations
+      this.outputChannel.appendLine(`[CodexProvider] Headless operation failed: ${codexError.message}`);
+
+      // Re-throw the original error to maintain API contract
+      throw error;
+    }
   }
 
   /**
@@ -421,5 +505,97 @@ export class CodexProvider {
   async isCodexReady(): Promise<boolean> {
     const result = await this.checkCodexInstallationAndCompatibility();
     return result.isAvailable;
+  }
+
+  /**
+   * Create a timeout promise for operation timeouts
+   */
+  private createTimeoutPromise(timeoutMs: number): Promise<never> {
+    return new Promise((_, reject) => {
+      setTimeout(() => {
+        const error = new Error(`Operation timed out after ${timeoutMs}ms`);
+        (error as any).codexErrorType = ErrorType.TIMEOUT;
+        reject(error);
+      }, timeoutMs);
+    });
+  }
+
+  /**
+   * Parse modified files from Codex CLI output
+   */
+  private parseModifiedFiles(output: string): string[] {
+    const modifiedFiles: string[] = [];
+
+    // Look for common patterns in Codex output that indicate file modifications
+    const patterns = [
+      /Modified:\s+(.+)/gi,
+      /Created:\s+(.+)/gi,
+      /Updated:\s+(.+)/gi,
+      /Writing to:\s+(.+)/gi
+    ];
+
+    patterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(output)) !== null) {
+        const filePath = match[1].trim();
+        if (filePath && !modifiedFiles.includes(filePath)) {
+          modifiedFiles.push(filePath);
+        }
+      }
+    });
+
+    return modifiedFiles;
+  }
+
+  /**
+   * Clean up temporary file immediately
+   */
+  private async cleanupTempFile(filePath: string): Promise<void> {
+    try {
+      await fs.promises.unlink(filePath);
+      this.outputChannel.appendLine(`[CodexProvider] Cleaned up temp file: ${filePath}`);
+    } catch (error) {
+      this.outputChannel.appendLine(`[CodexProvider] Failed to cleanup temp file ${filePath}: ${error}`);
+    }
+  }
+
+  /**
+   * Schedule cleanup of temporary file after delay
+   */
+  private scheduleCleanup(filePath: string, delayMs: number): void {
+    setTimeout(async () => {
+      await this.cleanupTempFile(filePath);
+    }, delayMs);
+  }
+
+  /**
+   * Get error handler instance for external use
+   */
+  getErrorHandler(): CodexErrorHandler {
+    return this.errorHandler;
+  }
+
+  /**
+   * Get retry service instance for external use
+   */
+  getRetryService(): RetryService {
+    return this.retryService;
+  }
+
+  /**
+   * Get retry statistics for monitoring
+   */
+  getRetryStatistics(): {
+    activeCount: number;
+    operations: string[];
+  } {
+    return this.retryService.getRetryStatistics();
+  }
+
+  /**
+   * Cancel all active retry operations
+   */
+  cancelAllRetries(): void {
+    this.retryService.cancelAllRetries();
   }
 }
