@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { AgentInfo, AgentManager } from '../../../src/features/agents/agentManager';
 import { AgentsExplorerProvider } from '../../../src/providers/agentsExplorerProvider';
-import { AgentManager, AgentInfo } from '../../../src/features/agents/agentManager';
 
 // Mock vscode
 jest.mock('vscode');
@@ -124,7 +124,7 @@ describe('AgentsExplorerProvider', () => {
         test('TC-AEP-001: 构造函数初始化', () => {
             // Assert
             expect(provider).toBeDefined();
-            expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(2);
+            expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(4);
         });
     });
 
@@ -273,7 +273,7 @@ describe('AgentsExplorerProvider', () => {
 
         test('TC-AEP-009: 设置用户 agents 文件监视', () => {
             // Assert
-            expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(2);
+            expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(4);
         });
 
         test('TC-AEP-010: 文件变化触发刷新', () => {
@@ -362,7 +362,7 @@ describe('AgentsExplorerProvider', () => {
             // Note: The actual implementation doesn't have error handling,
             // so we'll just verify that the method doesn't crash
             // when getAgentList fails
-            
+
             // Arrange 
             let callCount = 0;
             mockAgentManager.getAgentList.mockImplementation(() => {
@@ -380,7 +380,7 @@ describe('AgentsExplorerProvider', () => {
             // Act
             const groupNode = await provider.getChildren().then(nodes => nodes[1]);
             const agents = await provider.getChildren(groupNode);
-            
+
             // Assert - the method returns empty array without crashing
             expect(agents).toEqual([]);
         });
@@ -388,9 +388,11 @@ describe('AgentsExplorerProvider', () => {
         test('TC-AEP-014: 处理文件监视器创建失败', () => {
             // Arrange
             (vscode.workspace.createFileSystemWatcher as jest.Mock)
-                .mockImplementationOnce(() => mockFileWatcher) // First call succeeds
+                .mockImplementationOnce(() => mockFileWatcher) // First call succeeds (claude project)
+                .mockImplementationOnce(() => mockFileWatcher) // Second call succeeds (kiro project)
+                .mockImplementationOnce(() => mockFileWatcher) // Third call succeeds (claude user)
                 .mockImplementationOnce(() => {
-                    throw new Error('Watcher creation failed');
+                    throw new Error('Watcher creation failed'); // Fourth call fails (kiro user)
                 });
 
             // Act - create new provider

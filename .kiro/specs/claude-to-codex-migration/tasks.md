@@ -37,7 +37,7 @@
   - Ensure steering documents work with Codex CLI
   - _Requirements: 4.1, 4.2_
 
-- [ ] 7. Update AgentManager for Codex integration
+- [x] 7. Update AgentManager for Codex integration
   - Modify AgentManager to use CodexProvider
   - Update built-in agents to work with Codex CLI
   - Ensure agent communication works with Codex-based execution

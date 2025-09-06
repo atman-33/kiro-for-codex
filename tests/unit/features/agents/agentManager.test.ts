@@ -1,8 +1,9 @@
-import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { AgentManager } from '../../../../src/features/agents/agentManager';
+import type { CodexProvider } from '../../../../src/providers/codexProvider';
 
 // Mock vscode
 jest.mock('vscode');
@@ -26,6 +27,7 @@ describe('AgentManager', () => {
     let agentManager: AgentManager;
     let mockContext: vscode.ExtensionContext;
     let mockOutputChannel: vscode.OutputChannel;
+    let mockCodexProvider: jest.Mocked<CodexProvider>;
     let mockWorkspaceRoot: string;
 
     beforeEach(() => {
@@ -50,6 +52,20 @@ describe('AgentManager', () => {
         mockContext = {
             extensionPath: '/test/extension',
             subscriptions: []
+        } as any;
+
+        // Setup mock CodexProvider
+        mockCodexProvider = {
+            isCodexReady: jest.fn().mockResolvedValue(true),
+            getCodexAvailabilityStatus: jest.fn(),
+            showSetupGuidance: jest.fn(),
+            getCodexConfig: jest.fn().mockReturnValue({
+                defaultApprovalMode: 'interactive'
+            }),
+            setApprovalMode: jest.fn(),
+            invokeCodexSplitView: jest.fn(),
+            invokeCodexHeadless: jest.fn(),
+            renameTerminal: jest.fn()
         } as any;
 
         // Mock vscode.workspace
@@ -81,7 +97,7 @@ describe('AgentManager', () => {
         };
 
         // Create instance
-        agentManager = new AgentManager(mockContext, mockOutputChannel);
+        agentManager = new AgentManager(mockContext, mockOutputChannel, mockCodexProvider);
     });
 
     afterEach(() => {
@@ -103,7 +119,7 @@ describe('AgentManager', () => {
     describe('2. 内置 Agents 初始化', () => {
         test('TC-AM-002: 成功初始化内置 agents', async () => {
             // Arrange
-            const targetPath = path.join(mockWorkspaceRoot, '.claude', 'agents', 'kfc');
+            const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc');
 
             // Mock stat to throw (file doesn't exist)
             (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(new Error('File not found'));
@@ -118,7 +134,7 @@ describe('AgentManager', () => {
             // Should copy all built-in agents (7) + system prompt (1) = 8
             expect(vscode.workspace.fs.copy).toHaveBeenCalledTimes(8);
             expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-                expect.stringContaining('[AgentManager] Copied agent')
+                expect.stringContaining('[AgentManager] Updated agent')
             );
         });
 
@@ -127,7 +143,7 @@ describe('AgentManager', () => {
             // Mock that some agents already exist
             (vscode.workspace.fs.stat as jest.Mock).mockImplementation((uri) => {
                 const path = uri.fsPath;
-                if (path.includes('spec-requirements') || path.includes('spec-design')) {
+                if (path.includes('spec-requirements-codex') || path.includes('spec-design-codex')) {
                     return Promise.resolve({ type: vscode.FileType.File });
                 }
                 return Promise.reject(new Error('Not found'));
@@ -137,10 +153,10 @@ describe('AgentManager', () => {
             await agentManager.initializeBuiltInAgents();
 
             // Assert
-            // Should skip existing files (2 exist, so copy 7 - 2 = 5 agents + 1 system prompt = 6)
-            expect(vscode.workspace.fs.copy).toHaveBeenCalledTimes(6);
+            // Should always overwrite files (7 agents + 1 system prompt = 8)
+            expect(vscode.workspace.fs.copy).toHaveBeenCalledTimes(8);
             expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-                expect.stringContaining('already exists, skipping')
+                expect.stringContaining('[AgentManager] Updated agent')
             );
         });
 
@@ -295,14 +311,14 @@ description: No tools
         test('TC-AM-009: 获取 agent 路径', () => {
             // Arrange
             (fs.existsSync as jest.Mock).mockImplementation((p) => {
-                return p.includes('.claude/agents/kfc/test-agent.md');
+                return p.includes('.codex/agents/kfc/test-agent.md');
             });
 
             // Act
             const path = agentManager.getAgentPath('test-agent');
 
             // Assert
-            expect(path).toBe(`${mockWorkspaceRoot}/.claude/agents/kfc/test-agent.md`);
+            expect(path).toBe(`${mockWorkspaceRoot}/.codex/agents/kfc/test-agent.md`);
         });
 
         test('TC-AM-010: 获取不存在的 agent 路径返回 null', () => {
@@ -379,7 +395,7 @@ tools: [unclosed array
         test('TC-AM-016: 处理空的工作区', async () => {
             // Arrange
             (vscode.workspace as any).workspaceFolders = undefined;
-            const noWorkspaceManager = new AgentManager(mockContext, mockOutputChannel);
+            const noWorkspaceManager = new AgentManager(mockContext, mockOutputChannel, mockCodexProvider);
 
             // Act
             await noWorkspaceManager.initializeBuiltInAgents();
@@ -391,6 +407,162 @@ tools: [unclosed array
             expect(userAgents.length).toBeGreaterThanOrEqual(0); // User agents should still work
             expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
                 expect.stringContaining('No workspace')
+            );
+        });
+    });
+
+    describe('7. Agent Execution with Codex Integration', () => {
+        test('TC-AM-017: Execute agent successfully', async () => {
+            // Arrange
+            const agentName = 'test-agent';
+            const agentContent = `---
+name: Test Agent
+description: A test agent
+---
+
+# Test Agent Content
+This is a test agent for {{parameter1}}.`;
+
+            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+                return p.includes(`${agentName}.md`);
+            });
+            (fs.promises.readFile as jest.Mock).mockResolvedValue(agentContent);
+            mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
+
+            // Act
+            const result = await agentManager.executeAgent(agentName, { parameter1: 'testing' });
+
+            // Assert
+            expect(result.success).toBe(true);
+            expect(mockCodexProvider.invokeCodexSplitView).toHaveBeenCalledWith(
+                expect.stringContaining('This is a test agent for testing'),
+                'Codex - Agent: Test Agent'
+            );
+        });
+
+        test('TC-AM-018: Execute agent with Codex unavailable', async () => {
+            // Arrange
+            mockCodexProvider.isCodexReady.mockResolvedValue(false);
+            mockCodexProvider.getCodexAvailabilityStatus.mockResolvedValue({
+                isAvailable: false,
+                isInstalled: false,
+                version: null,
+                isCompatible: false,
+                errorMessage: 'Codex CLI not found',
+                setupGuidance: 'Please install Codex CLI'
+            });
+
+            // Act
+            const result = await agentManager.executeAgent('test-agent');
+
+            // Assert
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('Codex CLI is not available');
+            expect(mockCodexProvider.showSetupGuidance).toHaveBeenCalled();
+        });
+
+        test('TC-AM-019: Execute non-existent agent', async () => {
+            // Arrange
+            (fs.existsSync as jest.Mock).mockReturnValue(false);
+
+            // Act
+            const result = await agentManager.executeAgent('non-existent-agent');
+
+            // Assert
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('not found');
+        });
+
+        test('TC-AM-020: Execute agent in headless mode', async () => {
+            // Arrange
+            const agentName = 'test-agent';
+            const agentContent = `---
+name: Test Agent
+description: A test agent
+---
+
+# Test Agent Content`;
+
+            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+                return p.includes(`${agentName}.md`);
+            });
+            (fs.promises.readFile as jest.Mock).mockResolvedValue(agentContent);
+            mockCodexProvider.invokeCodexHeadless.mockResolvedValue({
+                exitCode: 0,
+                output: 'Success'
+            });
+
+            // Act
+            const result = await agentManager.executeAgentHeadless(agentName);
+
+            // Assert
+            expect(result.success).toBe(true);
+            expect(result.output).toBe('Success');
+            expect(mockCodexProvider.invokeCodexHeadless).toHaveBeenCalled();
+        });
+
+        test('TC-AM-021: Check agent readiness', async () => {
+            // Arrange
+            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+                return p.includes('existing-agent.md');
+            });
+
+            // Act & Assert
+            expect(await agentManager.isAgentReady('existing-agent')).toBe(true);
+            expect(await agentManager.isAgentReady('non-existent-agent')).toBe(false);
+        });
+
+        test('TC-AM-022: Get Codex status', async () => {
+            // Arrange
+            const mockConfig = {
+                codexPath: 'codex',
+                defaultApprovalMode: 'interactive' as any,
+                timeout: 30000,
+                terminalDelay: 1000
+            };
+            mockCodexProvider.getCodexConfig.mockReturnValue(mockConfig);
+
+            // Act
+            const status = await agentManager.getCodexStatus();
+
+            // Assert
+            expect(status.isReady).toBe(true);
+            expect(status.config).toEqual(mockConfig);
+        });
+
+        test('TC-AM-023: Set Codex approval mode', () => {
+            // Act
+            agentManager.setCodexApprovalMode('auto-edit' as any);
+
+            // Assert
+            expect(mockCodexProvider.setApprovalMode).toHaveBeenCalledWith('auto-edit');
+        });
+
+        test('TC-AM-024: Execute spec agent', async () => {
+            // Arrange
+            const agentName = 'spec-requirements-codex';
+            const specName = 'test-spec';
+            const agentContent = `---
+name: Spec Requirements Agent
+description: Creates requirements
+---
+
+# Requirements Agent`;
+
+            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+                return p.includes(`${agentName}.md`);
+            });
+            (fs.promises.readFile as jest.Mock).mockResolvedValue(agentContent);
+            mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
+
+            // Act
+            const result = await agentManager.executeSpecAgent(agentName, specName);
+
+            // Assert
+            expect(result.success).toBe(true);
+            expect(mockCodexProvider.invokeCodexSplitView).toHaveBeenCalledWith(
+                expect.stringContaining('**spec_name**: test-spec'),
+                'Codex - Agent: Spec Requirements Agent'
             );
         });
     });

@@ -6,6 +6,8 @@ export const frontmatter = {
   "name": "Create Custom Steering Document",
   "version": "1.0.0",
   "description": "Complete prompt for creating a custom steering document",
+  "codex_optimized": false,
+  "codex_alternative": "create-custom-steering-codex",
   "variables": {
     "description": {
       "type": "string",

@@ -6,6 +6,8 @@ export const frontmatter = {
   "name": "Create Spec with Complete Workflow",
   "version": "1.0.0",
   "description": "Complete prompt for creating a spec with the full workflow including system instructions",
+  "codex_optimized": false,
+  "codex_alternative": "create-spec-codex",
   "variables": {
     "description": {
       "type": "string",

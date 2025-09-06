@@ -6,6 +6,8 @@ export const frontmatter = {
   "name": "Initialize Steering",
   "version": "1.0.0",
   "description": "Complete prompt for initializing steering documents",
+  "codex_optimized": false,
+  "codex_alternative": "init-steering-codex",
   "variables": {
     "steeringPath": {
       "type": "string",

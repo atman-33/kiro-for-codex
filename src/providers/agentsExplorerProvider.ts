@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { AgentManager, AgentInfo } from '../features/agents/agentManager';
+import * as vscode from 'vscode';
+import { AgentInfo, AgentManager } from '../features/agents/agentManager';
 
 export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<AgentItem | undefined | null | void> = new vscode.EventEmitter<AgentItem | undefined | null | void>();
@@ -21,7 +21,7 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
     refresh(): void {
         this.isLoading = true;
         this._onDidChangeTreeData.fire(); // Show loading state immediately
-        
+
         // Simulate async loading
         setTimeout(() => {
             this.isLoading = false;
@@ -92,33 +92,59 @@ export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem
 
         // Watch project agents directory
         if (workspaceFolder) {
-            const projectAgentsPattern = new vscode.RelativePattern(
+            const claudeAgentsPattern = new vscode.RelativePattern(
                 workspaceFolder,
                 '.claude/agents/**/*.md'
             );
+            const codexAgentsPattern = new vscode.RelativePattern(
+                workspaceFolder,
+                '.codex/agents/**/*.md'
+            );
 
-            this.fileWatcher = vscode.workspace.createFileSystemWatcher(projectAgentsPattern);
+            this.fileWatcher = vscode.workspace.createFileSystemWatcher(claudeAgentsPattern);
+            const codexWatcher = vscode.workspace.createFileSystemWatcher(codexAgentsPattern);
 
             // File watcher changes should refresh without loading animation
             this.fileWatcher.onDidCreate(() => this._onDidChangeTreeData.fire());
             this.fileWatcher.onDidChange(() => this._onDidChangeTreeData.fire());
             this.fileWatcher.onDidDelete(() => this._onDidChangeTreeData.fire());
+
+            codexWatcher.onDidCreate(() => this._onDidChangeTreeData.fire());
+            codexWatcher.onDidChange(() => this._onDidChangeTreeData.fire());
+            codexWatcher.onDidDelete(() => this._onDidChangeTreeData.fire());
+
+            // Store both watchers for disposal
+            this.context.subscriptions.push(codexWatcher);
         }
 
         // Watch user agents directory (including subdirectories)
-        const userAgentsPath = path.join(require('os').homedir(), '.claude/agents');
-        const userAgentsPattern = new vscode.RelativePattern(
-            userAgentsPath,
+        const userClaudeAgentsPath = path.join(require('os').homedir(), '.claude/agents');
+        const userCodexAgentsPath = path.join(require('os').homedir(), '.codex/agents');
+
+        const userClaudeAgentsPattern = new vscode.RelativePattern(
+            userClaudeAgentsPath,
+            '**/*.md'
+        );
+        const userCodexAgentsPattern = new vscode.RelativePattern(
+            userCodexAgentsPath,
             '**/*.md'
         );
 
         try {
-            this.userFileWatcher = vscode.workspace.createFileSystemWatcher(userAgentsPattern);
+            this.userFileWatcher = vscode.workspace.createFileSystemWatcher(userClaudeAgentsPattern);
+            const userCodexWatcher = vscode.workspace.createFileSystemWatcher(userCodexAgentsPattern);
 
             // File watcher changes should refresh without loading animation
             this.userFileWatcher.onDidCreate(() => this._onDidChangeTreeData.fire());
             this.userFileWatcher.onDidChange(() => this._onDidChangeTreeData.fire());
             this.userFileWatcher.onDidDelete(() => this._onDidChangeTreeData.fire());
+
+            userCodexWatcher.onDidCreate(() => this._onDidChangeTreeData.fire());
+            userCodexWatcher.onDidChange(() => this._onDidChangeTreeData.fire());
+            userCodexWatcher.onDidDelete(() => this._onDidChangeTreeData.fire());
+
+            // Store both watchers for disposal
+            this.context.subscriptions.push(userCodexWatcher);
         } catch (error) {
             this.outputChannel.appendLine(`[AgentsExplorer] Failed to watch user agents directory: ${error}`);
         }

@@ -69,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext) {
     steeringManager = new SteeringManager(codexProvider, outputChannel);
 
     // Initialize Agent Manager and agents
-    agentManager = new AgentManager(context, outputChannel);
+    agentManager = new AgentManager(context, outputChannel, codexProvider);
     await agentManager.initializeBuiltInAgents();
 
     // Register tree data providers
@@ -357,7 +357,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             const filePath = document.fileName;
 
             // Check if this is an agent file
-            if (filePath.includes('.claude/agents/') && filePath.endsWith('.md')) {
+            if (filePath.includes('.codex/agents/') && filePath.endsWith('.md')) {
                 // Show confirmation dialog
                 const result = await vscode.window.showWarningMessage(
                     'Are you sure you want to save changes to this agent file?',
@@ -487,8 +487,9 @@ function setupFileWatchers(
     mcpExplorer: MCPExplorerProvider,
     agentsExplorer: AgentsExplorerProvider
 ) {
-    // Watch for changes in .claude directory with debouncing
+    // Watch for changes in .claude and .codex directories with debouncing
     const kfcWatcher = vscode.workspace.createFileSystemWatcher('**/.claude/**/*');
+    const codexWatcher = vscode.workspace.createFileSystemWatcher('**/.codex/**/*');
 
     let refreshTimeout: NodeJS.Timeout | undefined;
     const debouncedRefresh = (event: string, uri: vscode.Uri) => {
@@ -510,7 +511,11 @@ function setupFileWatchers(
     kfcWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
     kfcWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
 
-    context.subscriptions.push(kfcWatcher);
+    codexWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
+    codexWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
+    codexWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
+
+    context.subscriptions.push(kfcWatcher, codexWatcher);
 
     // Watch for changes in Claude settings
     const claudeSettingsWatcher = vscode.workspace.createFileSystemWatcher(
