@@ -120,16 +120,16 @@ describe('AgentsExplorerProvider', () => {
         jest.useRealTimers();
     });
 
-    describe('1. 构造函数和初始化', () => {
-        test('TC-AEP-001: 构造函数初始化', () => {
+    describe('1. Constructor and Initialization', () => {
+        test('TC-AEP-001: Constructor initialization', () => {
             // Assert
             expect(provider).toBeDefined();
             expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(4);
         });
     });
 
-    describe('2. 树形结构生成', () => {
-        test('TC-AEP-002: 获取根节点（用户和项目组）', async () => {
+    describe('2. Tree Structure Generation', () => {
+        test('TC-AEP-002: Get root nodes (user and project groups)', async () => {
             // Arrange
             mockAgentManager.getAgentList.mockResolvedValue([]);
 
@@ -144,7 +144,7 @@ describe('AgentsExplorerProvider', () => {
             expect(children[1].collapsibleState).toBe(vscode.TreeItemCollapsibleState.Expanded);
         });
 
-        test('TC-AEP-003: 显示 loading 状态', async () => {
+        test('TC-AEP-003: Display loading state', async () => {
             // Arrange
             mockAgentManager.getAgentList.mockResolvedValue([]);
 
@@ -170,7 +170,7 @@ describe('AgentsExplorerProvider', () => {
             expect(normalChildren[0].label).toBe('User Agents');
         });
 
-        test('TC-AEP-004: 获取组内的 agents', async () => {
+        test('TC-AEP-004: Get agents within group', async () => {
             // Arrange
             const mockAgents: AgentInfo[] = [
                 {
@@ -203,7 +203,7 @@ describe('AgentsExplorerProvider', () => {
             expect(agentNodes[1].label).toBe('Test Agent 2');
         });
 
-        test('TC-AEP-005: 处理无工作区情况', async () => {
+        test('TC-AEP-005: Handle no workspace situation', async () => {
             // Arrange
             (vscode.workspace as any).workspaceFolders = undefined;
 
@@ -215,8 +215,8 @@ describe('AgentsExplorerProvider', () => {
         });
     });
 
-    describe('3. 树节点属性', () => {
-        test('TC-AEP-006: Agent 节点属性', async () => {
+    describe('3. Tree Node Properties', () => {
+        test('TC-AEP-006: Agent node properties', async () => {
             // Arrange
             const mockAgent: AgentInfo = {
                 name: 'Test Agent',
@@ -243,7 +243,7 @@ describe('AgentsExplorerProvider', () => {
             });
         });
 
-        test('TC-AEP-007: 组节点属性', async () => {
+        test('TC-AEP-007: Group node properties', async () => {
             // Arrange
             mockAgentManager.getAgentList.mockResolvedValue([]);
 
@@ -262,8 +262,8 @@ describe('AgentsExplorerProvider', () => {
         });
     });
 
-    describe('4. 文件监视功能', () => {
-        test('TC-AEP-008: 设置项目 agents 文件监视', () => {
+    describe('4. File Watching Functionality', () => {
+        test('TC-AEP-008: Set up project agents file watching', () => {
             // Assert
             expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalled();
             expect(mockFileWatcher.onDidCreate).toHaveBeenCalled();
@@ -271,12 +271,12 @@ describe('AgentsExplorerProvider', () => {
             expect(mockFileWatcher.onDidDelete).toHaveBeenCalled();
         });
 
-        test('TC-AEP-009: 设置用户 agents 文件监视', () => {
+        test('TC-AEP-009: Set up user agents file watching', () => {
             // Assert
             expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(4);
         });
 
-        test('TC-AEP-010: 文件变化触发刷新', () => {
+        test('TC-AEP-010: File changes trigger refresh', () => {
             // Arrange
             const mockEventEmitter = {
                 fire: jest.fn(),
@@ -300,8 +300,8 @@ describe('AgentsExplorerProvider', () => {
         });
     });
 
-    describe('5. 刷新机制', () => {
-        test('TC-AEP-011: 手动刷新功能', async () => {
+    describe('5. Refresh Mechanism', () => {
+        test('TC-AEP-011: Manual refresh functionality', async () => {
             // Arrange
             const mockEventEmitter = {
                 fire: jest.fn(),

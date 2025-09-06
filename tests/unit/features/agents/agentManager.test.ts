@@ -104,8 +104,8 @@ describe('AgentManager', () => {
         jest.restoreAllMocks();
     });
 
-    describe('1. 构造函数和初始化', () => {
-        test('TC-AM-001: 构造函数初始化', () => {
+    describe('1. Constructor and Initialization', () => {
+        test('TC-AM-001: Constructor initialization', () => {
             // Arrange & Act - already done in beforeEach
 
             // Assert
@@ -116,8 +116,8 @@ describe('AgentManager', () => {
         });
     });
 
-    describe('2. 内置 Agents 初始化', () => {
-        test('TC-AM-002: 成功初始化内置 agents', async () => {
+    describe('2. Built-in Agents Initialization', () => {
+        test('TC-AM-002: Successfully initialize built-in agents', async () => {
             // Arrange
             const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc');
 
@@ -138,7 +138,7 @@ describe('AgentManager', () => {
             );
         });
 
-        test('TC-AM-003: 跳过已存在的内置 agents', async () => {
+        test('TC-AM-003: Skip existing built-in agents', async () => {
             // Arrange
             // Mock that some agents already exist
             (vscode.workspace.fs.stat as jest.Mock).mockImplementation((uri) => {
@@ -160,7 +160,7 @@ describe('AgentManager', () => {
             );
         });
 
-        test('TC-AM-004: 处理初始化错误', async () => {
+        test('TC-AM-004: Handle initialization errors', async () => {
             // Arrange
             (vscode.workspace.fs.createDirectory as jest.Mock).mockRejectedValue(
                 new Error('Permission denied')
@@ -176,8 +176,8 @@ describe('AgentManager', () => {
         });
     });
 
-    describe('3. Agent 列表获取', () => {
-        test('TC-AM-005: 获取项目级 agents', async () => {
+    describe('3. Agent List Retrieval', () => {
+        test('TC-AM-005: Get project-level agents', async () => {
             // Arrange
             const mockAgentContent = `---
 name: Test Agent
@@ -214,7 +214,7 @@ Agent content here`;
             });
         });
 
-        test('TC-AM-006: 获取用户级 agents', async () => {
+        test('TC-AM-006: Get user-level agents', async () => {
             // Arrange
             const mockAgentContent = `---
 name: User Agent
@@ -245,7 +245,7 @@ tools: Read, Write, Task
             expect(agents[0].tools).toEqual(['Read', 'Write', 'Task']);
         });
 
-        test('TC-AM-007: 处理空目录', async () => {
+        test('TC-AM-007: Handle empty directories', async () => {
             // Arrange
             (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([]);
 
@@ -256,7 +256,7 @@ tools: Read, Write, Task
             expect(agents).toEqual([]);
         });
 
-        test('TC-AM-008: 解析 YAML frontmatter', async () => {
+        test('TC-AM-008: Parse YAML frontmatter', async () => {
             // Arrange
             const testCases = [
                 {
@@ -307,8 +307,8 @@ description: No tools
         });
     });
 
-    describe('4. Agent 路径管理', () => {
-        test('TC-AM-009: 获取 agent 路径', () => {
+    describe('4. Agent Path Management', () => {
+        test('TC-AM-009: Get agent path', () => {
             // Arrange
             (fs.existsSync as jest.Mock).mockImplementation((p) => {
                 return p.includes('.codex/agents/kfc/test-agent.md');
@@ -321,7 +321,7 @@ description: No tools
             expect(path).toBe(`${mockWorkspaceRoot}/.codex/agents/kfc/test-agent.md`);
         });
 
-        test('TC-AM-010: 获取不存在的 agent 路径返回 null', () => {
+        test('TC-AM-010: Get non-existent agent path returns null', () => {
             // Arrange
             (fs.existsSync as jest.Mock).mockReturnValue(false);
 
@@ -332,7 +332,7 @@ description: No tools
             expect(path).toBeNull();
         });
 
-        test('TC-AM-011: 检查 agent 存在性', () => {
+        test('TC-AM-011: Check agent existence', () => {
             // Arrange
             (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
                 // Only return true for paths that contain 'existing-agent.md'
@@ -347,8 +347,8 @@ description: No tools
 
     // Note: initializeSystemPrompts was moved to initializeBuiltInAgents
 
-    describe('6. 边界情况和错误处理', () => {
-        test('TC-AM-014: 处理无效的 YAML', async () => {
+    describe('6. Boundary Cases and Error Handling', () => {
+        test('TC-AM-014: Handle invalid YAML', async () => {
             // Arrange
             const invalidYaml = `---
 name: Invalid Agent
@@ -370,7 +370,7 @@ tools: [unclosed array
             );
         });
 
-        test('TC-AM-015: 处理文件读取权限问题', async () => {
+        test('TC-AM-015: Handle file read permission issues', async () => {
             // Arrange
             // Mock readDirectory to return files
             (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
@@ -392,7 +392,7 @@ tools: [unclosed array
             );
         });
 
-        test('TC-AM-016: 处理空的工作区', async () => {
+        test('TC-AM-016: Handle empty workspace', async () => {
             // Arrange
             (vscode.workspace as any).workspaceFolders = undefined;
             const noWorkspaceManager = new AgentManager(mockContext, mockOutputChannel, mockCodexProvider);

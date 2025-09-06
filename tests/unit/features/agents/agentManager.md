@@ -1,236 +1,236 @@
-# AgentManager 单元测试用例
+# AgentManager Unit Test Cases
 
-## 测试文件
+## Test File
 
 `agentManager.test.ts`
 
-## 测试目的
+## Test Purpose
 
-确保 AgentManager 服务正确管理 Claude Code agents，包括内置 agents 初始化、agent 列表获取、路径管理、文件操作等核心功能。该模块负责管理项目级和用户级的 agents，是 agents 系统的核心管理器。
+Ensure that the AgentManager service correctly manages Claude Code agents, including built-in agent initialization, agent list retrieval, path management, file operations, and other core functionalities. This module is responsible for managing project-level and user-level agents and serves as the core manager of the agents system.
 
-## 测试用例概览
+## Test Case Overview
 
-| 用例 ID   | 功能描述                 | 测试类型 |
-| --------- | ------------------------ | -------- |
-| TC-AM-001 | 构造函数初始化           | 正向测试 |
-| TC-AM-002 | 成功初始化内置 agents    | 正向测试 |
-| TC-AM-003 | 跳过已存在的内置 agents  | 正向测试 |
-| TC-AM-004 | 处理初始化错误           | 异常测试 |
-| TC-AM-005 | 获取项目级 agents        | 正向测试 |
-| TC-AM-006 | 获取用户级 agents        | 正向测试 |
-| TC-AM-007 | 处理空目录               | 边界测试 |
-| TC-AM-008 | 解析 YAML frontmatter    | 正向测试 |
-| TC-AM-009 | 获取项目级 agent 路径    | 正向测试 |
-| TC-AM-010 | 获取用户级 agent 路径    | 正向测试 |
-| TC-AM-011 | 检查 agent 存在性        | 正向测试 |
-| TC-AM-012 | 初始化 system prompts    | 正向测试 |
-| TC-AM-013 | 处理已存在的 prompt 文件 | 正向测试 |
-| TC-AM-014 | 处理无效的 YAML          | 异常测试 |
-| TC-AM-015 | 处理文件读取权限问题     | 异常测试 |
-| TC-AM-016 | 处理空的工作区           | 边界测试 |
+| Case ID   | Function Description              | Test Type      |
+| --------- | --------------------------------- | -------------- |
+| TC-AM-001 | Constructor initialization        | Positive test  |
+| TC-AM-002 | Successfully initialize built-in agents | Positive test |
+| TC-AM-003 | Skip existing built-in agents    | Positive test  |
+| TC-AM-004 | Handle initialization errors      | Exception test |
+| TC-AM-005 | Get project-level agents          | Positive test  |
+| TC-AM-006 | Get user-level agents             | Positive test  |
+| TC-AM-007 | Handle empty directories          | Boundary test  |
+| TC-AM-008 | Parse YAML frontmatter           | Positive test  |
+| TC-AM-009 | Get project-level agent path     | Positive test  |
+| TC-AM-010 | Get user-level agent path        | Positive test  |
+| TC-AM-011 | Check agent existence             | Positive test  |
+| TC-AM-012 | Initialize system prompts         | Positive test  |
+| TC-AM-013 | Handle existing prompt files      | Positive test  |
+| TC-AM-014 | Handle invalid YAML               | Exception test |
+| TC-AM-015 | Handle file read permission issues | Exception test |
+| TC-AM-016 | Handle empty workspace            | Boundary test  |
 
-## 测试环境
+## Test Environment
 
-- 测试框架：Jest
-- 模拟：vscode API、文件系统操作
-- 测试数据：模拟的 agent 文件和配置
+- Test Framework: Jest
+- Mocking: vscode API, file system operations
+- Test Data: Mocked agent files and configurations
 
-## 测试用例
+## Test Cases
 
-### 1. 构造函数和初始化
+### 1. Constructor and Initialization
 
-#### TC-AM-001: 构造函数初始化
+#### TC-AM-001: Constructor initialization
 
-- **描述**: 验证 AgentManager 正确初始化
-- **前置条件**: 有效的工作区路径和输出通道
-- **测试步骤**:
-  1. 创建 AgentManager 实例
-  2. 验证内部属性正确设置
-- **预期结果**:
-  - workspaceRoot 正确设置
-  - outputChannel 正确设置
+- **Description**: Verify AgentManager initializes correctly
+- **Preconditions**: Valid workspace path and output channel
+- **Test Steps**:
+  1. Create AgentManager instance
+  2. Verify internal properties are set correctly
+- **Expected Results**:
+  - workspaceRoot is set correctly
+  - outputChannel is set correctly
 
-### 2. 内置 Agents 初始化
+### 2. Built-in Agents Initialization
 
-#### TC-AM-002: 成功初始化内置 agents
+#### TC-AM-002: Successfully initialize built-in agents
 
-- **描述**: 验证内置 agents 成功从资源目录复制
-- **前置条件**:
-  - 资源目录存在内置 agents
-  - 目标目录不存在内置 agents
-- **测试步骤**:
-  1. 调用 initializeBuiltInAgents()
-  2. 验证文件复制操作
-- **预期结果**:
-  - 创建 .claude/agents/kfc 目录
-  - 复制所有内置 agent 文件
-  - 输出成功日志
+- **Description**: Verify built-in agents are successfully copied from resource directory
+- **Preconditions**:
+  - Resource directory contains built-in agents
+  - Target directory does not contain built-in agents
+- **Test Steps**:
+  1. Call initializeBuiltInAgents()
+  2. Verify file copy operations
+- **Expected Results**:
+  - Create .claude/agents/kfc directory
+  - Copy all built-in agent files
+  - Output success logs
 
-#### TC-AM-003: 跳过已存在的内置 agents
+#### TC-AM-003: Skip existing built-in agents
 
-- **描述**: 验证已存在的 agents 不会被覆盖
-- **前置条件**: 目标目录已存在部分 agents
-- **测试步骤**:
-  1. 创建部分 agent 文件
-  2. 调用 initializeBuiltInAgents()
-  3. 验证文件操作
-- **预期结果**:
-  - 已存在的文件被跳过
-  - 只复制缺失的文件
-  - 输出相应日志
+- **Description**: Verify existing agents are not overwritten
+- **Preconditions**: Target directory already contains some agents
+- **Test Steps**:
+  1. Create some agent files
+  2. Call initializeBuiltInAgents()
+  3. Verify file operations
+- **Expected Results**:
+  - Existing files are skipped
+  - Only missing files are copied
+  - Output appropriate logs
 
-#### TC-AM-004: 处理初始化错误
+#### TC-AM-004: Handle initialization errors
 
-- **描述**: 验证初始化过程中的错误处理
-- **前置条件**: 模拟文件系统错误
-- **测试步骤**:
-  1. 模拟 fs 操作抛出错误
-  2. 调用 initializeBuiltInAgents()
-- **预期结果**:
-  - 捕获并记录错误
-  - 不抛出异常
+- **Description**: Verify error handling during initialization process
+- **Preconditions**: Mock file system errors
+- **Test Steps**:
+  1. Mock fs operations to throw errors
+  2. Call initializeBuiltInAgents()
+- **Expected Results**:
+  - Catch and log errors
+  - Do not throw exceptions
 
-### 3. Agent 列表获取
+### 3. Agent List Retrieval
 
-#### TC-AM-005: 获取项目级 agents
+#### TC-AM-005: Get project-level agents
 
-- **描述**: 验证正确获取项目级 agents
-- **前置条件**: 项目 .claude/agents 目录包含 agent 文件
-- **测试步骤**:
-  1. 创建模拟 agent 文件
-  2. 调用 getAgentList('project')
-  3. 验证返回的列表
-- **预期结果**:
-  - 返回所有项目级 agents
-  - 正确解析 YAML frontmatter
-  - 包含路径信息
+- **Description**: Verify correct retrieval of project-level agents
+- **Preconditions**: Project .claude/agents directory contains agent files
+- **Test Steps**:
+  1. Create mock agent files
+  2. Call getAgentList('project')
+  3. Verify returned list
+- **Expected Results**:
+  - Return all project-level agents
+  - Correctly parse YAML frontmatter
+  - Include path information
 
-#### TC-AM-006: 获取用户级 agents
+#### TC-AM-006: Get user-level agents
 
-- **描述**: 验证正确获取用户级 agents
-- **前置条件**: 用户目录 ~/.claude/agents 包含 agent 文件
-- **测试步骤**:
-  1. 模拟用户目录 agent 文件
-  2. 调用 getAgentList('user')
-  3. 验证返回的列表
-- **预期结果**:
-  - 返回所有用户级 agents
-  - 递归读取子目录
-  - 正确解析元数据
+- **Description**: Verify correct retrieval of user-level agents
+- **Preconditions**: User directory ~/.claude/agents contains agent files
+- **Test Steps**:
+  1. Mock user directory agent files
+  2. Call getAgentList('user')
+  3. Verify returned list
+- **Expected Results**:
+  - Return all user-level agents
+  - Recursively read subdirectories
+  - Correctly parse metadata
 
-#### TC-AM-007: 处理空目录
+#### TC-AM-007: Handle empty directories
 
-- **描述**: 验证空目录返回空列表
-- **前置条件**: agents 目录不存在或为空
-- **测试步骤**:
-  1. 确保目录为空
-  2. 调用 getAgentList()
-- **预期结果**: 返回空数组
+- **Description**: Verify empty directories return empty list
+- **Preconditions**: agents directory does not exist or is empty
+- **Test Steps**:
+  1. Ensure directory is empty
+  2. Call getAgentList()
+- **Expected Results**: Return empty array
 
-#### TC-AM-008: 解析 YAML frontmatter
+#### TC-AM-008: Parse YAML frontmatter
 
-- **描述**: 验证正确解析不同格式的 YAML
-- **前置条件**: 准备不同格式的 agent 文件
-- **测试步骤**:
-  1. 创建包含各种 YAML 格式的文件
-  2. 调用 readAgentsRecursively()
-  3. 验证解析结果
-- **预期结果**:
-  - 正确解析 name、description
-  - 正确处理 tools 数组和字符串
-  - 处理缺失字段
+- **Description**: Verify correct parsing of different YAML formats
+- **Preconditions**: Prepare agent files with different formats
+- **Test Steps**:
+  1. Create files with various YAML formats
+  2. Call readAgentsRecursively()
+  3. Verify parsing results
+- **Expected Results**:
+  - Correctly parse name, description
+  - Correctly handle tools arrays and strings
+  - Handle missing fields
 
-### 4. Agent 路径管理
+### 4. Agent Path Management
 
-#### TC-AM-009: 获取项目级 agent 路径
+#### TC-AM-009: Get project-level agent path
 
-- **描述**: 验证正确生成项目级 agent 路径
-- **前置条件**: 有效的工作区
-- **测试步骤**:
-  1. 调用 getAgentPath('test-agent', 'project')
-  2. 验证返回路径
-- **预期结果**: 返回 {workspace}/.claude/agents/test-agent.md
+- **Description**: Verify correct generation of project-level agent path
+- **Preconditions**: Valid workspace
+- **Test Steps**:
+  1. Call getAgentPath('test-agent', 'project')
+  2. Verify returned path
+- **Expected Results**: Return {workspace}/.claude/agents/test-agent.md
 
-#### TC-AM-010: 获取用户级 agent 路径
+#### TC-AM-010: Get user-level agent path
 
-- **描述**: 验证正确生成用户级 agent 路径
-- **前置条件**: 有效的用户目录
-- **测试步骤**:
-  1. 调用 getAgentPath('test-agent', 'user')
-  2. 验证返回路径
-- **预期结果**: 返回 ~/.claude/agents/test-agent.md
+- **Description**: Verify correct generation of user-level agent path
+- **Preconditions**: Valid user directory
+- **Test Steps**:
+  1. Call getAgentPath('test-agent', 'user')
+  2. Verify returned path
+- **Expected Results**: Return ~/.claude/agents/test-agent.md
 
-#### TC-AM-011: 检查 agent 存在性
+#### TC-AM-011: Check agent existence
 
-- **描述**: 验证 checkAgentExists 方法
-- **前置条件**: 准备存在和不存在的 agent 文件
-- **测试步骤**:
-  1. 创建测试 agent 文件
-  2. 调用 checkAgentExists() 检查存在的文件
-  3. 调用 checkAgentExists() 检查不存在的文件
-- **预期结果**:
-  - 存在的文件返回 true
-  - 不存在的文件返回 false
+- **Description**: Verify checkAgentExists method
+- **Preconditions**: Prepare existing and non-existing agent files
+- **Test Steps**:
+  1. Create test agent file
+  2. Call checkAgentExists() to check existing file
+  3. Call checkAgentExists() to check non-existing file
+- **Expected Results**:
+  - Existing file returns true
+  - Non-existing file returns false
 
-### 5. System Prompt 初始化
+### 5. System Prompt Initialization
 
-#### TC-AM-012: 初始化 system prompts
+#### TC-AM-012: Initialize system prompts
 
-- **描述**: 验证 system prompt 文件复制
-- **前置条件**: 资源目录包含 prompt 文件
-- **测试步骤**:
-  1. 调用 initializeSystemPrompts()
-  2. 验证文件复制
-- **预期结果**:
-  - 创建 .claude/prompts 目录
-  - 复制 spec-workflow-starter.md
-  - 输出成功日志
+- **Description**: Verify system prompt file copying
+- **Preconditions**: Resource directory contains prompt files
+- **Test Steps**:
+  1. Call initializeSystemPrompts()
+  2. Verify file copying
+- **Expected Results**:
+  - Create .claude/prompts directory
+  - Copy spec-workflow-starter.md
+  - Output success logs
 
-#### TC-AM-013: 处理已存在的 prompt 文件
+#### TC-AM-013: Handle existing prompt files
 
-- **描述**: 验证不覆盖已存在的文件
-- **前置条件**: 目标文件已存在
-- **测试步骤**:
-  1. 创建已存在的 prompt 文件
-  2. 调用 initializeSystemPrompts()
-- **预期结果**:
-  - 跳过已存在的文件
-  - 输出跳过日志
+- **Description**: Verify not overwriting existing files
+- **Preconditions**: Target file already exists
+- **Test Steps**:
+  1. Create existing prompt file
+  2. Call initializeSystemPrompts()
+- **Expected Results**:
+  - Skip existing files
+  - Output skip logs
 
-### 6. 边界情况和错误处理
+### 6. Boundary Cases and Error Handling
 
-#### TC-AM-014: 处理无效的 YAML
+#### TC-AM-014: Handle invalid YAML
 
-- **描述**: 验证处理格式错误的 YAML
-- **前置条件**: 创建包含无效 YAML 的文件
-- **测试步骤**:
-  1. 创建格式错误的 agent 文件
-  2. 调用 getAgentList()
-- **预期结果**:
-  - 不抛出异常
-  - 记录错误日志
-  - 跳过无效文件
+- **Description**: Verify handling of malformed YAML
+- **Preconditions**: Create files with invalid YAML
+- **Test Steps**:
+  1. Create malformed agent files
+  2. Call getAgentList()
+- **Expected Results**:
+  - Do not throw exceptions
+  - Log error messages
+  - Skip invalid files
 
-#### TC-AM-015: 处理文件读取权限问题
+#### TC-AM-015: Handle file read permission issues
 
-- **描述**: 验证处理无权限读取的文件
-- **前置条件**: 模拟文件读取权限错误
-- **测试步骤**:
-  1. 模拟 fs.readFileSync 抛出权限错误
-  2. 调用相关方法
-- **预期结果**:
-  - 捕获错误
-  - 记录错误信息
-  - 继续处理其他文件
+- **Description**: Verify handling of files without read permissions
+- **Preconditions**: Mock file read permission errors
+- **Test Steps**:
+  1. Mock fs.readFileSync to throw permission errors
+  2. Call related methods
+- **Expected Results**:
+  - Catch errors
+  - Log error information
+  - Continue processing other files
 
-#### TC-AM-016: 处理空的工作区
+#### TC-AM-016: Handle empty workspace
 
-- **描述**: 验证在无工作区时的行为
-- **前置条件**: workspaceRoot 为 undefined
-- **测试步骤**:
-  1. 创建无工作区的 AgentManager
-  2. 调用各种方法
-- **预期结果**:
-  - 方法正常返回
-  - 不执行项目级操作
-  - 用户级操作正常工作
+- **Description**: Verify behavior when no workspace is available
+- **Preconditions**: workspaceRoot is undefined
+- **Test Steps**:
+  1. Create AgentManager without workspace
+  2. Call various methods
+- **Expected Results**:
+  - Methods return normally
+  - Do not execute project-level operations
+  - User-level operations work normally

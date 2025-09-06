@@ -105,18 +105,18 @@ def evaluate_documents(documents):
 2. Read candidate documents (requirements:requirements_v*.md, design:design_v*.md, tasks:tasks_v*.md)
 3. Score based on reference documents and Specific Type Criteria
 4. Select the best solution or combine advantages of x solutions
-5. 将最终方案复制到新路径，使用随机 4 位数字后缀（如 requirements_v1234.md）
-6. 删除所有评审的输入文档，仅保留新创建的最终方案
-7. 返回文档的简要总结，包含 x 个版本的评分（如"v1: 85 分, v2: 92 分，选择 v2 版本"）
+5. Copy the final solution to a new path using a random 4-digit suffix (e.g., requirements_v1234.md)
+6. Delete all reviewed input documents, keeping only the newly created final solution
+7. Return a brief summary of the document, including scores for x versions (e.g., "v1: 85 points, v2: 92 points, selected v2 version")
 
 ## OUTPUT
 
-final_document_path: 最终方案路径(path)
-summary: 简要总结并包含评分，例如：
+final_document_path: Final solution path
+summary: Brief summary including scores, for example:
 
-- "已创建需求文档，包含 8 个主要需求。评分：v1: 82 分, v2: 91 分，选择 v2 版本"
-- "已完成设计文档，采用微服务架构。评分：v1: 88 分, v2: 85 分，选择 v1 版本"
-- "已生成任务列表，共 15 个实施任务。评分：v1: 90 分, v2: 92 分，综合两个版本优点"
+- "Requirements document created with 8 main requirements. Scores: v1: 82 points, v2: 91 points, selected v2 version"
+- "Design document completed using microservices architecture. Scores: v1: 88 points, v2: 85 points, selected v1 version"
+- "Task list generated with 15 implementation tasks. Scores: v1: 90 points, v2: 92 points, combined advantages of both versions"
 
 ## **Important Constraints**
 

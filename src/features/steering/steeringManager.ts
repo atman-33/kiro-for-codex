@@ -285,9 +285,4 @@ This file contains global configuration and guidance for Codex CLI when working 
         // Auto-dismiss notification
         await NotificationUtils.showAutoDismissNotification('Created global Codex configuration file');
     }
-
-
-
-
-
 }

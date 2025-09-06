@@ -1,96 +1,96 @@
-# 测试目录
+# Tests Directory
 
-本目录包含项目的所有测试相关文件。
+This directory contains all test-related files for the project.
 
-## 目录结构
+## Directory Structure
 
 ```plain
 tests/
-├── README.md                      # 本文档
-├── MANUAL_TESTING.md             # 手动测试清单和记录
-├── __mocks__/                    # Mock 文件
+├── README.md                      # This document
+├── MANUAL_TESTING.md             # Manual testing checklist and records
+├── __mocks__/                    # Mock files
 │   └── vscode.ts                 # VSCode API mock
-├── unit/                         # 单元测试
+├── unit/                         # Unit tests
 │   ├── services/
-│   │   ├── promptLoader.test.ts  # PromptLoader 测试
-│   │   └── promptLoader.md       # PromptLoader 测试文档
+│   │   ├── promptLoader.test.ts  # PromptLoader tests
+│   │   └── promptLoader.md       # PromptLoader test documentation
 │   ├── prompts/
-│   │   ├── markdownParsing.test.ts # Markdown 解析测试
-│   │   └── markdownParsing.md     # Markdown 解析测试文档
+│   │   ├── markdownParsing.test.ts # Markdown parsing tests
+│   │   └── markdownParsing.md     # Markdown parsing test documentation
 │   └── features/
-│       ├── specManager.test.ts   # SpecManager 测试（待完善）
-│       └── specManager.md        # SpecManager 测试文档
-└── integration/                  # 集成测试
-    ├── prompts.test.ts          # Prompts 集成测试
-    ├── prompts.md               # Prompts 集成测试文档
-    ├── promptSnapshots.test.ts  # Prompt 快照测试
-    ├── promptSnapshots.md       # Prompt 快照测试文档
-    └── __snapshots__/           # Jest 快照文件
+│       ├── specManager.test.ts   # SpecManager tests (to be improved)
+│       └── specManager.md        # SpecManager test documentation
+└── integration/                  # Integration tests
+    ├── prompts.test.ts          # Prompts integration tests
+    ├── prompts.md               # Prompts integration test documentation
+    ├── promptSnapshots.test.ts  # Prompt snapshot tests
+    ├── promptSnapshots.md       # Prompt snapshot test documentation
+    └── __snapshots__/           # Jest snapshot files
 ```
 
-## 测试策略
+## Testing Strategy
 
-- **单元测试**: 测试独立的函数和类
-- **集成测试**: 测试组件间的交互
-- **快照测试**: 防止 prompt 内容意外改变
+- **Unit Tests**: Test independent functions and classes
+- **Integration Tests**: Test interactions between components
+- **Snapshot Tests**: Prevent unintended changes to prompt content
 
-## 运行测试
+## Running Tests
 
 ```bash
-# 运行所有测试
+# Run all tests
 npm test
 
-# 运行特定文件
+# Run specific file
 npm test promptLoader.test.ts
 
-# 运行测试并查看覆盖率
+# Run tests with coverage
 npm test -- --coverage
 
-# 监听模式
+# Watch mode
 npm test -- --watch
 
-# 更新快照
+# Update snapshots
 npm test -- -u
 ```
 
-## 测试文档
+## Test Documentation
 
-每个测试文件都有对应的 Markdown 文档，包含：
+Each test file has corresponding Markdown documentation containing:
 
-- 测试用例 ID 和描述
-- 测试目的和准备数据
-- 详细的测试步骤
-- 预期结果
+- Test case ID and description
+- Test purpose and preparation data
+- Detailed test steps
+- Expected results
 
-测试用例 ID 格式：
+Test case ID format:
 
-- `PL-XX`: PromptLoader 测试
-- `MD-XX`: Markdown 解析测试
-- `SM-XX`: SpecManager 测试
-- `INT-XX`: 集成测试
+- `PL-XX`: PromptLoader tests
+- `MD-XX`: Markdown parsing tests
+- `SM-XX`: SpecManager tests
+- `INT-XX`: Integration tests
 
-## 当前状态
+## Current Status
 
-### 已完成
+### Completed
 
-- ✅ PromptLoader 单元测试 (11 个用例)
-- ✅ Markdown 解析测试 (7 个用例)
-- ✅ Prompts 集成测试 (14 个用例)
-- ✅ Prompt 快照测试 (5 个用例)
+- ✅ PromptLoader unit tests (11 test cases)
+- ✅ Markdown parsing tests (7 test cases)
+- ✅ Prompts integration tests (14 test cases)
+- ✅ Prompt snapshot tests (5 test cases)
 
-### 进行中
+### In Progress
 
-- 🚧 SpecManager 单元测试（TypeScript 类型问题）
-- 🚧 SteeringManager 单元测试
+- 🚧 SpecManager unit tests (TypeScript type issues)
+- 🚧 SteeringManager unit tests
 
-### 计划中
+### Planned
 
-- 📅 文件操作集成测试
-- 📅 Provider 类测试
+- 📅 File operation integration tests
+- 📅 Provider class tests
 
-## 注意事项
+## Notes
 
-1. **VSCode API Mock**: VSCode 扩展测试较复杂，需要 mock 大量 API
-2. **类型问题**: TypeScript 严格类型检查可能导致 mock 困难
-3. **异步操作**: 注意处理文件系统等异步操作
-4. **测试隔离**: 确保测试之间不相互影响
+1. **VSCode API Mock**: VSCode extension testing is complex, requiring mocking of many APIs
+2. **Type Issues**: TypeScript strict type checking may make mocking difficult
+3. **Async Operations**: Pay attention to handling file system and other async operations
+4. **Test Isolation**: Ensure tests don't affect each other

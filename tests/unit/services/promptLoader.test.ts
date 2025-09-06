@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
-import { PromptLoader } from '../../../src/services/promptLoader';
+import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 import * as prompts from '../../../src/prompts/target';
+import { PromptLoader } from '../../../src/services/promptLoader';
 
 // Mock the prompts module
 jest.mock('../../../src/prompts/target', () => ({
@@ -38,7 +38,7 @@ describe('PromptLoader', () => {
   });
 
   describe('Singleton Pattern', () => {
-    test('PL-01: 获取单例实例', () => {
+    test('PL-01: Get singleton instance', () => {
       const instance1 = PromptLoader.getInstance();
       const instance2 = PromptLoader.getInstance();
       expect(instance1).toBe(instance2);
@@ -46,7 +46,7 @@ describe('PromptLoader', () => {
   });
 
   describe('initialize()', () => {
-    test('PL-02: 初始化加载所有 prompts', () => {
+    test('PL-02: Initialize and load all prompts', () => {
       promptLoader.initialize();
 
       // Check if prompts are loaded
@@ -54,7 +54,7 @@ describe('PromptLoader', () => {
       expect(() => promptLoader.loadPrompt('simple-prompt')).not.toThrow();
     });
 
-    test('PL-11: 处理无效的 prompt 模块', () => {
+    test('PL-11: Handle invalid prompt modules', () => {
       // Mock prompts with invalid module
       const mockedPrompts = jest.mocked(prompts) as any;
       mockedPrompts.invalidPrompt = { invalid: true };
@@ -69,7 +69,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-03: 通过 ID 加载 prompt', () => {
+    test('PL-03: Load prompt by ID', () => {
       const prompt = promptLoader.loadPrompt('test-prompt');
 
       expect(prompt).toBeDefined();
@@ -78,7 +78,7 @@ describe('PromptLoader', () => {
       expect(prompt.content).toContain('Hello {{name}}!');
     });
 
-    test('PL-04: 加载不存在的 prompt', () => {
+    test('PL-04: Load non-existent prompt', () => {
       expect(() => promptLoader.loadPrompt('non-existent'))
         .toThrow('Prompt not found: non-existent');
     });
@@ -89,7 +89,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-05: 渲染包含所有变量的 prompt', () => {
+    test('PL-05: Render prompt with all variables', () => {
       const result = promptLoader.renderPrompt('test-prompt', {
         name: 'John',
         age: 30
@@ -98,7 +98,7 @@ describe('PromptLoader', () => {
       expect(result).toBe('Hello John! You are 30 years old.');
     });
 
-    test('PL-06: 渲染缺少可选变量的 prompt', () => {
+    test('PL-06: Render prompt with missing optional variables', () => {
       const result = promptLoader.renderPrompt('test-prompt', {
         name: 'Jane'
       });
@@ -106,18 +106,18 @@ describe('PromptLoader', () => {
       expect(result).toBe('Hello Jane! ');
     });
 
-    test('PL-07: 渲染缺少必需变量的 prompt', () => {
+    test('PL-07: Render prompt with missing required variables', () => {
       expect(() => promptLoader.renderPrompt('test-prompt', {}))
         .toThrow('Variable validation failed: Missing required variable: name');
     });
 
-    test('PL-08: 渲染无变量的简单 prompt', () => {
+    test('PL-08: Render simple prompt without variables', () => {
       const result = promptLoader.renderPrompt('simple-prompt');
 
       expect(result).toBe('This is a simple prompt without any variables.');
     });
 
-    test('处理 Handlebars 助手和条件语句', () => {
+    test('Handle Handlebars helpers and conditional statements', () => {
       // Test with age = 0 (falsy value)
       const result = promptLoader.renderPrompt('test-prompt', {
         name: 'Baby',
@@ -134,7 +134,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-09: 获取所有 prompts 列表', () => {
+    test('PL-09: Get all prompts list', () => {
       const prompts = promptLoader.listPrompts();
 
       expect(prompts).toHaveLength(2);
@@ -150,7 +150,7 @@ describe('PromptLoader', () => {
       }));
     });
 
-    test('从 prompt ID 提取分类', () => {
+    test('Extract category from prompt ID', () => {
       const prompts = promptLoader.listPrompts();
       const testPrompt = prompts.find(p => p.id === 'test-prompt');
 
@@ -163,7 +163,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-04: 提供有用的错误信息和可用 prompts 列表', () => {
+    test('PL-04: Provide helpful error message and available prompts list', () => {
       try {
         promptLoader.loadPrompt('wrong-id');
       } catch (error: any) {
@@ -171,7 +171,7 @@ describe('PromptLoader', () => {
       }
     });
 
-    test('PL-10: 处理无效的 Handlebars 语法', () => {
+    test('PL-10: Handle invalid Handlebars syntax', () => {
       // First initialize normally
       promptLoader.initialize();
 

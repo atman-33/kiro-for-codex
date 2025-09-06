@@ -131,7 +131,7 @@ stateDiagram-v2
 
 ## Feature and sub agent mapping
 
-| 功能                           | sub agent                           | path                                                         |
+| Feature                        | sub agent                           | path                                                         |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------ |
 | Requirement Gathering          | spec-requirements(support parallel) | .claude/specs/{feature_name}/requirements.md                 |
 | Create Feature Design Document | spec-design(support parallel)       | .claude/specs/{feature_name}/design.md                       |
@@ -149,72 +149,72 @@ Note:
 
 #### Create Requirements - spec-requirements
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - task_type: "create"
-- feature_name: 功能名称（kebab-case）
-- feature_description: 功能描述
-- spec_base_path: spec 文档路径
-- output_suffix: 输出文件后缀（可选，如 "_v1", "_v2", "_v3", 并行执行时需要）
+- feature_name: Feature name (kebab-case)
+- feature_description: Feature description
+- spec_base_path: Spec document path
+- output_suffix: Output file suffix (optional, e.g., "_v1", "_v2", "_v3", required for parallel execution)
 
 #### Refine/Update Requirements - spec-requirements
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - task_type: "update"
-- existing_requirements_path: 现有需求文档路径
-- change_requests: 变更请求列表
+- existing_requirements_path: Existing requirements document path
+- change_requests: List of change requests
 
 #### Create New Design - spec-design
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - task_type: "create"
-- feature_name: 功能名称
-- spec_base_path: 文档路径
-- output_suffix: 输出文件后缀（可选，如 "_v1"）
+- feature_name: Feature name
+- spec_base_path: Document path
+- output_suffix: Output file suffix (optional, e.g., "_v1")
 
 #### Refine/Update Existing Design - spec-design
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - task_type: "update"
-- existing_design_path: 现有设计文档路径
-- change_requests: 变更请求列表
+- existing_design_path: Existing design document path
+- change_requests: List of change requests
 
 #### Create New Tasks - spec-tasks
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - task_type: "create"
-- feature_name: 功能名称（kebab-case）
-- spec_base_path: spec 文档路径
-- output_suffix: 输出文件后缀（可选，如 "_v1", "_v2", "_v3", 并行执行时需要）
+- feature_name: Feature name (kebab-case)
+- spec_base_path: Spec document path
+- output_suffix: Output file suffix (optional, e.g., "_v1", "_v2", "_v3", required for parallel execution)
 
 #### Refine/Update Tasks - spec-tasks
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - task_type: "update"
-- tasks_file_path: 现有任务文档路径
-- change_requests: 变更请求列表
+- tasks_file_path: Existing tasks document path
+- change_requests: List of change requests
 
 #### Judge - spec-judge
 
-- language_preference: 语言偏好
+- language_preference: Language preference
 - document_type: "requirements" | "design" | "tasks"
-- feature_name: 功能名称
-- feature_description: 功能描述
-- spec_base_path: 文档基础路径
-- doc_path: 文档路径
+- feature_name: Feature name
+- feature_description: Feature description
+- spec_base_path: Document base path
+- doc_path: Document path
 
 #### Impl Task - spec-impl
 
-- feature_name: 功能名称
-- spec_base_path: spec 文档基础路径
-- task_id: 要执行的任务 ID（如"2.1"）
-- language_preference: 语言偏好
+- feature_name: Feature name
+- spec_base_path: Spec document base path
+- task_id: Task ID to execute (e.g., "2.1")
+- language_preference: Language preference
 
 #### Test - spec-test
 
-- language_preference: 语言偏好
-- task_id: 任务 ID
-- feature_name: 功能名称
-- spec_base_path: spec 文档基础路径
+- language_preference: Language preference
+- task_id: Task ID
+- feature_name: Feature name
+- spec_base_path: Spec document base path
 
 #### Tree-based Judge Evaluation Rules
 
