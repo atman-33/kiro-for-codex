@@ -49,7 +49,7 @@
   - Add user-friendly error messages and troubleshooting guidance
   - _Requirements: 7.1, 7.2, 7.3_
 
-- [ ] 9. Update extension entry point and commands
+- [x] 9. Update extension entry point and commands
   - Modify extension.ts to use CodexProvider instead of ClaudeCodeProvider
   - Update command registrations for Codex CLI functionality
   - Remove Claude Code specific permission management

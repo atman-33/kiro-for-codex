@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE } from './constants';
 import { AgentManager } from './features/agents/agentManager';
-import { PermissionManager } from './features/permission/permissionManager';
 import { SpecManager } from './features/spec/specManager';
 import { SteeringManager } from './features/steering/steeringManager';
 import { AgentsExplorerProvider } from './providers/agentsExplorerProvider';
-import { ClaudeCodeProvider } from './providers/claudeCodeProvider';
 import { CodexProvider } from './providers/codexProvider';
 import { HooksExplorerProvider } from './providers/hooksExplorerProvider';
 import { MCPExplorerProvider } from './providers/mcpExplorerProvider';
@@ -15,25 +13,17 @@ import { SpecTaskCodeLensProvider } from './providers/specTaskCodeLensProvider';
 import { SteeringExplorerProvider } from './providers/steeringExplorerProvider';
 import { PromptLoader } from './services/promptLoader';
 import { ConfigManager } from './utils/configManager';
-import { NotificationUtils } from './utils/notificationUtils';
 import { UpdateChecker } from './utils/updateChecker';
 
-let claudeCodeProvider: ClaudeCodeProvider;
 let codexProvider: CodexProvider;
 let specManager: SpecManager;
 let steeringManager: SteeringManager;
-let permissionManager: PermissionManager;
 let agentManager: AgentManager;
 export let outputChannel: vscode.OutputChannel;
 
-// 导出 getter 函数供其他模块使用
-export function getPermissionManager(): PermissionManager {
-    return permissionManager;
-}
-
 export async function activate(context: vscode.ExtensionContext) {
     // Create output channel for debugging
-    outputChannel = vscode.window.createOutputChannel('Kiro for Claude Code - Debug');
+    outputChannel = vscode.window.createOutputChannel('Kiro for Codex - Debug');
 
     // Initialize PromptLoader
     try {
@@ -45,24 +35,22 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage(`Failed to initialize prompt system: ${error}`);
     }
 
-    // 检查工作区状态
+    // Check workspace status
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
         outputChannel.appendLine('WARNING: No workspace folder found!');
     }
 
-
-    // Initialize Claude Code SDK provider with output channel
-    claudeCodeProvider = new ClaudeCodeProvider(context, outputChannel);
-
-    // Initialize Codex provider for spec management
+    // Initialize Codex provider
     codexProvider = new CodexProvider(context, outputChannel);
 
-    // 创建并初始化 PermissionManager
-    permissionManager = new PermissionManager(context, outputChannel);
-
-    // 初始化权限系统（包含重试逻辑）
-    await permissionManager.initializePermissions();
+    // Check Codex availability on startup
+    const codexAvailable = await codexProvider.isCodexReady();
+    if (!codexAvailable) {
+        outputChannel.appendLine('WARNING: Codex CLI is not available. Some features may not work.');
+        const availabilityResult = await codexProvider.getCodexAvailabilityStatus();
+        await codexProvider.showSetupGuidance(availabilityResult);
+    }
 
     // Initialize feature managers with output channel
     specManager = new SpecManager(codexProvider, outputChannel);
@@ -112,11 +100,16 @@ export async function activate(context: vscode.ExtensionContext) {
     // Register CodeLens provider for spec tasks
     const specTaskCodeLensProvider = new SpecTaskCodeLensProvider();
 
-    // 使用更明确的文档选择器
+    // Use document selector for both .claude and .kiro spec directories
     const selector: vscode.DocumentSelector = [
         {
             language: 'markdown',
             pattern: '**/.claude/specs/*/tasks.md',
+            scheme: 'file'
+        },
+        {
+            language: 'markdown',
+            pattern: '**/.kiro/specs/*/tasks.md',
             scheme: 'file'
         }
     ];
@@ -137,30 +130,51 @@ async function initializeDefaultSettings() {
         return;
     }
 
-    // Create .claude/settings directory if it doesn't exist
-    const claudeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.claude');
-    const settingsDir = vscode.Uri.joinPath(claudeDir, 'settings');
+    // Create .kiro/settings directory if it doesn't exist (primary)
+    const kiroDir = vscode.Uri.joinPath(workspaceFolder.uri, '.kiro');
+    const kiroSettingsDir = vscode.Uri.joinPath(kiroDir, 'settings');
 
     try {
-        await vscode.workspace.fs.createDirectory(claudeDir);
-        await vscode.workspace.fs.createDirectory(settingsDir);
+        await vscode.workspace.fs.createDirectory(kiroDir);
+        await vscode.workspace.fs.createDirectory(kiroSettingsDir);
     } catch (error) {
         // Directory might already exist
     }
 
-    // Create kfc-settings.json if it doesn't exist
-    const settingsFile = vscode.Uri.joinPath(settingsDir, CONFIG_FILE_NAME);
+    // Also maintain .claude directory for backward compatibility
+    const claudeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.claude');
+    const claudeSettingsDir = vscode.Uri.joinPath(claudeDir, 'settings');
 
     try {
-        // Check if file exists
-        await vscode.workspace.fs.stat(settingsFile);
+        await vscode.workspace.fs.createDirectory(claudeDir);
+        await vscode.workspace.fs.createDirectory(claudeSettingsDir);
     } catch (error) {
-        // File doesn't exist, create it with default settings
-        const configManager = ConfigManager.getInstance();
-        const defaultSettings = configManager.getSettings();
+        // Directory might already exist
+    }
+
+    // Create kfc-settings.json in .kiro directory (primary location)
+    const kiroSettingsFile = vscode.Uri.joinPath(kiroSettingsDir, CONFIG_FILE_NAME);
+    const claudeSettingsFile = vscode.Uri.joinPath(claudeSettingsDir, CONFIG_FILE_NAME);
+
+    try {
+        // Check if file exists in .kiro directory
+        await vscode.workspace.fs.stat(kiroSettingsFile);
+    } catch (error) {
+        // File doesn't exist in .kiro, check .claude for migration
+        let defaultSettings;
+        try {
+            // Try to read from .claude directory for migration
+            const claudeSettingsContent = await vscode.workspace.fs.readFile(claudeSettingsFile);
+            defaultSettings = JSON.parse(claudeSettingsContent.toString());
+            outputChannel.appendLine('Migrated settings from .claude to .kiro directory');
+        } catch (claudeError) {
+            // No existing settings, use defaults
+            const configManager = ConfigManager.getInstance();
+            defaultSettings = configManager.getSettings();
+        }
 
         await vscode.workspace.fs.writeFile(
-            settingsFile,
+            kiroSettingsFile,
             Buffer.from(JSON.stringify(defaultSettings, null, 2))
         );
     }
@@ -223,27 +237,6 @@ async function toggleViews() {
 
 function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecExplorerProvider, steeringExplorer: SteeringExplorerProvider, hooksExplorer: HooksExplorerProvider, mcpExplorer: MCPExplorerProvider, agentsExplorer: AgentsExplorerProvider, updateChecker: UpdateChecker) {
 
-    // Permission commands
-    context.subscriptions.push(
-        vscode.commands.registerCommand('kfc.permission.reset', async () => {
-            const confirm = await vscode.window.showWarningMessage(
-                'Are you sure you want to reset Claude Code permissions? This will revoke the granted permissions.',
-                'Yes', 'No'
-            );
-
-            if (confirm === 'Yes') {
-                const success = await permissionManager.resetPermission();
-                if (success) {
-                    NotificationUtils.showAutoDismissNotification(
-                        'Permissions have been reset'
-                    );
-                } else {
-                    vscode.window.showErrorMessage('Failed to reset permissions. Please check the output log.');
-                }
-            }
-        })
-    );
-
     // Spec commands
     const createSpecCommand = vscode.commands.registerCommand('kfc.spec.create', async () => {
         outputChannel.appendLine('\n=== COMMAND kfc.spec.create TRIGGERED ===');
@@ -284,7 +277,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
         vscode.commands.registerCommand('kfc.spec.implTask', async (documentUri: vscode.Uri, lineNumber: number, taskDescription: string) => {
             outputChannel.appendLine(`[Task Execute] Line ${lineNumber + 1}: ${taskDescription}`);
 
-            // 更新任务状态为已完成
+            // Update task status to completed
             const document = await vscode.workspace.openTextDocument(documentUri);
             const edit = new vscode.WorkspaceEdit();
             const line = document.lineAt(lineNumber);
@@ -293,7 +286,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             edit.replace(documentUri, range, newLine);
             await vscode.workspace.applyEdit(edit);
 
-            // 使用 Claude Code 执行任务
+            // Use Codex CLI to execute task
             await specManager.implTask(documentUri.fsPath, taskDescription);
         }),
         vscode.commands.registerCommand('kfc.spec.refresh', async () => {
@@ -356,8 +349,8 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             const document = event.document;
             const filePath = document.fileName;
 
-            // Check if this is an agent file
-            if (filePath.includes('.codex/agents/') && filePath.endsWith('.md')) {
+            // Check if this is an agent file in .kiro or .claude directories
+            if ((filePath.includes('.kiro/agents/') || filePath.includes('.claude/agents/')) && filePath.endsWith('.md')) {
                 // Show confirmation dialog
                 const result = await vscode.window.showWarningMessage(
                     'Are you sure you want to save changes to this agent file?',
@@ -381,10 +374,10 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
         })
     );
 
-    // Claude Code integration commands
-    // (removed unused kfc.claude.implementTask command)
+    // Codex integration commands
+    // (removed unused Claude Code specific commands)
 
-    // Hooks commands (only refresh for Claude Code hooks)
+    // Hooks commands
     context.subscriptions.push(
         vscode.commands.registerCommand('kfc.hooks.refresh', () => {
             hooksExplorer.refresh();
@@ -417,12 +410,12 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
                 return;
             }
 
-            // Create .claude/settings directory if it doesn't exist
-            const claudeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.claude');
-            const settingsDir = vscode.Uri.joinPath(claudeDir, 'settings');
+            // Create .kiro/settings directory if it doesn't exist
+            const kiroDir = vscode.Uri.joinPath(workspaceFolder.uri, '.kiro');
+            const settingsDir = vscode.Uri.joinPath(kiroDir, 'settings');
 
             try {
-                await vscode.workspace.fs.createDirectory(claudeDir);
+                await vscode.workspace.fs.createDirectory(kiroDir);
                 await vscode.workspace.fs.createDirectory(settingsDir);
             } catch (error) {
                 // Directory might already exist
@@ -452,7 +445,7 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
 
         vscode.commands.registerCommand('kfc.help.open', async () => {
             outputChannel.appendLine('Opening Kiro help...');
-            const helpUrl = 'https://github.com/notdp/kiro-for-cc#readme';
+            const helpUrl = 'https://github.com/notdp/kiro-for-codex#readme';
             vscode.env.openExternal(vscode.Uri.parse(helpUrl));
         }),
 
@@ -461,19 +454,28 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             await toggleViews();
         }),
 
-        // Permission debug commands
-        vscode.commands.registerCommand('kfc.permission.check', async () => {
-            // 使用新的 PermissionManager 检查真实的权限状态
-            const hasPermission = await permissionManager.checkPermission();
-            const configPath = require('os').homedir() + '/.claude.json';
+        // Codex availability check command
+        vscode.commands.registerCommand('kfc.codex.checkAvailability', async () => {
+            const availabilityResult = await codexProvider.getCodexAvailabilityStatus();
 
-            vscode.window.showInformationMessage(
-                `Claude Code Permission Status: ${hasPermission ? '✅ Granted' : '❌ Not Granted'}`
-            );
+            const statusMessage = availabilityResult.isAvailable
+                ? `✅ Codex CLI v${availabilityResult.version} is available and ready`
+                : `❌ Codex CLI is not available: ${availabilityResult.errorMessage}`;
 
-            outputChannel.appendLine(`[Permission Check] Status: ${hasPermission}`);
-            outputChannel.appendLine(`[Permission Check] Config file: ${configPath}`);
-            outputChannel.appendLine(`[Permission Check] Checking bypassPermissionsModeAccepted field in ~/.claude.json`);
+            vscode.window.showInformationMessage(statusMessage);
+
+            outputChannel.appendLine(`[Codex Check] Available: ${availabilityResult.isAvailable}`);
+            outputChannel.appendLine(`[Codex Check] Installed: ${availabilityResult.isInstalled}`);
+            outputChannel.appendLine(`[Codex Check] Version: ${availabilityResult.version || 'Unknown'}`);
+            outputChannel.appendLine(`[Codex Check] Compatible: ${availabilityResult.isCompatible}`);
+
+            if (availabilityResult.errorMessage) {
+                outputChannel.appendLine(`[Codex Check] Error: ${availabilityResult.errorMessage}`);
+            }
+
+            if (!availabilityResult.isAvailable && availabilityResult.setupGuidance) {
+                await codexProvider.showSetupGuidance(availabilityResult);
+            }
         }),
 
     );
@@ -487,8 +489,9 @@ function setupFileWatchers(
     mcpExplorer: MCPExplorerProvider,
     agentsExplorer: AgentsExplorerProvider
 ) {
-    // Watch for changes in .claude and .codex directories with debouncing
+    // Watch for changes in .claude, .kiro, and .codex directories with debouncing
     const kfcWatcher = vscode.workspace.createFileSystemWatcher('**/.claude/**/*');
+    const kiroWatcher = vscode.workspace.createFileSystemWatcher('**/.kiro/**/*');
     const codexWatcher = vscode.workspace.createFileSystemWatcher('**/.codex/**/*');
 
     let refreshTimeout: NodeJS.Timeout | undefined;
@@ -511,15 +514,23 @@ function setupFileWatchers(
     kfcWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
     kfcWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
 
+    kiroWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
+    kiroWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
+    kiroWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
+
     codexWatcher.onDidCreate((uri) => debouncedRefresh('Create', uri));
     codexWatcher.onDidDelete((uri) => debouncedRefresh('Delete', uri));
     codexWatcher.onDidChange((uri) => debouncedRefresh('Change', uri));
 
-    context.subscriptions.push(kfcWatcher, codexWatcher);
+    context.subscriptions.push(kfcWatcher, kiroWatcher, codexWatcher);
 
-    // Watch for changes in Claude settings
+    // Watch for changes in Codex and Claude settings
     const claudeSettingsWatcher = vscode.workspace.createFileSystemWatcher(
         new vscode.RelativePattern(process.env.HOME || '', '.claude/settings.json')
+    );
+
+    const kiroSettingsWatcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(process.env.HOME || '', '.kiro/settings.json')
     );
 
     claudeSettingsWatcher.onDidChange(() => {
@@ -527,7 +538,12 @@ function setupFileWatchers(
         mcpExplorer.refresh();
     });
 
-    context.subscriptions.push(claudeSettingsWatcher);
+    kiroSettingsWatcher.onDidChange(() => {
+        hooksExplorer.refresh();
+        mcpExplorer.refresh();
+    });
+
+    context.subscriptions.push(claudeSettingsWatcher, kiroSettingsWatcher);
 
     // Watch for changes in CLAUDE.md files
     const globalClaudeMdWatcher = vscode.workspace.createFileSystemWatcher(
@@ -544,8 +560,8 @@ function setupFileWatchers(
 }
 
 export function deactivate() {
-    // Cleanup
-    if (permissionManager) {
-        permissionManager.dispose();
+    // Cleanup Codex provider resources
+    if (codexProvider) {
+        codexProvider.cancelAllRetries();
     }
 }

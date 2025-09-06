@@ -1,9 +1,8 @@
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ConfigManager } from '../utils/configManager';
+import * as vscode from 'vscode';
 import { VSC_CONFIG_NAMESPACE } from '../constants';
-import { getPermissionManager } from '../extension';
+import { ConfigManager } from '../utils/configManager';
 
 export class ClaudeCodeProvider {
     private context: vscode.ExtensionContext;
@@ -63,18 +62,6 @@ export class ClaudeCodeProvider {
      */
     async invokeClaudeSplitView(prompt: string, title: string = 'Kiro for Claude Code'): Promise<vscode.Terminal> {
         try {
-            // 获取 PermissionManager 并检查权限
-            const permissionManager = getPermissionManager();
-            if (permissionManager) {
-                const hasPermission = await permissionManager.checkPermission();
-                if (!hasPermission) {
-                    this.outputChannel.appendLine('[ClaudeCodeProvider] No permission, showing setup');
-                    const granted = await permissionManager.showPermissionSetup();
-                    if (!granted) {
-                        throw new Error('Claude Code permissions not granted');
-                    }
-                }
-            }
             // Create temp file with the prompt
             const promptFilePath = await this.createTempFile(prompt, 'prompt');
 
@@ -143,19 +130,8 @@ export class ClaudeCodeProvider {
      */
     async invokeClaudeHeadless(
         prompt: string
-    ): Promise<{ exitCode: number | undefined; output?: string }> {
-        // 获取 PermissionManager 实例并检查权限
-        const permissionManager = getPermissionManager();
-        if (permissionManager) {
-            const hasPermission = await permissionManager.checkPermission();
-            if (!hasPermission) {
-                this.outputChannel.appendLine('[ClaudeCodeProvider] No permission, showing setup');
-                const granted = await permissionManager.showPermissionSetup();
-                if (!granted) {
-                    throw new Error('Claude Code permissions not granted');
-                }
-            }
-        }
+    ): Promise<{ exitCode: number | undefined; output?: string; }> {
+
 
         this.outputChannel.appendLine(`[ClaudeCodeProvider] Invoking Claude Code in headless mode`);
         this.outputChannel.appendLine(`========================================`);
