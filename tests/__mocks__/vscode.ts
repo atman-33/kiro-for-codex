@@ -45,6 +45,9 @@ export const window = {
     hide: jest.fn(),
     dispose: jest.fn()
   })),
+  createTerminal: jest.fn(),
+  setStatusBarMessage: jest.fn(),
+  onDidEndTerminalShellExecution: jest.fn(),
   terminals: [],
   withProgress: jest.fn((options, task) => {
     // Simply execute the task immediately
@@ -101,11 +104,18 @@ export enum ViewColumn {
 // Export other commonly used APIs
 export const commands = {
   registerCommand: jest.fn(),
-  executeCommand: jest.fn()
+  executeCommand: jest.fn().mockResolvedValue({})
 };
 
 export const extensions = {
   getExtension: jest.fn()
+};
+
+export const env = {
+  clipboard: {
+    writeText: jest.fn(),
+  },
+  openExternal: jest.fn(),
 };
 
 // Mock EventEmitter

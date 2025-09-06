@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as vscode from 'vscode';
 import { CodexErrorHandler, ErrorType } from '../../../src/services/errorHandler';
 import { RetryService } from '../../../src/services/retryService';
@@ -12,11 +13,12 @@ jest.mock('vscode', () => ({
 
 describe('RetryService', () => {
   let retryService: RetryService;
-  let mockErrorHandler: CodexErrorHandler;
-  let mockOutputChannel: vscode.OutputChannel;
+  let mockErrorHandler: jest.Mocked<CodexErrorHandler>;
+  let mockOutputChannel: jest.Mocked<vscode.OutputChannel>;
 
   beforeEach(() => {
     mockOutputChannel = {
+      name: 'Test Channel',
       appendLine: jest.fn(),
       append: jest.fn(),
       replace: jest.fn(),
@@ -24,13 +26,13 @@ describe('RetryService', () => {
       show: jest.fn(),
       hide: jest.fn(),
       dispose: jest.fn(),
-      name: 'test',
     } as any;
 
     mockErrorHandler = {
       analyzeError: jest.fn(),
+      executeWithRetry: jest.fn(),
       showErrorToUser: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<CodexErrorHandler>;
 
     retryService = new RetryService(mockErrorHandler, mockOutputChannel);
   });
@@ -39,197 +41,501 @@ describe('RetryService', () => {
     jest.clearAllMocks();
   });
 
-  describe('executeWithRetry', () => {
-    it('should succeed on first attempt', async () => {
-      const operation = jest.fn().mockResolvedValue('success');
+  describe('Basic Retry Logic', () => {
+    it('should execute operation successfully on first attempt', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockResolvedValue('success');
 
-      const result = await retryService.executeWithRetry(operation, 'test operation');
+      const result = await retryService.executeWithRetry(
+        operation,
+        'Test Operation'
+      );
 
       expect(result).toBe('success');
       expect(operation).toHaveBeenCalledTimes(1);
+      expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining('Executing Test Operation (attempt 1/3)')
+      );
     });
 
     it('should retry on retryable errors', async () => {
-      const operation = jest.fn()
-        .mockRejectedValueOnce(new Error('timeout'))
-        .mockResolvedValue('success');
+      let attemptCount = 0;
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        attemptCount++;
+        if (attemptCount < 3) {
+          throw new Error('Timeout error');
+        }
+        return Promise.resolve('success');
+      });
 
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
+      mockErrorHandler.analyzeError.mockReturnValue({
         type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
         isRetryable: true,
-        message: 'Timeout error'
+        troubleshootingSteps: [],
       });
 
-      const result = await retryService.executeWithRetry(operation, 'test operation', {
-        maxAttempts: 2,
-        baseDelay: 10,
-        retryableErrors: [ErrorType.TIMEOUT]
-      });
+      const result = await retryService.executeWithRetry(
+        operation,
+        'Test Operation',
+        {
+          maxAttempts: 3,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+        }
+      );
 
       expect(result).toBe('success');
-      expect(operation).toHaveBeenCalledTimes(2);
+      expect(operation).toHaveBeenCalledTimes(3);
+      expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining('Test Operation succeeded on attempt 3')
+      );
     });
 
     it('should not retry on non-retryable errors', async () => {
-      const operation = jest.fn().mockRejectedValue(new Error('installation error'));
-
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
-        type: ErrorType.CLI_NOT_INSTALLED,
-        isRetryable: false,
-        message: 'CLI not installed'
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Permission denied');
       });
 
-      await expect(retryService.executeWithRetry(operation, 'test operation', {
-        maxAttempts: 3,
-        baseDelay: 10,
-        retryableErrors: [ErrorType.TIMEOUT]
-      })).rejects.toThrow('installation error');
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.PERMISSION_DENIED,
+        severity: 'high' as any,
+        message: 'Permission denied',
+        isRetryable: false,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 3,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow('Permission denied');
 
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
-    it('should respect max attempts', async () => {
-      const operation = jest.fn().mockRejectedValue(new Error('network error'));
-
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
-        type: ErrorType.NETWORK_ERROR,
-        isRetryable: true,
-        message: 'Network error'
+    it('should respect maximum attempts', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
       });
 
-      await expect(retryService.executeWithRetry(operation, 'test operation', {
-        maxAttempts: 2,
-        baseDelay: 10,
-        retryableErrors: [ErrorType.NETWORK_ERROR]
-      })).rejects.toThrow('network error');
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow('Timeout error');
 
       expect(operation).toHaveBeenCalledTimes(2);
     });
+  });
 
-    it('should call onRetry callback', async () => {
-      const operation = jest.fn()
-        .mockRejectedValueOnce(new Error('timeout'))
-        .mockResolvedValue('success');
+  describe('Retry Configuration', () => {
+    it('should use custom retry options', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Network error');
+      });
 
-      const onRetry = jest.fn();
-
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
-        type: ErrorType.TIMEOUT,
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.NETWORK_ERROR,
+        severity: 'medium' as any,
+        message: 'Network error',
         isRetryable: true,
-        message: 'Timeout error'
+        troubleshootingSteps: [],
       });
 
-      await retryService.executeWithRetry(operation, 'test operation', {
-        maxAttempts: 2,
-        baseDelay: 10,
-        retryableErrors: [ErrorType.TIMEOUT],
-        onRetry
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 5,
+          baseDelay: 50,
+          backoffMultiplier: 3,
+          retryableErrors: [ErrorType.NETWORK_ERROR],
+        })
+      ).rejects.toThrow();
+
+      expect(operation).toHaveBeenCalledTimes(5);
+    });
+
+    it('should apply exponential backoff', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
       });
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      const startTime = Date.now();
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 100,
+          backoffMultiplier: 2,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow();
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      // Should have waited at least the base delay
+      expect(duration).toBeGreaterThan(90);
+    });
+
+    it('should respect maximum delay', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
+      });
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 3,
+          baseDelay: 1000,
+          maxDelay: 100, // Lower than base delay * backoff
+          backoffMultiplier: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow();
+
+      // Should still complete relatively quickly due to maxDelay
+      expect(operation).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Callback Handling', () => {
+    it('should call onRetry callback', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
+      });
+
+      const onRetry = jest.fn<(attempt: number, error: Error) => void>();
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+          onRetry,
+        })
+      ).rejects.toThrow();
 
       expect(onRetry).toHaveBeenCalledWith(1, expect.any(Error));
     });
 
     it('should call onSuccess callback', async () => {
-      const operation = jest.fn().mockResolvedValue('success');
-      const onSuccess = jest.fn();
-
-      await retryService.executeWithRetry(operation, 'test operation', {
-        onSuccess
+      let attemptCount = 0;
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        attemptCount++;
+        if (attemptCount < 2) {
+          throw new Error('Timeout error');
+        }
+        return Promise.resolve('success');
       });
 
-      expect(onSuccess).toHaveBeenCalledWith('success', 1);
+      const onSuccess = jest.fn<(result: string, attempts: number) => void>();
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      const result = await retryService.executeWithRetry(
+        operation,
+        'Test Operation',
+        {
+          maxAttempts: 3,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+          onSuccess,
+        }
+      );
+
+      expect(result).toBe('success');
+      expect(onSuccess).toHaveBeenCalledWith('success', 2);
     });
 
     it('should call onFailure callback', async () => {
-      const operation = jest.fn().mockRejectedValue(new Error('failure'));
-      const onFailure = jest.fn();
-
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
-        type: ErrorType.CLI_NOT_INSTALLED,
-        isRetryable: false,
-        message: 'CLI not installed'
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
       });
 
-      await expect(retryService.executeWithRetry(operation, 'test operation', {
-        onFailure
-      })).rejects.toThrow('failure');
+      const onFailure = jest.fn<(error: Error, attempts: number) => void>();
 
-      expect(onFailure).toHaveBeenCalledWith(expect.any(Error), 1);
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+          onFailure,
+        })
+      ).rejects.toThrow();
+
+      expect(onFailure).toHaveBeenCalledWith(expect.any(Error), 2);
     });
 
     it('should use custom shouldRetry logic', async () => {
-      const operation = jest.fn().mockRejectedValue(new Error('custom error'));
-      const shouldRetry = jest.fn().mockReturnValue(false);
-
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
-        type: ErrorType.TIMEOUT,
-        isRetryable: true,
-        message: 'Timeout error'
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Custom error');
       });
 
-      await expect(retryService.executeWithRetry(operation, 'test operation', {
-        maxAttempts: 2,
-        baseDelay: 10,
-        shouldRetry
-      })).rejects.toThrow('custom error');
+      const shouldRetry = jest.fn<(error: Error, attempt: number) => boolean>().mockReturnValue(false);
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.UNKNOWN_ERROR,
+        severity: 'medium' as any,
+        message: 'Custom error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 3,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.UNKNOWN_ERROR],
+          shouldRetry,
+        })
+      ).rejects.toThrow();
 
       expect(operation).toHaveBeenCalledTimes(1);
       expect(shouldRetry).toHaveBeenCalledWith(expect.any(Error), 1);
     });
+  });
 
-    it('should calculate exponential backoff delay', async () => {
-      const operation = jest.fn()
-        .mockRejectedValueOnce(new Error('error1'))
-        .mockRejectedValueOnce(new Error('error2'))
-        .mockResolvedValue('success');
+  describe('Status Tracking', () => {
+    it('should track active retries', () => {
+      const activeRetries = retryService.getActiveRetries();
+      expect(Array.isArray(activeRetries)).toBe(true);
+    });
 
-      (mockErrorHandler.analyzeError as jest.Mock).mockReturnValue({
-        type: ErrorType.NETWORK_ERROR,
+    it('should provide retry statistics', () => {
+      const stats = retryService.getRetryStatistics();
+      expect(stats).toHaveProperty('activeCount');
+      expect(stats).toHaveProperty('operations');
+      expect(typeof stats.activeCount).toBe('number');
+      expect(Array.isArray(stats.operations)).toBe(true);
+    });
+
+    it('should cancel all retries', () => {
+      // This should not throw
+      expect(() => retryService.cancelAllRetries()).not.toThrow();
+      expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining('Cancelling 0 active retries')
+      );
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should propagate callback errors', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockResolvedValue('success');
+      const onSuccess = jest.fn<(result: string, attempts: number) => void>().mockImplementation(() => {
+        throw new Error('Callback error');
+      });
+
+      // Should throw callback error
+      await expect(
+        retryService.executeWithRetry(
+          operation,
+          'Test Operation',
+          { onSuccess }
+        )
+      ).rejects.toThrow('Callback error');
+
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('should show user notifications for retries', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
+      });
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
         isRetryable: true,
-        message: 'Network error'
+        troubleshootingSteps: [],
       });
 
-      const startTime = Date.now();
+      const mockSetStatusBarMessage = vscode.window.setStatusBarMessage as jest.MockedFunction<any>;
+      mockSetStatusBarMessage.mockImplementation(() => { });
 
-      await retryService.executeWithRetry(operation, 'test operation', {
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow();
+
+      expect(mockSetStatusBarMessage).toHaveBeenCalledWith(
+        expect.stringContaining('Retrying "Test Operation"'),
+        expect.any(Number)
+      );
+    });
+
+    it('should show success notification for recovered operations', async () => {
+      let attemptCount = 0;
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        attemptCount++;
+        if (attemptCount < 2) {
+          throw new Error('Timeout error');
+        }
+        return Promise.resolve('success');
+      });
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      const mockShowInformationMessage = vscode.window.showInformationMessage as jest.MockedFunction<any>;
+      mockShowInformationMessage.mockResolvedValue('OK');
+
+      await retryService.executeWithRetry(operation, 'Test Operation', {
         maxAttempts: 3,
-        baseDelay: 100,
-        backoffMultiplier: 2,
-        retryableErrors: [ErrorType.NETWORK_ERROR]
+        baseDelay: 10,
+        retryableErrors: [ErrorType.TIMEOUT],
       });
 
-      const endTime = Date.now();
-      const totalTime = endTime - startTime;
+      expect(mockShowInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('Operation "Test Operation" succeeded after 2 attempts')
+      );
+    });
+  });
 
-      // Should have waited at least 100ms + 200ms (with some tolerance for jitter)
-      expect(totalTime).toBeGreaterThan(250);
+  describe('Rate Limiting', () => {
+    it('should handle rate limit errors with limited retries (max 3 attempts)', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Rate limit exceeded');
+      });
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.RATE_LIMITED,
+        severity: 'medium' as any,
+        message: 'Rate limit exceeded',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 5,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.RATE_LIMITED],
+        })
+      ).rejects.toThrow();
+
+      // Should limit rate limit retries to 2 retries max (3 total attempts: 1 initial + 2 retries)
       expect(operation).toHaveBeenCalledTimes(3);
     });
   });
 
-  describe('getActiveRetries', () => {
-    it('should return empty array when no active retries', () => {
-      const activeRetries = retryService.getActiveRetries();
-      expect(activeRetries).toEqual([]);
-    });
-  });
-
-  describe('getRetryStatistics', () => {
-    it('should return correct statistics', () => {
-      const stats = retryService.getRetryStatistics();
-      expect(stats).toEqual({
-        activeCount: 0,
-        operations: []
+  describe('Logging', () => {
+    it('should log retry attempts', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
       });
-    });
-  });
 
-  describe('cancelAllRetries', () => {
-    it('should cancel all active retries', () => {
-      retryService.cancelAllRetries();
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow();
+
       expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-        '[RetryService] Cancelling 0 active retries'
+        expect.stringContaining('Executing Test Operation (attempt 1/2)')
       );
+      expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining('Test Operation failed on attempt 1')
+      );
+      expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining('Will retry Test Operation in')
+      );
+    });
+
+    it('should log final failure', async () => {
+      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+        throw new Error('Timeout error');
+      });
+
+      mockErrorHandler.analyzeError.mockReturnValue({
+        type: ErrorType.TIMEOUT,
+        severity: 'medium' as any,
+        message: 'Timeout error',
+        isRetryable: true,
+        troubleshootingSteps: [],
+      });
+
+      mockErrorHandler.showErrorToUser.mockResolvedValue();
+
+      await expect(
+        retryService.executeWithRetry(operation, 'Test Operation', {
+          maxAttempts: 2,
+          baseDelay: 10,
+          retryableErrors: [ErrorType.TIMEOUT],
+        })
+      ).rejects.toThrow();
+
+      expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining('Test Operation failed after 2 attempts')
+      );
+      expect(mockErrorHandler.showErrorToUser).toHaveBeenCalled();
     });
   });
 });
