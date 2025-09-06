@@ -6,7 +6,7 @@ import {
   PromptMetadata,
   PromptTemplate,
   ValidationResult
-} from '../types/prompt.types';
+} from '../types/prompt-types';
 
 // Import all prompts from index
 import * as prompts from '../prompts/target';

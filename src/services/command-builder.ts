@@ -1,4 +1,4 @@
-import { ApprovalMode, CodexConfig } from '../providers/codexProvider';
+import { ApprovalMode, CodexConfig } from '../providers/codex-provider';
 
 export interface CommandOptions extends CodexConfig {
     approvalMode?: ApprovalMode;

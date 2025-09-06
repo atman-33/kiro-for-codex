@@ -1,4 +1,4 @@
-import { UpdateChecker } from '../../../src/utils/updateChecker';
+import { UpdateChecker } from '../../../src/utils/update-checker';
 import * as vscode from 'vscode';
 
 // Mock fetch globally
@@ -10,7 +10,7 @@ global.fetch = jest.fn();
 };
 
 // Mock NotificationUtils
-jest.mock('../../../src/utils/notificationUtils', () => ({
+jest.mock('../../../src/utils/notification-utils', () => ({
     NotificationUtils: {
         showAutoDismissNotification: jest.fn().mockResolvedValue(undefined)
     }
@@ -154,7 +154,7 @@ describe('UpdateChecker', () => {
     describe('User Interactions', () => {
         beforeEach(() => {
             // Mock NotificationUtils
-            jest.mock('../../../src/utils/notificationUtils');
+            jest.mock('../../../src/utils/notification-utils');
         });
 
         it('should open changelog when "View Changelog" is clicked', async () => {

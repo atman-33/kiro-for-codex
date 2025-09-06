@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { SpecManager } from '../features/spec/specManager';
+import { SpecManager } from '../features/spec/spec-manager';
 
 export class SpecExplorerProvider implements vscode.TreeDataProvider<SpecItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<SpecItem | undefined | null | void> = new vscode.EventEmitter<SpecItem | undefined | null | void>();

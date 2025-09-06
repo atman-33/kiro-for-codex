@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AgentInfo, AgentManager } from '../features/agents/agentManager';
+import { AgentInfo, AgentManager } from '../features/agents/agent-manager';
 
 export class AgentsExplorerProvider implements vscode.TreeDataProvider<AgentItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<AgentItem | undefined | null | void> = new vscode.EventEmitter<AgentItem | undefined | null | void>();

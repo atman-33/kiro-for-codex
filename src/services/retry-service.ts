@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CodexErrorHandler, ErrorType, RetryOptions } from './errorHandler';
+import { CodexErrorHandler, ErrorType, RetryOptions } from './error-handler';
 
 export interface RetryContext {
   operationName: string;

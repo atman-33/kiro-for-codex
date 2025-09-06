@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ApprovalMode } from '../../../src/providers/codexProvider';
-import { CommandBuilder, CommandOptions } from '../../../src/services/commandBuilder';
+import { ApprovalMode } from '../../../src/providers/codex-provider';
+import { CommandBuilder, CommandOptions } from '../../../src/services/command-builder';
 
 describe('CommandBuilder', () => {
     let commandBuilder: CommandBuilder;

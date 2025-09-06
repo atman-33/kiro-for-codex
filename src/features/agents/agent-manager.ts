@@ -3,9 +3,9 @@ import * as yaml from 'js-yaml';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ApprovalMode, CodexProvider } from '../../providers/codexProvider';
-import { PromptLoader } from '../../services/promptLoader';
-import { NotificationUtils } from '../../utils/notificationUtils';
+import { ApprovalMode, CodexProvider } from '../../providers/codex-provider';
+import { PromptLoader } from '../../services/prompt-loader';
+import { NotificationUtils } from '../../utils/notification-utils';
 
 export interface AgentInfo {
     name: string;

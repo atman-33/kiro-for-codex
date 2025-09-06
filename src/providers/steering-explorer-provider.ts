@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { SteeringManager } from '../features/steering/steeringManager';
+import { SteeringManager } from '../features/steering/steering-manager';
 
 export class SteeringExplorerProvider implements vscode.TreeDataProvider<SteeringItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<SteeringItem | undefined | null | void> = new vscode.EventEmitter<SteeringItem | undefined | null | void>();

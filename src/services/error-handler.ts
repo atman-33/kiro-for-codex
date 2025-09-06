@@ -1,3 +1,4 @@
+// NOTE: file renamed to kebab-case
 import * as vscode from 'vscode';
 
 export enum ErrorType {

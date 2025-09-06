@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as vscode from 'vscode';
-import { ApprovalMode, CodexOptions, CodexProvider } from '../../../src/providers/codexProvider';
-import { CommandBuilder } from '../../../src/services/commandBuilder';
-import { CodexErrorHandler } from '../../../src/services/errorHandler';
-import { ProcessManager } from '../../../src/services/processManager';
-import { RetryService } from '../../../src/services/retryService';
+import { ApprovalMode, CodexOptions, CodexProvider } from '../../../src/providers/codex-provider';
+import { CommandBuilder } from '../../../src/services/command-builder';
+import { CodexErrorHandler } from '../../../src/services/error-handler';
+import { ProcessManager } from '../../../src/services/process-manager';
+import { RetryService } from '../../../src/services/retry-service';
 
 // Mock dependencies
-jest.mock('../../../src/services/commandBuilder');
-jest.mock('../../../src/services/processManager');
-jest.mock('../../../src/services/errorHandler');
-jest.mock('../../../src/services/retryService');
-jest.mock('../../../src/services/codexSetupService', () => ({
+jest.mock('../../../src/services/command-builder');
+jest.mock('../../../src/services/process-manager');
+jest.mock('../../../src/services/error-handler');
+jest.mock('../../../src/services/retry-service');
+jest.mock('../../../src/services/codex-setup-service', () => ({
   CodexSetupService: {
     getInstance: jest.fn().mockReturnValue({
       getInstallationGuidance: jest.fn().mockReturnValue('Install Codex CLI'),
@@ -22,7 +22,7 @@ jest.mock('../../../src/services/codexSetupService', () => ({
     }),
   },
 }));
-jest.mock('../../../src/utils/configManager', () => ({
+jest.mock('../../../src/utils/config-manager', () => ({
   ConfigManager: {
     getInstance: jest.fn().mockReturnValue({
       loadSettings: jest.fn(),
@@ -127,14 +127,14 @@ describe('CodexProvider', () => {
     (RetryService as jest.MockedClass<typeof RetryService>).mockImplementation(() => mockRetryService);
 
     // Mock ConfigManager.getInstance
-    jest.doMock('../../../src/utils/configManager', () => ({
+    jest.doMock('../../../src/utils/config-manager', () => ({
       ConfigManager: {
         getInstance: jest.fn().mockReturnValue(mockConfigManager),
       },
     }));
 
     // Mock CodexSetupService.getInstance
-    jest.doMock('../../../src/services/codexSetupService', () => ({
+    jest.doMock('../../../src/services/codex-setup-service', () => ({
       CodexSetupService: {
         getInstance: jest.fn().mockReturnValue({
           getInstallationGuidance: jest.fn().mockReturnValue('Install Codex CLI'),

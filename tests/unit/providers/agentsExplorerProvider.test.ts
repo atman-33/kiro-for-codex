@@ -1,8 +1,8 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AgentInfo, AgentManager } from '../../../src/features/agents/agentManager';
-import { AgentsExplorerProvider } from '../../../src/providers/agentsExplorerProvider';
+import { AgentInfo, AgentManager } from '../../../src/features/agents/agent-manager';
+import { AgentsExplorerProvider } from '../../../src/providers/agents-explorer-provider';
 
 // Mock vscode
 jest.mock('vscode');
@@ -11,7 +11,7 @@ jest.mock('vscode');
 jest.mock('os');
 
 // Mock AgentManager
-jest.mock('../../../src/features/agents/agentManager');
+jest.mock('../../../src/features/agents/agent-manager');
 
 describe('AgentsExplorerProvider', () => {
     let provider: AgentsExplorerProvider;

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CodexProvider } from '../providers/codexProvider';
+import { CodexProvider } from '../providers/codex-provider';
 
 /**
  * Commands related to Codex CLI functionality

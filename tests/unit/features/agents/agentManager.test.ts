@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AgentManager } from '../../../../src/features/agents/agentManager';
-import type { CodexProvider } from '../../../../src/providers/codexProvider';
+import { AgentManager } from '../../../../src/features/agents/agent-manager';
+import type { CodexProvider } from '../../../../src/providers/codex-provider';
 
 // Mock vscode
 jest.mock('vscode');

@@ -1,9 +1,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { CodexProvider } from '../../providers/codexProvider';
-import { PromptLoader } from '../../services/promptLoader';
-import { ConfigManager } from '../../utils/configManager';
-import { NotificationUtils } from '../../utils/notificationUtils';
+import { CodexProvider } from '../../providers/codex-provider';
+import { PromptLoader } from '../../services/prompt-loader';
+import { ConfigManager } from '../../utils/config-manager';
+import { NotificationUtils } from '../../utils/notification-utils';
 
 export type SpecDocumentType = 'requirements' | 'design' | 'tasks';
 

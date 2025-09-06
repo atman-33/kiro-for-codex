@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as vscode from 'vscode';
-import { CodexErrorHandler, ErrorSeverity, ErrorType } from '../../../src/services/errorHandler';
+import { CodexErrorHandler, ErrorSeverity, ErrorType } from '../../../src/services/error-handler';
 
 describe('CodexErrorHandler', () => {
   let errorHandler: CodexErrorHandler;

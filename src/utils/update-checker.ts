@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { NotificationUtils } from './notificationUtils';
+import { NotificationUtils } from './notification-utils';
 
 export class UpdateChecker {
     private static readonly SKIP_VERSION_KEY = 'kfc.skipVersion';

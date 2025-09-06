@@ -4,7 +4,7 @@ describe('Codex CLI Availability Checking', () => {
   describe('Task 3 Implementation', () => {
     it('should have implemented Codex CLI installation detection functionality', () => {
       // Test that the CodexProvider class exists and has the required methods
-      const CodexProvider = require('../../../src/providers/codexProvider').CodexProvider;
+      const CodexProvider = require('../../../src/providers/codex-provider').CodexProvider;
 
       expect(CodexProvider).toBeDefined();
 
@@ -16,7 +16,7 @@ describe('Codex CLI Availability Checking', () => {
     });
 
     it('should have implemented version compatibility checking', () => {
-      const CodexProvider = require('../../../src/providers/codexProvider').CodexProvider;
+      const CodexProvider = require('../../../src/providers/codex-provider').CodexProvider;
       const provider = new CodexProvider({} as any, {} as any);
 
       // Check that version compatibility methods exist
@@ -26,8 +26,8 @@ describe('Codex CLI Availability Checking', () => {
     });
 
     it('should have implemented setup guidance for missing Codex CLI installation', () => {
-      const CodexProvider = require('../../../src/providers/codexProvider').CodexProvider;
-      const CodexSetupService = require('../../../src/services/codexSetupService').CodexSetupService;
+      const CodexProvider = require('../../../src/providers/codex-provider').CodexProvider;
+      const CodexSetupService = require('../../../src/services/codex-setup-service').CodexSetupService;
 
       const provider = new CodexProvider({} as any, {} as any);
 
@@ -46,7 +46,7 @@ describe('Codex CLI Availability Checking', () => {
     });
 
     it('should have CodexAvailabilityResult interface with required properties', () => {
-      const { CodexAvailabilityResult } = require('../../../src/providers/codexProvider');
+      const { CodexAvailabilityResult } = require('../../../src/providers/codex-provider');
 
       // This is a type check - if the interface is properly defined, 
       // TypeScript compilation will succeed
@@ -69,7 +69,7 @@ describe('Codex CLI Availability Checking', () => {
     });
 
     it('should have Codex commands for availability checking', () => {
-      const CodexCommands = require('../../../src/commands/codexCommands').CodexCommands;
+      const CodexCommands = require('../../../src/commands/codex-commands').CodexCommands;
 
       expect(CodexCommands).toBeDefined();
       expect(typeof CodexCommands.registerCommands).toBe('function');
@@ -84,7 +84,7 @@ describe('Codex CLI Availability Checking', () => {
 
   describe('Requirements Coverage', () => {
     it('should satisfy Requirement 2.3: Show appropriate error messages and installation instructions when Codex CLI is not available', () => {
-      const CodexSetupService = require('../../../src/services/codexSetupService').CodexSetupService;
+      const CodexSetupService = require('../../../src/services/codex-setup-service').CodexSetupService;
       const setupService = CodexSetupService.getInstance({} as any);
 
       // Check that installation guidance is comprehensive
@@ -96,7 +96,7 @@ describe('Codex CLI Availability Checking', () => {
     });
 
     it('should satisfy Requirement 7.3: Provide clear error messages and setup procedures when Codex CLI is not available', () => {
-      const CodexSetupService = require('../../../src/services/codexSetupService').CodexSetupService;
+      const CodexSetupService = require('../../../src/services/codex-setup-service').CodexSetupService;
       const setupService = CodexSetupService.getInstance({} as any);
 
       // Check that troubleshooting guidance exists
@@ -121,7 +121,7 @@ describe('Codex CLI Availability Checking', () => {
 
   describe('Integration Points', () => {
     it('should integrate availability checking with CodexProvider execution methods', () => {
-      const CodexProvider = require('../../../src/providers/codexProvider').CodexProvider;
+      const CodexProvider = require('../../../src/providers/codex-provider').CodexProvider;
       const provider = new CodexProvider({} as any, {} as any);
 
       // Check that execution methods exist and would use availability checking
@@ -131,7 +131,7 @@ describe('Codex CLI Availability Checking', () => {
     });
 
     it('should provide utility methods for programmatic availability checking', () => {
-      const CodexProvider = require('../../../src/providers/codexProvider').CodexProvider;
+      const CodexProvider = require('../../../src/providers/codex-provider').CodexProvider;
       const provider = new CodexProvider({} as any, {} as any);
 
       // Check utility methods exist

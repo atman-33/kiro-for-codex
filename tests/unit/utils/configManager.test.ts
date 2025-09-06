@@ -1,4 +1,4 @@
-import { ApprovalMode, CodexConfig, ConfigManager, MigrationConfig } from '../../../src/utils/configManager';
+import { ApprovalMode, CodexConfig, ConfigManager, MigrationConfig } from '../../../src/utils/config-manager';
 
 // Mock vscode
 jest.mock('vscode', () => ({

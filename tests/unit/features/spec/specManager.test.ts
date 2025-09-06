@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { SpecManager } from '../../../../src/features/spec/specManager';
-import { CodexProvider } from '../../../../src/providers/codexProvider';
+import { SpecManager } from '../../../../src/features/spec/spec-manager';
+import { CodexProvider } from '../../../../src/providers/codex-provider';
 
 // Mock vscode
 jest.mock('vscode', () => ({
@@ -48,17 +48,17 @@ jest.mock('vscode', () => ({
 }));
 
 // Mock CodexProvider
-jest.mock('../../../../src/providers/codexProvider');
+jest.mock('../../../../src/providers/codex-provider');
 
 // Mock NotificationUtils
-jest.mock('../../../../src/utils/notificationUtils', () => ({
+jest.mock('../../../../src/utils/notification-utils', () => ({
   NotificationUtils: {
     showAutoDismissNotification: jest.fn()
   }
 }));
 
 // Mock PromptLoader
-jest.mock('../../../../src/services/promptLoader', () => ({
+jest.mock('../../../../src/services/prompt-loader', () => ({
   PromptLoader: {
     getInstance: jest.fn(() => ({
       renderPrompt: jest.fn(() => 'mocked prompt content')

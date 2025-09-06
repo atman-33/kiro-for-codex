@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from '@jest/globals';
-import { PromptLoader } from '../../src/services/promptLoader';
+import { PromptLoader } from '../../src/services/prompt-loader';
 
 describe('Prompt Integration Tests', () => {
   let promptLoader: PromptLoader;

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CodexAvailabilityResult } from '../providers/codexProvider';
+import { CodexAvailabilityResult } from '../providers/codex-provider';
 
 /**
  * Service for managing Codex CLI setup and installation guidance

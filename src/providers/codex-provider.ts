@@ -2,12 +2,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { VSC_CONFIG_NAMESPACE } from '../constants';
-import { CodexSetupService } from '../services/codexSetupService';
-import { CommandBuilder } from '../services/commandBuilder';
-import { CodexErrorHandler, ErrorType } from '../services/errorHandler';
-import { ProcessManager } from '../services/processManager';
-import { RetryService } from '../services/retryService';
-import { ConfigManager } from '../utils/configManager';
+import { CodexSetupService } from '../services/codex-setup-service';
+import { CommandBuilder } from '../services/command-builder';
+import { CodexErrorHandler, ErrorType } from '../services/error-handler';
+import { ProcessManager } from '../services/process-manager';
+import { RetryService } from '../services/retry-service';
+import { ConfigManager } from '../utils/config-manager';
 
 export enum ApprovalMode {
   Interactive = 'interactive',
@@ -342,10 +342,10 @@ export class CodexProvider {
         maxAttempts: 3,
         baseDelay: 1000,
         retryableErrors: [ErrorType.TIMEOUT, ErrorType.NETWORK_ERROR, ErrorType.EXECUTION_FAILED],
-        onRetry: async (attempt, error) => {
+        onRetry: async (attempt: number, error: Error) => {
           this.outputChannel.appendLine(`[CodexProvider] Retry attempt ${attempt} for Codex execution: ${error.message}`);
         },
-        shouldRetry: (error, _attempt) => {
+        shouldRetry: (error: any, _attempt: number) => {
           // Custom retry logic for specific scenarios
           const errorType = (error as any).codexErrorType;
 
@@ -429,7 +429,7 @@ export class CodexProvider {
         maxAttempts: 2, // Fewer retries for terminal operations
         baseDelay: 500,
         retryableErrors: [ErrorType.FILE_ACCESS_ERROR, ErrorType.TEMP_FILE_ERROR],
-        onFailure: async (error, _attempts) => {
+        onFailure: async (error: Error, _attempts: number) => {
           const codexError = this.errorHandler.analyzeError(error);
           await this.errorHandler.showErrorToUser(codexError);
         }

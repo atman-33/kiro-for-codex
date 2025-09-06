@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 import * as prompts from '../../../src/prompts/target';
-import { PromptLoader } from '../../../src/services/promptLoader';
+import { PromptLoader } from '../../../src/services/prompt-loader';
 
 // Mock the prompts module
 jest.mock('../../../src/prompts/target', () => ({

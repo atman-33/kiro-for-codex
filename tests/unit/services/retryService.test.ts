@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as vscode from 'vscode';
-import { CodexErrorHandler, ErrorType } from '../../../src/services/errorHandler';
-import { RetryService } from '../../../src/services/retryService';
+import { CodexErrorHandler, ErrorType } from '../../../src/services/error-handler';
+import { RetryService } from '../../../src/services/retry-service';
 
 // Mock vscode module
 jest.mock('vscode', () => ({
