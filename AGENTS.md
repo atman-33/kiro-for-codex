@@ -22,6 +22,7 @@ Example: `npm ci && npm run watch` (dev) or `npm run package-web && npm run pack
 - Filenames: `camelCase.ts` (e.g., `codexProvider.ts`); classes use `PascalCase`.
 - Suffixes: view/data providers end with `Provider`, services end with `Service`.
 - Keep modules focused; place shared types in `src/types/` and constants in `src/constants.ts`.
+- In-source language: Write all source-code messages and comments in English (including user-facing strings, log/output messages, and code comments).
 
 ## Testing Guidelines
 - Framework: Jest with `ts-jest`; Node test environment.
@@ -42,4 +43,3 @@ Example: `npm ci && npm run watch` (dev) or `npm run package-web && npm run pack
 ## Agent & Prompt Authoring
 - Author sources in `src/prompts/`; run `npm run build-prompts` (or `watch`) to regenerate. Avoid editing `src/prompts/target/` directly.
 - Keep prompt YAML front‑matter concise and include examples for snapshot tests when applicable.
-
