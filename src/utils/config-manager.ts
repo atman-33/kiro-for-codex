@@ -28,12 +28,14 @@ export interface KfcSettings {
         specs: string;
         steering: string;
         settings: string;
+        prompts: string;
     };
     views: {
         specs: { visible: boolean; };
         steering: { visible: boolean; };
         mcp: { visible: boolean; };
         hooks: { visible: boolean; };
+        prompts: { visible: boolean; };
         settings: { visible: boolean; };
     };
     codex?: CodexConfig;
@@ -114,6 +116,7 @@ export class ConfigManager {
                 steering: { visible: DEFAULT_VIEW_VISIBILITY.steering },
                 mcp: { visible: DEFAULT_VIEW_VISIBILITY.mcp },
                 hooks: { visible: DEFAULT_VIEW_VISIBILITY.hooks },
+                prompts: { visible: DEFAULT_VIEW_VISIBILITY.prompts },
                 settings: { visible: DEFAULT_VIEW_VISIBILITY.settings }
             },
             codex: this.getDefaultCodexConfig(),

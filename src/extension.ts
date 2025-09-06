@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { CONFIG_FILE_NAME, VSC_CONFIG_NAMESPACE, ENABLE_MCP_UI, ENABLE_HOOKS_UI, ENABLE_AGENTS_UI } from './constants';
 import { AgentManager } from './features/agents/agent-manager';
 import { SpecManager } from './features/spec/spec-manager';
@@ -7,6 +8,7 @@ import { AgentsExplorerProvider } from './providers/agents-explorer-provider';
 import { CodexProvider } from './providers/codex-provider';
 import { HooksExplorerProvider } from './providers/hooks-explorer-provider';
 import { MCPExplorerProvider } from './providers/mcp-explorer-provider';
+import { PromptsExplorerProvider } from './providers/prompts-explorer-provider';
 import { OverviewProvider } from './providers/overview-provider';
 import { SpecExplorerProvider } from './providers/spec-explorer-provider';
 import { SpecTaskCodeLensProvider } from './providers/spec-task-code-lens-provider';
@@ -75,6 +77,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ? new MCPExplorerProvider(context, outputChannel)
         : undefined;
     const agentsExplorer = ENABLE_AGENTS_UI ? new AgentsExplorerProvider(context, agentManager, outputChannel) : undefined;
+    const promptsExplorer = new PromptsExplorerProvider(context, codexProvider);
 
     // Set managers
     specExplorer.setSpecManager(specManager);
@@ -90,6 +93,9 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.window.registerTreeDataProvider('kfc.views.agentsExplorer', agentsExplorer)
         );
     }
+    context.subscriptions.push(
+        vscode.window.registerTreeDataProvider('kfc.views.promptsExplorer', promptsExplorer)
+    );
     if (ENABLE_HOOKS_UI && hooksExplorer) {
         context.subscriptions.push(
             vscode.window.registerTreeDataProvider('kfc.views.hooksStatus', hooksExplorer)
@@ -106,13 +112,13 @@ export async function activate(context: vscode.ExtensionContext) {
     const updateChecker = new UpdateChecker(context, outputChannel);
 
     // Register commands
-    registerCommands(context, specExplorer, steeringExplorer, hooksExplorer, mcpExplorer, agentsExplorer, updateChecker);
+    registerCommands(context, specExplorer, steeringExplorer, hooksExplorer, mcpExplorer, agentsExplorer, promptsExplorer, updateChecker);
 
     // Initialize default settings file if not exists
     await initializeDefaultSettings();
 
     // Set up file watchers
-    setupFileWatchers(context, specExplorer, steeringExplorer, hooksExplorer, mcpExplorer, agentsExplorer);
+    setupFileWatchers(context, specExplorer, steeringExplorer, hooksExplorer, mcpExplorer, agentsExplorer, promptsExplorer);
 
     // Check for updates on startup
     updateChecker.checkForUpdates();
@@ -240,7 +246,16 @@ async function toggleViews() {
 }
 
 
-function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecExplorerProvider, steeringExplorer: SteeringExplorerProvider, hooksExplorer: HooksExplorerProvider | undefined, mcpExplorer: MCPExplorerProvider | undefined, agentsExplorer: AgentsExplorerProvider | undefined, updateChecker: UpdateChecker) {
+function registerCommands(
+    context: vscode.ExtensionContext,
+    specExplorer: SpecExplorerProvider,
+    steeringExplorer: SteeringExplorerProvider,
+    hooksExplorer: HooksExplorerProvider | undefined,
+    mcpExplorer: MCPExplorerProvider | undefined,
+    agentsExplorer: AgentsExplorerProvider | undefined,
+    promptsExplorer: PromptsExplorerProvider,
+    updateChecker: UpdateChecker
+) {
 
     // Spec commands
     const createSpecCommand = vscode.commands.registerCommand('kfc.spec.create', async () => {
@@ -404,7 +419,58 @@ function registerCommands(context: vscode.ExtensionContext, specExplorer: SpecEx
             })
         );
     }
-    
+
+    // Prompts commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('kfc.prompts.refresh', async () => {
+            outputChannel.appendLine('[Manual Refresh] Refreshing prompts explorer...');
+            promptsExplorer.refresh();
+        }),
+        vscode.commands.registerCommand('kfc.prompts.create', async () => {
+            const ws = vscode.workspace.workspaceFolders?.[0];
+            if (!ws) {
+                vscode.window.showErrorMessage('No workspace folder found');
+                return;
+            }
+            const name = await vscode.window.showInputBox({
+                title: 'Create Prompt',
+                placeHolder: 'prompt name (kebab-case)',
+                prompt: 'A markdown file will be created under .codex/prompts',
+                validateInput: (v) => !v ? 'Name is required' : undefined
+            });
+            if (!name) return;
+            const dir = vscode.Uri.joinPath(ws.uri, '.codex', 'prompts');
+            const file = vscode.Uri.joinPath(dir, `${name}.md`);
+            try {
+                await vscode.workspace.fs.createDirectory(dir);
+                const content = Buffer.from(`# ${name}\n\nDescribe your prompt here. This file will be sent to Codex when executed.\n`);
+                await vscode.workspace.fs.writeFile(file, content);
+                const doc = await vscode.workspace.openTextDocument(file);
+                await vscode.window.showTextDocument(doc);
+                promptsExplorer.refresh();
+            } catch (e) {
+                vscode.window.showErrorMessage(`Failed to create prompt: ${e}`);
+            }
+        }),
+        vscode.commands.registerCommand('kfc.prompts.run', async (filePath?: string) => {
+            try {
+                let target = filePath as string | undefined;
+                if (!target) {
+                    const active = vscode.window.activeTextEditor?.document.uri.fsPath;
+                    target = active;
+                }
+                if (!target) {
+                    vscode.window.showErrorMessage('No prompt file selected');
+                    return;
+                }
+                const content = await fs.promises.readFile(target, 'utf8');
+                await codexProvider.invokeCodexSplitView(content, `Codex - Prompt: ${require('path').basename(target)}`);
+            } catch (e) {
+                vscode.window.showErrorMessage(`Failed to run prompt: ${e}`);
+            }
+        })
+    );
+
         // Update checker command
         
         // Group the following commands in a single subscriptions push
@@ -501,7 +567,8 @@ function setupFileWatchers(
     steeringExplorer: SteeringExplorerProvider,
     hooksExplorer: HooksExplorerProvider | undefined,
     mcpExplorer: MCPExplorerProvider | undefined,
-    agentsExplorer: AgentsExplorerProvider | undefined
+    agentsExplorer: AgentsExplorerProvider | undefined,
+    promptsExplorer: PromptsExplorerProvider
 ) {
     // Watch for changes in .codex directories with debouncing
     const codexWatcher = vscode.workspace.createFileSystemWatcher('**/.codex/**/*');
@@ -519,6 +586,7 @@ function setupFileWatchers(
             hooksExplorer?.refresh();
             mcpExplorer?.refresh();
             agentsExplorer?.refresh();
+            promptsExplorer.refresh();
         }, 1000); // Increase debounce time to 1 second
     };
 

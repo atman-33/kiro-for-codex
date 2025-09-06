@@ -9,7 +9,9 @@ export const DEFAULT_CONFIG = {
     paths: {
         specs: '.codex/specs',
         steering: '.codex/steering',
-        settings: '.codex/settings'
+        settings: '.codex/settings',
+        // New: prompts base path
+        prompts: '.codex/prompts'
     },
     views: {
         specs: true,
@@ -18,6 +20,8 @@ export const DEFAULT_CONFIG = {
         mcp: false,
         // Temporarily hide Hooks view until CLI feature is available
         hooks: false,
+        // Prompts view is enabled by default
+        prompts: true,
         settings: false
     },
     codex: {

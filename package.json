@@ -22,6 +22,7 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
+    "build": "npm run package-web",
     "vscode:prepublish": "npm run package-web",
     "compile": "npm run build-prompts && tsc -p ./",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
@@ -50,6 +51,11 @@
           "id": "kfc.views.specExplorer",
           "name": "Specs",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.specs.visible"
+        },
+        {
+          "id": "kfc.views.promptsExplorer",
+          "name": "Prompts",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.prompts.visible"
         },
         {
           "id": "kfc.views.agentsExplorer",
@@ -81,6 +87,10 @@
     },
     "viewsWelcome": [
       {
+        "view": "kfc.views.promptsExplorer",
+        "contents": "Create and run prompts (.md) under .codex/prompts\n\n[$(plus) Create Prompt](command:kfc.prompts.create)\n[$(refresh) Refresh](command:kfc.prompts.refresh)"
+      },
+      {
         "view": "kfc.views.overview",
         "contents": "Configure Kiro for Codex\n\n[$(gear) Open Settings](command:kfc.settings.open)\n[$(question) Help](command:kfc.help.open)"
       },
@@ -102,6 +112,24 @@
       }
     ],
     "commands": [
+      {
+        "command": "kfc.prompts.create",
+        "title": "Create Prompt",
+        "category": "Kiro for Codex",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "kfc.prompts.refresh",
+        "title": "Refresh Prompts",
+        "category": "Kiro for Codex",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kfc.prompts.run",
+        "title": "Run Prompt",
+        "category": "Kiro for Codex",
+        "icon": "$(play)"
+      },
       {
         "command": "kfc.spec.create",
         "title": "Create New Spec",
@@ -255,6 +283,16 @@
           "group": "navigation@3"
         },
         {
+          "command": "kfc.prompts.create",
+          "when": "view == kfc.views.promptsExplorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kfc.prompts.refresh",
+          "when": "view == kfc.views.promptsExplorer",
+          "group": "navigation@2"
+        },
+        {
           "command": "kfc.mcp.refresh",
           "when": "view == kfc.views.mcpServerStatus",
           "group": "navigation"
@@ -292,6 +330,10 @@
           "command": "kfc.spec.create"
         },
         {
+          "command": "kfc.prompts.create",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
           "command": "kfc.steering.create",
           "when": "workspaceFolderCount > 0"
         },
@@ -317,6 +359,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show Specs view"
+        },
+        "kfc.views.prompts.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Prompts view"
         },
         "kfc.views.agents.visible": {
           "type": "boolean",
