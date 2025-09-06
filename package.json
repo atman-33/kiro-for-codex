@@ -1,13 +1,13 @@
 {
-  "name": "kiro-for-cc",
-  "displayName": "Kiro for Claude Code",
-  "description": "Spec-driven development with Claude Code - inspired by Kiro",
-  "version": "0.2.8",
-  "publisher": "heisebaiyun",
+  "name": "kiro-for-codex",
+  "displayName": "Kiro for Codex",
+  "description": "Spec-driven development with Codex CLI - inspired by Kiro",
+  "version": "0.1.0",
+  "publisher": "atman-33",
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/notdp/kiro-for-cc"
+    "url": "https://github.com/atman-33/kiro-for-codex"
   },
   "engines": {
     "vscode": "^1.84.0"
@@ -26,7 +26,7 @@
       "activitybar": [
         {
           "id": "kfc",
-          "title": "Kiro for CC",
+          "title": "Kiro for Codex",
           "icon": "./icons/kiro.svg"
         }
       ]
@@ -69,7 +69,7 @@
     "viewsWelcome": [
       {
         "view": "kfc.views.overview",
-        "contents": "Configure Kiro for Claude Code\n\n[$(gear) Open Settings](command:kfc.settings.open)\n[$(question) Help](command:kfc.help.open)"
+        "contents": "Configure Kiro for Codex\n\n[$(gear) Open Settings](command:kfc.settings.open)\n[$(question) Help](command:kfc.help.open)"
       },
       {
         "view": "kfc.views.specExplorer",
@@ -85,134 +85,134 @@
       },
       {
         "view": "kfc.views.mcpServerStatus",
-        "contents": "Connect to external tools and services\nUse 'claude mcp add' to configure servers"
+        "contents": "Connect to external tools and services\nUse 'codex mcp add' to configure servers"
       }
     ],
     "commands": [
       {
         "command": "kfc.spec.create",
         "title": "Create New Spec",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(plus)"
       },
       {
         "command": "kfc.spec.createWithAgents",
         "title": "New Spec with Agents",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(sparkle)"
       },
       {
         "command": "kfc.steering.create",
         "title": "Create Custom Steering",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(plus)"
       },
       {
         "command": "kfc.steering.generateInitial",
         "title": "Init Steering",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(sparkle)"
       },
       {
         "command": "kfc.steering.refine",
         "title": "Refine Steering",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(sparkle)"
       },
       {
         "command": "kfc.spec.delete",
         "title": "Delete Spec",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(trash)"
       },
       {
         "command": "kfc.steering.delete",
         "title": "Delete Steering",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(trash)"
       },
       {
         "command": "kfc.steering.createUserRule",
         "title": "Create User Rule",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(globe)"
       },
       {
         "command": "kfc.steering.createProjectRule",
         "title": "Create Project Rule",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(root-folder)"
       },
       {
         "command": "kfc.hooks.refresh",
         "title": "Refresh Hooks",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
         "command": "kfc.mcp.refresh",
         "title": "Refresh MCP Status",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
         "command": "kfc.settings.open",
         "title": "Kiro Settings",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(gear)"
       },
       {
         "command": "kfc.checkForUpdates",
         "title": "Check for Updates",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(sync)"
       },
       {
         "command": "kfc.spec.refresh",
         "title": "Refresh Specs",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
         "command": "kfc.steering.refresh",
         "title": "Refresh Steering",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
         "command": "kfc.agents.refresh",
         "title": "Refresh Agents",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
         "command": "kfc.help.open",
         "title": "Kiro Help",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(question)"
       },
       {
         "command": "kfc.menu.open",
         "title": "Kiro Menu",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(ellipsis)"
       },
       {
         "command": "kfc.permission.check",
         "title": "Check Permission Status",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(info)"
       },
       {
         "command": "kfc.permission.reset",
         "title": "Reset Permissions",
-        "category": "Kiro for CC",
+        "category": "Kiro for Codex",
         "icon": "$(debug-restart)"
       },
       {
         "command": "kfc.spec.implTask",
         "title": "Implement Task",
-        "category": "Kiro for CC"
+        "category": "Kiro for Codex"
       }
     ],
     "menus": {
@@ -299,13 +299,8 @@
       ]
     },
     "configuration": {
-      "title": "Kiro for Claude Code",
+      "title": "Kiro for Codex",
       "properties": {
-        "kfc.claudePath": {
-          "type": "string",
-          "default": "claude",
-          "description": "Path to Claude Code CLI executable"
-        },
         "kfc.autoRefreshSpecs": {
           "type": "boolean",
           "default": true,

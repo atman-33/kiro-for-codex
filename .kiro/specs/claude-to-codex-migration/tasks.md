@@ -55,7 +55,7 @@
   - Remove Claude Code specific permission management
   - _Requirements: 1.1, 2.2, 5.3_
 
-- [ ] 10. Update package.json and extension metadata
+- [x] 10. Update package.json and extension metadata
   - Change extension name and description to reflect Codex usage
   - Update configuration properties for Codex CLI settings
   - Modify command titles and descriptions
