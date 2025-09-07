@@ -27,7 +27,8 @@ A VS Code extension that brings spec-driven development to Codex CLI. Manage you
 ### 🧩 PROMPTS
 
 - Create Prompts: scaffold `.codex/prompts/<name>.md` from the Prompts view
-- Run Prompts: send prompt content to Codex CLI and run in a split terminal
+- Click to Open: clicking a prompt opens the Markdown for review
+- Inline Run Button: use the ▶ action on the right to execute with Codex CLI
 - Organize & Refresh: manage a workspace prompt library with quick refresh
 - Markdown Simplicity: no front-matter required; write plain Markdown instructions
 
@@ -120,7 +121,8 @@ Create and run project prompts:
 1. Open the Prompts view in the activity bar
 2. Click `+ Create Prompt` to scaffold `.codex/prompts/<name>.md`
 3. Write instructions in Markdown (no front-matter required)
-4. Click the prompt item to run in a split terminal via Codex CLI
+4. Click the prompt item to open the file and review the content
+5. Press the inline ▶ Run button to execute the prompt with Codex CLI (split view)
 
 ### Overview
 

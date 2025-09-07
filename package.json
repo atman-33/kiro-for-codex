@@ -31,7 +31,7 @@
     "compile-web": "webpack --mode development",
     "watch-web": "webpack --mode development --watch",
     "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
-    "test": "jest -i",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
@@ -321,6 +321,11 @@
           "command": "kfc.spec.delete",
           "when": "view == kfc.views.specExplorer && viewItem == spec",
           "group": "7_modification"
+        },
+        {
+          "command": "kfc.prompts.run",
+          "when": "view == kfc.views.promptsExplorer && viewItem == prompt",
+          "group": "inline"
         },
         {
           "command": "kfc.steering.refine",

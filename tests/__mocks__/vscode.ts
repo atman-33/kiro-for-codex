@@ -165,6 +165,11 @@ export enum TreeItemCollapsibleState {
   Expanded = 2
 }
 
+// Mock ThemeIcon
+export class ThemeIcon {
+  constructor(public id: string) {}
+}
+
 // Mock Terminal
 export interface Terminal {
   name: string;

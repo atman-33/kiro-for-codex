@@ -63,9 +63,9 @@ export class PromptsExplorerProvider implements vscode.TreeDataProvider<PromptIt
                 'prompt',
                 fp,
                 {
-                    command: 'kfc.prompts.run',
-                    title: 'Run Prompt',
-                    arguments: [fp]
+                    command: 'vscode.open',
+                    title: 'Open Prompt',
+                    arguments: [vscode.Uri.file(fp)]
                 }
             ));
         }
@@ -112,9 +112,9 @@ class PromptItem extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon('symbol-string');
             this.tooltip = resourcePath || '';
             if (resourcePath) {
+                this.resourceUri = vscode.Uri.file(resourcePath);
                 this.description = path.basename(resourcePath);
             }
         }
     }
 }
-
