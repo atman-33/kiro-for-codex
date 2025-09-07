@@ -199,6 +199,13 @@ settings/
   kfc-settings.json          # Extension settings
 ```
 
+## Inspiration
+
+Kiro for Codex was inspired by the excellent "Kiro for CC" project for Claude Code by @notdp. This extension started as a port/adaptation from Claude Code's Kiro to a Codex CLI–focused workflow, carrying over the spec-driven development experience and UI while integrating tightly with Codex CLI.
+
+- Original project: https://github.com/notdp/kiro-for-cc
+
+
 ## Development
 
 ### Prerequisites
