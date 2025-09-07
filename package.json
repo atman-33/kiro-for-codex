@@ -204,7 +204,8 @@
         "command": "kfc.mcp.refresh",
         "title": "Refresh MCP Status",
         "category": "Kiro for Codex",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "false"
       },
       {
         "command": "kfc.settings.open",
@@ -234,7 +235,8 @@
         "command": "kfc.agents.refresh",
         "title": "Refresh Agents",
         "category": "Kiro for Codex",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "false"
       },
       {
         "command": "kfc.help.open",
@@ -353,6 +355,22 @@
         },
         {
           "command": "kfc.checkForUpdates"
+        },
+        {
+          "command": "kfc.spec.createWithAgents",
+          "when": "false"
+        },
+        {
+          "command": "kfc.hooks.refresh",
+          "when": "false"
+        },
+        {
+          "command": "kfc.mcp.refresh",
+          "when": "false"
+        },
+        {
+          "command": "kfc.agents.refresh",
+          "when": "false"
         }
       ]
     },
