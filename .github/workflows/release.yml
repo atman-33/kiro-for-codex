@@ -83,9 +83,6 @@ jobs:
             ```bash
             # VSCode (from VSCode Marketplace)
             code --install-extension atman-33.kiro-for-codex
-            
-            # Cursor (from OpenVSX)
-            cursor --install-extension atman-33.kiro-for-codex
             ```
             
             **From VSIX file:**
@@ -93,14 +90,10 @@ jobs:
             ```bash
             # VSCode
             code --install-extension kiro-for-codex-${{ steps.get_version.outputs.VERSION }}.vsix
-            
-            # Cursor
-            cursor --install-extension kiro-for-codex-${{ steps.get_version.outputs.VERSION }}.vsix
             ```
             
             ### Links
-            - [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=atman-33.kiro-for-codex)
-            - [OpenVSX Registry](https://open-vsx.org/extension/atman-33/kiro-for-codex)
+            - [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=atman-dev.kiro-for-codex)
             - [Documentation](https://github.com/atman-33/kiro-for-codex#readme)
             
             ---
@@ -108,16 +101,4 @@ jobs:
       
       - name: Publish to VSCode Marketplace
         run: vsce publish -p ${{ secrets.VSCE_PAT }}
-        continue-on-error: true
-      
-      - name: Install ovsx
-        run: npm install -g ovsx
-        
-      - name: Create OpenVSX namespace (if needed)
-        run: |
-          ovsx create-namespace atman-33 -p ${{ secrets.OVSX_PAT }} || echo "Namespace already exists"
-        continue-on-error: true
-        
-      - name: Publish to OpenVSX
-        run: ovsx publish -p ${{ secrets.OVSX_PAT }}
         continue-on-error: true
