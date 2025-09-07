@@ -32,7 +32,7 @@ export class SpecTaskCodeLensProvider implements vscode.CodeLensProvider {
 
                 // Create CodeLens
                 const codeLens = new vscode.CodeLens(range, {
-                    title: "▶ Start Task",
+                    title: "$(play) Start Task",
                     tooltip: "Click to execute this task",
                     command: "kfc.spec.implTask",
                     arguments: [document.uri, i, taskDescription]
