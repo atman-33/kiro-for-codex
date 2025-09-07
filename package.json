@@ -323,6 +323,11 @@
           "group": "7_modification"
         },
         {
+          "command": "kfc.prompts.run",
+          "when": "view == kfc.views.promptsExplorer && viewItem == prompt",
+          "group": "inline"
+        },
+        {
           "command": "kfc.steering.refine",
           "when": "view == kfc.views.steeringExplorer && viewItem == steering-document",
           "group": "inline"

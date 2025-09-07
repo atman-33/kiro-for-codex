@@ -458,9 +458,21 @@ function registerCommands(
                 vscode.window.showErrorMessage(`Failed to create prompt: ${e}`);
             }
         }),
-        vscode.commands.registerCommand('kfc.prompts.run', async (filePath?: string) => {
+        vscode.commands.registerCommand('kfc.prompts.run', async (filePathOrItem?: any) => {
             try {
-                let target = filePath as string | undefined;
+                let target: string | undefined;
+
+                // 1) If called with a string path
+                if (typeof filePathOrItem === 'string') {
+                    target = filePathOrItem;
+                }
+                // 2) If invoked from a tree item (inline button)
+                else if (filePathOrItem && typeof filePathOrItem === 'object') {
+                    const candidate = (filePathOrItem.resourcePath as string | undefined)
+                        || (filePathOrItem.resourceUri && filePathOrItem.resourceUri.fsPath);
+                    if (candidate) target = candidate;
+                }
+                // 3) Fallback to active editor
                 if (!target) {
                     const active = vscode.window.activeTextEditor?.document.uri.fsPath;
                     target = active;
