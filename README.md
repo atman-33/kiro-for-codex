@@ -7,9 +7,6 @@
 
 A VS Code extension that brings spec-driven development to Codex CLI. Manage your specs, steering documents, and custom prompts visually while leveraging Codex CLI's powerful AI capabilities.
 
-> Note
-> Agents, MCP, and Hooks UIs are disabled in this build. The "New Spec with Agents" flow is also disabled.
-
 ## Features
 
 ### 📝 SPEC Management
@@ -199,13 +196,6 @@ settings/
   kfc-settings.json          # Extension settings
 ```
 
-## Inspiration
-
-Kiro for Codex was inspired by the excellent "Kiro for CC" project for Claude Code by @notdp. This extension started as a port/adaptation from Claude Code's Kiro to a Codex CLI–focused workflow, carrying over the spec-driven development experience and UI while integrating tightly with Codex CLI.
-
-- Original project: https://github.com/notdp/kiro-for-cc
-
-
 ## Development
 
 ### Prerequisites
@@ -274,3 +264,9 @@ src/
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Inspiration
+
+Kiro for Codex was inspired by the excellent "Kiro for CC" project for Claude Code by @notdp. This extension started as a port/adaptation from Claude Code's Kiro to a Codex CLI–focused workflow, carrying over the spec-driven development experience and UI while integrating tightly with Codex CLI.
+
+- Original project: https://github.com/notdp/kiro-for-cc
