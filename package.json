@@ -31,7 +31,7 @@
     "compile-web": "webpack --mode development",
     "watch-web": "webpack --mode development --watch",
     "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
-    "test": "jest -i",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
