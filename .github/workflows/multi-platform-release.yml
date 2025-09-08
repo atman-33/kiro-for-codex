@@ -3,10 +3,7 @@ name: Extension Release
 
 on:
   release:
-    types: [published]
-  push:
-    tags:
-      - 'v*'
+    types: [created]
   workflow_dispatch:
 
 jobs:
