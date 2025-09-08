@@ -25,7 +25,7 @@
   "scripts": {
     "build": "npm run package-web",
     "vscode:prepublish": "npm run package-web",
-    "compile": "npm run build-prompts && tsc -p ./",
+    "compile": "npm run build-prompts && tsc -p ./ && npm run package",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
     "package": "vsce package",
     "build-prompts": "node scripts/build-prompts.js",
