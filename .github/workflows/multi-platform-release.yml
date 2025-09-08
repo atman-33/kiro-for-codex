@@ -1,9 +1,12 @@
 
 name: Extension Release
 
-on: 
+on:
   release:
-    types: [created]
+    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
