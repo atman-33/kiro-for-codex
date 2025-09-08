@@ -146,7 +146,9 @@ Core commands registered by the extension:
 
 ## Configuration
 
-Settings are stored in `.codex/settings/kfc-settings.json`:
+Project-local settings are stored in `.codex/settings/kfc-settings.json` and only contain paths. UI visibility and Codex runtime options live in VS Code settings under the `kfc.*` namespace.
+
+Minimal settings file:
 
 ```json
 {
@@ -155,25 +157,14 @@ Settings are stored in `.codex/settings/kfc-settings.json`:
     "steering": ".codex/steering",
     "settings": ".codex/settings",
     "prompts": ".codex/prompts"
-  },
-  "views": {
-    "specs": { "visible": true },
-    "steering": { "visible": true },
-    "prompts": { "visible": true },
-    "mcp": { "visible": false },
-    "hooks": { "visible": false },
-    "agents": { "visible": false },
-    "settings": { "visible": false }
-  },
-  "codex": {
-    "path": "codex",
-    "defaultApprovalMode": "interactive",
-    "defaultModel": "gpt-5",
-    "timeout": 30000,
-    "terminalDelay": 1000
   }
 }
 ```
+
+Notes:
+- Only the `paths.*` values are honored by the extension at runtime.
+- Changing `paths.*` may require a window reload to take effect.
+- The location of `kfc-settings.json` itself is fixed to `.codex/settings/kfc-settings.json` (editing `paths.settings` does not relocate the file).
 
 ## Workspace Structure
 
