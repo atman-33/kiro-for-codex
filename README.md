@@ -1,7 +1,7 @@
 ﻿# Kiro for Codex
 
-[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/atman-33.kiro-for-codex.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=atman-dev.kiro-for-codex)
-[![Downloads](https://img.shields.io/vscode-marketplace/d/atman-33.kiro-for-codex.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=atman-dev.kiro-for-codex)
+[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/atman-dev.kiro-for-codex.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=atman-dev.kiro-for-codex)
+[![Downloads](https://img.shields.io/vscode-marketplace/d/atman-dev.kiro-for-codex.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=atman-dev.kiro-for-codex)
 [![GitHub stars](https://img.shields.io/github/stars/atman-33/kiro-for-codex.svg?style=flat-square)](https://github.com/atman-33/kiro-for-codex/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/atman-33/kiro-for-codex.svg?style=flat-square)](https://github.com/atman-33/kiro-for-codex/issues)
 
