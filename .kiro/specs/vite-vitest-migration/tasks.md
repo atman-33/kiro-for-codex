@@ -2,7 +2,7 @@
 
 ## Phase 1: Introduce Vite/Vitest alongside existing tooling
 
-- [ ] 1. Install Vite and Vitest dependencies
+- [x] 1. Install Vite and Vitest dependencies
   - Add Vite, Vitest, and required plugins as devDependencies
   - Install vite-plugin-static-copy for resource copying
   - _Requirements: 1.1, 2.1_
