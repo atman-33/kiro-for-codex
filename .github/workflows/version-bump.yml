@@ -33,32 +33,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Pre-validate CHANGELOG for next version
-        id: precheck
-        run: |
-          set -e
-          # Read current version from package.json
-          CURRENT=$(node -p "require('./package.json').version")
-          TYPE='${{ inputs.release_type }}'
-          # Compute next semantic version (supports simple X.Y.Z)
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-          case "$TYPE" in
-            patch) PATCH=$((PATCH+1)); ;;
-            minor) MINOR=$((MINOR+1)); PATCH=0; ;;
-            major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0; ;;
-            *) echo "::error::Unknown release_type: $TYPE"; exit 1; ;;
-          esac
-          NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "CURRENT_VERSION=$CURRENT" >> "$GITHUB_OUTPUT"
-          echo "NEXT_VERSION=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-
-          # Require a corresponding heading in CHANGELOG.md
-          if ! grep -Eq "^## \\[$NEXT_VERSION\\]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md does not contain heading for version $NEXT_VERSION (expected line starting with: '## [$NEXT_VERSION]')."
-            echo "Please add the changelog section before running version-bump."
-            exit 1
-          fi
-
       - name: Universal Version Bump
         uses: taj54/universal-version-bump@v0.14.0
         with:
@@ -82,6 +56,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # NOTE: Universal Version Bump action is responsible for committing and pushing
+      # version and CHANGELOG updates. No manual changelog step is required here.
 
       - name: Ensure tag does not already exist on origin
         run: |

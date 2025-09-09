@@ -39,19 +39,13 @@ jobs:
             exit 1
           fi
 
-      - name: Validate CHANGELOG has heading for version
-        run: |
-          VERSION="${{ inputs.version }}"
-          if ! grep -Eq "^## \\[$VERSION\\]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md does not contain heading for version $VERSION (expected line starting with: '## [$VERSION]')."
-            echo "Please add the changelog section before running this workflow."
-            exit 1
-          fi
-
       - name: Configure Git user
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # NOTE: This workflow does not modify CHANGELOG.md.
+      # If no section exists for the version, the Release job will inject a placeholder.
 
       - name: Ensure tag does not already exist on origin
         run: |
