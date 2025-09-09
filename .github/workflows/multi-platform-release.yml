@@ -2,8 +2,7 @@
 name: Extension Release
 
 on:
-  release:
-    types: [created]
+  # Manual backup release workflow. Primary pipeline is release.yml (tags: v*).
   workflow_dispatch:
 
 jobs:
