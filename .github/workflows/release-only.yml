@@ -1,0 +1,75 @@
+name: Release Only (Tag and Trigger)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js (for reading package version)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Read package.json version
+        id: pkg
+        run: echo "PKG_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+
+      - name: Validate input version matches package.json
+        run: |
+          VERSION="${{ inputs.version }}"
+          PKG_VERSION="${{ steps.pkg.outputs.PKG_VERSION }}"
+          if [ "$VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Input version ($VERSION) does not match package.json ($PKG_VERSION)."
+            echo "Ensure package.json is already at the intended release version."
+            exit 1
+          fi
+
+      - name: Validate CHANGELOG has heading for version
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! grep -Eq "^## \\[$VERSION\\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md does not contain heading for version $VERSION (expected line starting with: '## [$VERSION]')."
+            echo "Please add the changelog section before running this workflow."
+            exit 1
+          fi
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Ensure tag does not already exist on origin
+        run: |
+          VERSION="${{ inputs.version }}"
+          if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
+            echo "::error::Tag v$VERSION already exists on origin. Choose a different version or delete the existing tag."
+            exit 1
+          fi
+
+      - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ inputs.version }}"
+          git tag -a "v$VERSION" -m "chore(release): v$VERSION"
+          git push origin "refs/tags/v$VERSION"
+
+      - name: Summary
+        run: |
+          echo "Tagged commit $(git rev-parse --short HEAD) as v${{ inputs.version }}."
+          echo "This will trigger .github/workflows/release.yml (push: tags: v*)."
