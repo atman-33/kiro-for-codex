@@ -49,8 +49,8 @@ jobs:
             *) echo "::error::Unknown release_type: $TYPE"; exit 1; ;;
           esac
           NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_OUTPUT
-          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "NEXT_VERSION=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
 
           # Require a corresponding heading in CHANGELOG.md
           if ! grep -Eq "^## \\[$NEXT_VERSION\\]" CHANGELOG.md; then
@@ -69,7 +69,9 @@ jobs:
 
       - name: Read package.json version
         id: pkg
-        run: echo "PKG_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "PKG_VERSION=$PKG_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Configure Git user
         run: |
