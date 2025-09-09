@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2025-09-08
+
+### 📝 Documentation
+
+- Fix VS Marketplace badge URLs in README to use the correct `atman-dev` namespace. No functional code changes.
+
+## [0.1.1] - 2025-09-08
+
+### 🔧 Improvements
+
+- Refactor configuration handling:
+  - Move runtime settings to VS Code settings under the `kfc.*` namespace.
+  - Simplify project configuration to only manage paths via `.codex/settings/kfc-settings.json`.
+  - Remove unused configuration interfaces/methods in `src/utils/config-manager.ts` and update related unit tests.
+
+### 📝 Documentation
+
+- Update README to clarify configuration structure and fixed settings file location.
+
 ## [0.1.0] - 2025-09-07
 
 Initial public release.
