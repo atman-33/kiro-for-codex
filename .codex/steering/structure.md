@@ -1,0 +1,43 @@
+# Structure Steering
+
+Follow this organization and naming to keep the codebase consistent.
+
+## Directory Map (high level)
+- `src/`
+  - `extension.ts` — activation, providers/commands wiring
+  - `constants.ts` — defaults, flags, versions
+  - `features/` — business flows
+    - `spec/spec-manager.ts`
+    - `steering/steering-manager.ts`
+  - `providers/` — VS Code TreeDataProviders & UI glue
+    - `*/*-provider.ts` (e.g., `spec-explorer-provider.ts`, `steering-explorer-provider.ts`)
+  - `services/` — cross-cutting services (`command-builder.ts`, `process-manager.ts`, `prompt-loader.ts`, etc.)
+  - `utils/` — helpers (`config-manager.ts`, `notification-utils.ts`, `update-checker.ts`)
+  - `prompts/` — authorable markdown sources; built artifacts under `prompts/target/`
+  - `resources/` — agent/system prompt materials
+- `.codex/` (workspace data written by the extension)
+  - `specs/<spec>/requirements.md|design.md|tasks.md`
+  - `steering/product.md|tech.md|structure.md`
+  - `prompts/<name>.md`
+  - `settings/kfc-settings.json`
+
+## Naming Patterns
+- Providers: `*-provider.ts` exporting a class named `PascalCase...Provider`.
+- Managers: `*-manager.ts` exposing cohesive actions for a feature domain.
+- Types: shared interfaces under `src/types/` with `-types.ts` suffix.
+- Prompts: author in `src/prompts/.../*.md`; generated TS entry points under `src/prompts/target/*`.
+
+## Component Boundaries
+- UI (providers) must delegate execution to managers; do not perform filesystem/process work directly in providers.
+- Managers must use `ConfigManager` for all `.codex` paths and must not hardcode directories.
+- CLI interactions go through `CodexProvider` and `CommandBuilder`; do not spawn processes ad hoc.
+- Long-running actions must surface progress via VS Code notifications and use split terminals for Codex runs.
+
+## Key Files
+- Entry/activation: `src/extension.ts`
+- Defaults/flags: `src/constants.ts`
+- Spec flow: `src/features/spec/spec-manager.ts`
+- Steering flow: `src/features/steering/steering-manager.ts`
+- Codex CLI glue: `src/providers/codex-provider.ts`, `src/services/command-builder.ts`
+- Settings path resolution: `src/utils/config-manager.ts`
+

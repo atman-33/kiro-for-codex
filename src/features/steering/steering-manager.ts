@@ -188,31 +188,10 @@ export class SteeringManager {
      */
     async createProjectDocumentation() {
         try {
-            const prompt = `# Task: Initialize AGENTS.md Configuration
-
-## Context
-Create an AGENTS.md file that provides agent configuration and guidance for Codex CLI when working with this codebase.
-
-## Expected Output
-Create an AGENTS.md file in the project root that includes:
-- Project overview and purpose
-- Agent behavior guidelines
-- Code style preferences
-- Architecture patterns to follow
-- Testing requirements
-- Development workflow instructions
-
-## Constraints
-- Analyze the existing codebase structure
-- Include specific examples from the project
-- Focus on actionable guidance for Codex CLI
-- Use clear, imperative language
-- Structure content for easy agent parsing
-
-## File Location
-Create the file as AGENTS.md in the project root directory.
-
-Begin by analyzing the project structure and creating the AGENTS.md configuration file.`;
+            const prompt = this.promptLoader.renderPrompt('create-agents-md', {
+                steeringPath: this.getSteeringBasePath(),
+                constantsPath: 'src/constants.ts'
+            });
 
             await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Create AGENTS.md');
 
