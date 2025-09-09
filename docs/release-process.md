@@ -18,47 +18,35 @@ This document describes how to cut a release and publish the extension to both t
 - Permissions: The default `GITHUB_TOKEN` is used for tagging and creating releases.
 - Node.js: Workflows use Node 20 on GitHub-hosted runners.
 
-## Changelog Requirements
+## Changelog Policy
 
-- Each release must have a section starting with a level‑2 heading: `## [X.Y.Z]` (optionally followed by ` - YYYY-MM-DD`).
-- The release pipeline extracts the content between the matching heading and the next `## [` heading to use as the GitHub Release body.
-- Tip: Keep a trailing newline and consider adding a placeholder like `## [Unreleased]` after the current release section to avoid dropping the final line during extraction.
-
-### Minimal example
-
-```markdown
-## [1.2.3] - 2025-09-09
-
-### ✨ Features
-- Awesome thing.
-
-## [Unreleased]
-```
+- Do not pre‑write the next release section in `CHANGELOG.md`.
+- The changelog is updated automatically by the Version Bump workflow via `taj54/universal-version-bump`.
+- “Release Only” does not modify `CHANGELOG.md`. If a section for the version is missing, the GitHub Release will include a placeholder body.
+- GitHub Releases also enable `generate_release_notes: true` for extra context.
 
 ## Standard Release (with version bump)
 
 1) Prepare changes on a branch, open a PR, and merge to `main`.
-2) Edit `CHANGELOG.md` on `main` and add the upcoming section: `## [X.Y.Z] ...` with the notes.
-3) Manually run the workflow: Actions → “Version Bump” (`.github/workflows/version-bump.yml`).
+2) Manually run the workflow: Actions → “Version Bump” (`.github/workflows/version-bump.yml`).
    - Input `release_type`: `patch`, `minor`, or `major`.
-   - Pre‑validation computes the next version based on `package.json` and fails if `CHANGELOG.md` lacks the `## [X.Y.Z]` heading.
-4) On success, the workflow bumps versions, commits, and creates/pushes tag `vX.Y.Z`.
-5) Tag push triggers `release.yml`, which:
+3) The workflow bumps the version (and updates `CHANGELOG.md`) and then creates/pushes tag `vX.Y.Z`.
+4) Tag push triggers `release.yml`, which:
    - Checks out and builds (`npm ci`, `npm run compile`).
    - Packages the extension (`vsce package`) and attaches `*.vsix` to a GitHub Release named `Release vX.Y.Z` with changelog content.
    - Publishes to both registries using `HaaLeo/publish-vscode-extension@v2` (`skipDuplicate: true`).
-6) Verify:
+5) Verify:
    - GitHub Releases page shows “Release vX.Y.Z” with assets.
    - Extension listing updates on VS Code Marketplace and Open VSX.
 
 ## Release Only (no version bump)
 
-Use this when the version is already set in `package.json` and the changelog section exists.
+Use this when the version is already set in `package.json`.
 
-1) Ensure `package.json` contains the intended version `X.Y.Z` and `CHANGELOG.md` has `## [X.Y.Z]`.
+1) Ensure `package.json` contains the intended version `X.Y.Z`.
 2) Manually run Actions → “Release Only (Tag and Trigger)” (`.github/workflows/release-only.yml`).
    - Input `version`: `X.Y.Z`.
-   - The workflow validates that the input matches `package.json` and that the changelog heading exists.
+   - The workflow validates that the input matches `package.json`.
 3) The workflow creates and pushes tag `vX.Y.Z`, which triggers `release.yml` for build, GitHub Release creation, and publishing (same as above).
 
 ## Fallback Publisher (manual)
@@ -70,8 +58,8 @@ If you need to re‑publish manually without tagging:
 
 ## Failure Modes and Troubleshooting
 
-- Version bump precheck fails: “CHANGELOG.md does not contain heading for version X.Y.Z”.
-  - Add the `## [X.Y.Z]` section under `CHANGELOG.md` and rerun.
+- No notable commits detected for changelog:
+  - Ensure commits follow Conventional Commits (e.g., `feat:`, `fix:`). The generator will still create a placeholder if nothing is found.
 - Tag already exists when bumping or releasing only:
   - Use a new version or delete the remote tag if appropriate: `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z` (be cautious if already published).
 - Marketplace/Open VSX publish fails:
@@ -87,8 +75,7 @@ If you need to re‑publish manually without tagging:
 
 ## Files Involved
 
-- `.github/workflows/version-bump.yml` – Bumps version and pushes tag after changelog pre‑validation.
+- `.github/workflows/version-bump.yml` – Bumps version, auto‑generates and commits `CHANGELOG.md`, then pushes tag.
 - `.github/workflows/release.yml` – Builds, creates GitHub Release with changelog, and publishes to both stores on `v*` tag.
-- `.github/workflows/release-only.yml` – Creates a tag for an existing version and triggers the release pipeline.
+- `.github/workflows/release-only.yml` – Validates input, auto‑generates/commits `CHANGELOG.md`, and triggers the release pipeline by tagging.
 - `.github/workflows/multi-platform-release.yml` – Manual fallback publisher.
-

@@ -51,10 +51,13 @@ jobs:
         run: |
           # Extract the changelog section for the current version
           VERSION="${{ steps.get_version.outputs.VERSION }}"
-          
-          # Use sed to extract content between version headers
-          sed -n "/^## \[$VERSION\]/,/^## \[/p" CHANGELOG.md | sed '1d;$d' > version_changelog.txt
-          
+          # Use awk to capture lines after the matching header until the next header or EOF
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" {capture=1; next}
+            capture && $0 ~ /^## \[/ {capture=0}
+            capture {print}
+          ' CHANGELOG.md > version_changelog.txt
+
           # Check if we found content
           if [ -s version_changelog.txt ]; then
             echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
