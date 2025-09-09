@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2025-09-09
+
+### ✨ New Features
+
+- Steering: add configuration helpers and tooling:
+  - Create global Codex config (`kfc.steering.createUserRule`) to bootstrap `~/.codex/config.toml`.
+  - Generate project `AGENTS.md` via Codex (`kfc.steering.createProjectRule`).
+- Introduce `SteeringManager` and prompt support for managing steering documents.
+
+### 🔧 Improvements
+
+- Streamline and refactor release workflows with added validation steps.
+- Add Open VSX publishing to the release workflow.
+- Trigger publishing on GitHub release creation.
+- Add `release-only.yml` and a version bump workflow; update multi‑platform workflow.
+
+### 📝 Documentation
+
+- Add product, structure, and tech steering docs under `.codex/steering/`.
+- Document the release process in `docs/release-process.md`.
+- Update CHANGELOG for `v0.1.1` and `v0.1.2` release notes.
+
 ## [0.1.2] - 2025-09-08
 
 ### 📝 Documentation
