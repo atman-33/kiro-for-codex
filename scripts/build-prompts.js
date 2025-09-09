@@ -68,6 +68,61 @@ export default {
   console.log(`Generated: ${path.relative(process.cwd(), tsPath)}`);
 }
 
+// Generate index.ts that re-exports all prompt modules
+function generateIndex(outputDir) {
+  // Collect all .ts files under outputDir (recursively), excluding index.ts
+  function walk(dir) {
+    const entries = fs.readdirSync(dir);
+    const files = [];
+    for (const entry of entries) {
+      const full = path.join(dir, entry);
+      const stat = fs.statSync(full);
+      if (stat.isDirectory()) {
+        files.push(...walk(full));
+      } else if (stat.isFile() && entry.endsWith('.ts') && entry !== 'index.ts') {
+        files.push(full);
+      }
+    }
+    return files;
+  }
+
+  const files = walk(outputDir);
+
+  // Create export lines with stable camelCase aliases
+  const toCamel = (name) => name
+    .replace(/\.ts$/, '')
+    .split('/')
+    .pop()
+    .split('-')
+    .map((seg, i) => (i === 0 ? seg : seg.charAt(0).toUpperCase() + seg.slice(1)))
+    .join('');
+
+  const relFromOutput = (absPath) => {
+    const rel = path.relative(outputDir, absPath).split(path.sep).join('/');
+    return './' + rel.replace(/\.ts$/, '');
+  };
+
+  const lines = [
+    '// Auto-generated index file',
+    '// Re-export all prompt modules',
+    ''
+  ];
+
+  // Ensure deterministic ordering
+  files.sort((a, b) => a.localeCompare(b));
+
+  for (const file of files) {
+    const alias = toCamel(file);
+    const modulePath = relFromOutput(file);
+    lines.push(`export { default as ${alias} } from '${modulePath}';`);
+  }
+
+  const indexPath = path.join(outputDir, 'index.ts');
+  const content = lines.join('\n') + '\n';
+  fs.writeFileSync(indexPath, content, { encoding: 'utf8' });
+  console.log(`Generated index: ${path.relative(process.cwd(), indexPath)}`);
+}
+
 // Main function
 function main() {
   const promptsDir = path.join(__dirname, '..', 'src', 'prompts');
@@ -96,6 +151,9 @@ function main() {
   console.log(`Converting ${mdFiles.length} markdown files...`);
   mdFiles.forEach(mdFile => convertMarkdownToTypeScript(mdFile, outputDir));
   
+  // After generating modules, rebuild index to include all prompts
+  generateIndex(outputDir);
+
   console.log('Build complete!');
 }
 
