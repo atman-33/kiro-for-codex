@@ -63,6 +63,11 @@ jobs:
         uses: taj54/universal-version-bump@v0.14.0
         with:
           release_type: ${{ inputs.release_type }}
+          target_platform: custom
+          bump_targets: |
+            [
+              {"path": "package.json", "variable": "version"}
+            ]
           git_tag: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
