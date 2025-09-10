@@ -36,7 +36,7 @@
   - Keep existing build and test scripts unchanged
   - _Requirements: 5.1_
 
-- [ ] 6. Migrate Jest test syntax to Vitest
+- [x] 6. Migrate Jest test syntax to Vitest
   - NOTE: This task is partially complete. The following files were migrated:
   - `/home/atman/repos/kiro-for-codex/tests/integration/prompt-snapshots.test.ts`
   - `/home/atman/repos/kiro-for-codex/tests/integration/prompts.test.ts`
