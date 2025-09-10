@@ -9,10 +9,17 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - run: npm ci
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npm run build
-      - run: npm run test
+      - name: Run build
+        run: npm run build
+      - name: Run tests
+        run: npm run test

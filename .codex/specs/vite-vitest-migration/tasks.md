@@ -82,7 +82,7 @@
   - Update vscode:prepublish to use Vite build
   - _Requirements: 5.2_
 
-- [ ] 10. Update CI workflows to use new tooling
+- [x] 10. Update CI workflows to use new tooling
   - Update .github/workflows/on-pr.yml to use Vite/Vitest
   - Update .github/workflows/release.yml to use Vite build
   - Ensure Node.js 20 is used consistently
