@@ -1,0 +1,2 @@
+npx biome check --staged --fix --no-errors-on-unmatched
+git update-index --again

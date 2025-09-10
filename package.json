@@ -38,7 +38,8 @@
     "check": "biome check --write src/",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prepare": "husky"
   },
   "contributes": {
     "viewsContainers": {
@@ -475,6 +476,7 @@
     "@types/vscode": "^1.84.0",
     "concurrently": "^9.2.0",
     "copy-webpack-plugin": "^13.0.0",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
