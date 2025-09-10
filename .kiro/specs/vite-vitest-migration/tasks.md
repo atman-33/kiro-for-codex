@@ -7,7 +7,7 @@
   - Install vite-plugin-static-copy for resource copying
   - _Requirements: 1.1, 2.1_
 
-- [ ] 2. Create Vite configuration for SSR/Node build
+- [x] 2. Create Vite configuration for SSR/Node build
   - Create vite.config.ts with SSR build targeting Node environment
   - Configure Rollup options for CommonJS output to dist/extension.js
   - Externalize vscode module to prevent bundling
