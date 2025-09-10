@@ -1,38 +1,76 @@
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
+import { afterEach, beforeEach, describe, expect, Mocked, test, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { AgentManager } from '../../../../src/features/agents/agent-manager';
 import type { CodexProvider } from '../../../../src/providers/codex-provider';
 
 // Mock vscode
-vi.mock('vscode');
+vi.mock('vscode', () => ({
+    window: {
+        withProgress: vi.fn().mockImplementation((options, task) => task()),
+        showErrorMessage: vi.fn(),
+    },
+    workspace: {
+        workspaceFolders: [{
+            uri: { fsPath: '/test/workspace' }
+        }],
+        fs: {
+            createDirectory: vi.fn().mockResolvedValue(undefined),
+            stat: vi.fn(),
+            copy: vi.fn().mockResolvedValue(undefined),
+            readDirectory: vi.fn(),
+            readFile: vi.fn()
+        }
+    },
+    Uri: { file: vi.fn((path) => ({ fsPath: path })) },
+    FileType: {
+        File: 1,
+        Directory: 2
+    },
+    ProgressLocation: {
+        Notification: 15,
+    }
+}));
 
 // Mock fs
 vi.mock('fs', () => ({
+    existsSync: vi.fn(),
     promises: {
         readFile: vi.fn()
-    },
-    existsSync: vi.fn(),
-    mkdirSync: vi.fn(),
-    copyFileSync: vi.fn(),
-    readdirSync: vi.fn(),
-    readFileSync: vi.fn()
+    }
 }));
 
 // Mock os
-vi.mock('os');
+vi.mock('os', () => ({
+    homedir: vi.fn().mockReturnValue('/home/test')
+}));
+
+vi.mock('../../../../src/utils/notification-utils', () => ({
+    NotificationUtils: {
+        showAutoDismissNotification: vi.fn(),
+    }
+}));
 
 describe('AgentManager', () => {
     let agentManager: AgentManager;
     let mockContext: vscode.ExtensionContext;
     let mockOutputChannel: vscode.OutputChannel;
-    let mockCodexProvider: vi.Mocked<CodexProvider>;
+    let mockCodexProvider: Mocked<CodexProvider>;
     let mockWorkspaceRoot: string;
 
     beforeEach(() => {
-        // Reset all mocks
         vi.clearAllMocks();
+
+        (vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: '/test/workspace' } }];
+
+        (vscode.workspace.fs.stat as any).mockReset();
+        (vscode.workspace.fs.copy as any).mockReset().mockResolvedValue(undefined);
+        (vscode.workspace.fs.readDirectory as any).mockReset();
+        (vscode.workspace.fs.readFile as any).mockReset();
+
+        (fs.existsSync as any).mockReset();
+        (fs.promises.readFile as any).mockReset();
 
         // Setup mock paths
         mockWorkspaceRoot = '/test/workspace';
@@ -68,40 +106,12 @@ describe('AgentManager', () => {
             renameTerminal: vi.fn()
         } as any;
 
-        // Mock vscode.workspace
-        (vscode.workspace as any) = {
-            workspaceFolders: [{
-                uri: { fsPath: mockWorkspaceRoot }
-            }],
-            fs: {
-                createDirectory: vi.fn().mockResolvedValue(undefined),
-                stat: vi.fn(),
-                copy: vi.fn().mockResolvedValue(undefined),
-                readDirectory: vi.fn(),
-                readFile: vi.fn()
-            }
-        };
-
-        // Mock vscode.Uri
-        (vscode.Uri as any) = {
-            file: jest.fn((path) => ({ fsPath: path }))
-        };
-
-        // Mock os.homedir
-        vi.spyOn(os, 'homedir').mockReturnValue('/home/test');
-
-        // Mock vscode.FileType
-        (vscode.FileType as any) = {
-            File: 1,
-            Directory: 2
-        };
-
         // Create instance
         agentManager = new AgentManager(mockContext, mockOutputChannel, mockCodexProvider);
     });
 
     afterEach(() => {
-        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('1. Constructor and Initialization', () => {
@@ -122,7 +132,7 @@ describe('AgentManager', () => {
             const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc');
 
             // Mock stat to throw (file doesn't exist)
-            vi.spyOn(vscode.workspace.fs, 'stat').mockRejectedValue(new Error('File not found'));
+            (vscode.workspace.fs.stat as Mocked<any>).mockRejectedValue(new Error('File not found'));
 
             // Act
             await agentManager.initializeBuiltInAgents();
@@ -141,7 +151,7 @@ describe('AgentManager', () => {
         test('TC-AM-003: Skip existing built-in agents', async () => {
             // Arrange
             // Mock that some agents already exist
-            vi.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri) => {
+            (vscode.workspace.fs.stat as Mocked<any>).mockImplementation((uri) => {
                 const path = uri.fsPath;
                 if (path.includes('spec-requirements-codex') || path.includes('spec-design-codex')) {
                     return Promise.resolve({ type: vscode.FileType.File });
@@ -162,7 +172,7 @@ describe('AgentManager', () => {
 
         test('TC-AM-004: Handle initialization errors', async () => {
             // Arrange
-            vi.spyOn(vscode.workspace.fs, 'createDirectory').mockRejectedValue(
+            (vscode.workspace.fs.createDirectory as Mocked<any>).mockRejectedValue(
                 new Error('Permission denied')
             );
 
@@ -188,18 +198,12 @@ tools: ["Read", "Write"]
 Agent content here`;
 
             // Mock vscode.workspace.fs.readDirectory to return agent files
-            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+            (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue([
                 ['test-agent.md', vscode.FileType.File]
             ]);
 
             // Mock fs.promises.readFile for agent content
-            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(mockAgentContent);
-
-            // Mock vscode.FileType
-            (vscode.FileType as any) = {
-                File: 1,
-                Directory: 2
-            };
+            (fs.promises.readFile as Mocked<any>).mockResolvedValue(mockAgentContent);
 
             // Act
             const agents = await agentManager.getAgentList('project');
@@ -223,7 +227,7 @@ tools: Read, Write, Task
 ---`;
 
             // Mock vscode.workspace.fs.readDirectory
-            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockImplementation((uri) => {
+            (vscode.workspace.fs.readDirectory as Mocked<any>).mockImplementation((uri) => {
                 if (uri.fsPath.includes('subfolder')) {
                     return Promise.resolve([['nested-agent.md', vscode.FileType.File]]);
                 }
@@ -234,7 +238,7 @@ tools: Read, Write, Task
             });
 
             // Mock fs.promises.readFile
-            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(mockAgentContent);
+            (fs.promises.readFile as Mocked<any>).mockResolvedValue(mockAgentContent);
 
             // Act
             const agents = await agentManager.getAgentList('user');
@@ -247,7 +251,7 @@ tools: Read, Write, Task
 
         test('TC-AM-007: Handle empty directories', async () => {
             // Arrange
-            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([]);
+            (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue([]);
 
             // Act
             const agents = await agentManager.getAgentList('project');
@@ -286,12 +290,12 @@ description: No tools
             ];
 
             // Mock readDirectory
-            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue(
+            (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue(
                 testCases.map(tc => [tc.filename, vscode.FileType.File])
             );
 
             // Mock readFile
-            vi.spyOn(fs.promises, 'readFile').mockImplementation((path) => {
+            (fs.promises.readFile as Mocked<any>).mockImplementation((path) => {
                 const testCase = testCases.find(tc => path.includes(tc.filename));
                 return Promise.resolve(testCase?.content || '');
             });
@@ -311,7 +315,7 @@ description: No tools
         test('TC-AM-009: Get agent path', () => {
             // Arrange (normalize path comparison for cross-OS)
             const expectedNeedle = path.join('.codex', 'agents', 'kfc', 'test-agent.md');
-            (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+            (fs.existsSync as Mocked<any>).mockImplementation((p: string) => {
                 return path.normalize(p).includes(path.normalize(expectedNeedle));
             });
 
@@ -325,7 +329,7 @@ description: No tools
 
         test('TC-AM-010: Get non-existent agent path returns null', () => {
             // Arrange
-            vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+            (fs.existsSync as Mocked<any>).mockReturnValue(false);
 
             // Act
             const agentPath = agentManager.getAgentPath('non-existing-agent');
@@ -337,7 +341,7 @@ description: No tools
         test('TC-AM-011: Check agent existence', () => {
             // Arrange
             const expectedExisting = path.join('kfc', 'existing-agent.md');
-            (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+            (fs.existsSync as Mocked<any>).mockImplementation((p: string) => {
                 // Only return true for paths that contain 'existing-agent.md' (normalized)
                 return path.normalize(p).includes(path.normalize(expectedExisting));
             });
@@ -358,10 +362,10 @@ name: Invalid Agent
 tools: [unclosed array
 ---`;
 
-            (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+            (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue([
                 ['invalid.md', vscode.FileType.File]
             ]);
-            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(invalidYaml);
+            (fs.promises.readFile as Mocked<any>).mockResolvedValue(invalidYaml);
 
             // Act
             const agents = await agentManager.getAgentList('project');
@@ -376,11 +380,11 @@ tools: [unclosed array
         test('TC-AM-015: Handle file read permission issues', async () => {
             // Arrange
             // Mock readDirectory to return files
-            (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+            (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue([
                 ['protected.md', vscode.FileType.File]
             ]);
             // Mock readFile to throw permission error
-            vi.spyOn(fs.promises, 'readFile').mockRejectedValue(
+            (fs.promises.readFile as Mocked<any>).mockRejectedValue(
                 new Error('EACCES: permission denied')
             );
 
@@ -426,10 +430,10 @@ description: A test agent
 # Test Agent Content
 This is a test agent for {{parameter1}}.`;
 
-            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+            (fs.existsSync as Mocked<any>).mockImplementation((p) => {
                 return p.includes(`${agentName}.md`);
             });
-            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(agentContent);
+            (fs.promises.readFile as Mocked<any>).mockResolvedValue(agentContent);
             mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
 
             // Act
@@ -466,7 +470,7 @@ This is a test agent for {{parameter1}}.`;
 
         test('TC-AM-019: Execute non-existent agent', async () => {
             // Arrange
-            vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+            (fs.existsSync as Mocked<any>).mockReturnValue(false);
 
             // Act
             const result = await agentManager.executeAgent('non-existent-agent');
@@ -486,10 +490,10 @@ description: A test agent
 
 # Test Agent Content`;
 
-            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+            (fs.existsSync as Mocked<any>).mockImplementation((p) => {
                 return p.includes(`${agentName}.md`);
             });
-            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(agentContent);
+            (fs.promises.readFile as Mocked<any>).mockResolvedValue(agentContent);
             mockCodexProvider.invokeCodexHeadless.mockResolvedValue({
                 exitCode: 0,
                 output: 'Success'
@@ -506,7 +510,7 @@ description: A test agent
 
         test('TC-AM-021: Check agent readiness', async () => {
             // Arrange
-            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+            (fs.existsSync as Mocked<any>).mockImplementation((p) => {
                 return p.includes('existing-agent.md');
             });
 
@@ -533,9 +537,9 @@ description: A test agent
             expect(status.config).toEqual(mockConfig);
         });
 
-        test('TC-AM-023: Set Codex approval mode', () => {
+        test('TC-AM-023: Set Codex approval mode', async () => {
             // Act
-            agentManager.setCodexApprovalMode('auto-edit' as any);
+            await agentManager.setCodexApprovalMode('auto-edit' as any);
 
             // Assert
             expect(mockCodexProvider.setApprovalMode).toHaveBeenCalledWith('auto-edit');
@@ -545,6 +549,7 @@ description: A test agent
             // Arrange
             const agentName = 'spec-requirements-codex';
             const specName = 'test-spec';
+            const specDir = path.join('/test/workspace', '.codex', 'specs', specName);
             const agentContent = `---
 name: Spec Requirements Agent
 description: Creates requirements
@@ -552,11 +557,18 @@ description: Creates requirements
 
 # Requirements Agent`;
 
-            (fs.existsSync as jest.Mock).mockImplementation((p) => {
+            (fs.existsSync as Mocked<any>).mockImplementation((p) => {
                 return p.includes(`${agentName}.md`);
             });
-            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(agentContent);
+            (fs.promises.readFile as Mocked<any>).mockResolvedValue(agentContent);
             mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
+
+            (vscode.workspace.fs.stat as Mocked<any>).mockImplementation((uri) => {
+                if (uri?.fsPath && path.normalize(uri.fsPath) === path.normalize(specDir)) {
+                    return Promise.resolve({ type: vscode.FileType.Directory });
+                }
+                return Promise.reject(new Error('Not found'));
+            });
 
             // Act
             const result = await agentManager.executeSpecAgent(agentName, specName);

@@ -1,3 +1,4 @@
+import { vi, describe, test, expect, beforeEach, afterEach, Mock, Mocked } from 'vitest';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -5,18 +6,18 @@ import { AgentInfo, AgentManager } from '../../../src/features/agents/agent-mana
 import { AgentsExplorerProvider } from '../../../src/providers/agents-explorer-provider';
 
 // Mock vscode
-jest.mock('vscode');
+vi.mock('vscode');
 
 // Mock os
-jest.mock('os');
+vi.mock('os');
 
 // Mock AgentManager
-jest.mock('../../../src/features/agents/agent-manager');
+vi.mock('../../../src/features/agents/agent-manager');
 
 describe('AgentsExplorerProvider', () => {
     let provider: AgentsExplorerProvider;
     let mockContext: vscode.ExtensionContext;
-    let mockAgentManager: jest.Mocked<AgentManager>;
+    let mockAgentManager: Mocked<AgentManager>;
     let mockOutputChannel: vscode.OutputChannel;
     let mockFileWatcher: vscode.FileSystemWatcher;
     let mockOnDidCreate: vscode.Event<vscode.Uri>;
@@ -28,44 +29,44 @@ describe('AgentsExplorerProvider', () => {
 
     beforeEach(() => {
         // Reset mocks
-        jest.clearAllMocks();
-        jest.useFakeTimers();
+        vi.clearAllMocks();
+        vi.useFakeTimers();
 
         // Mock context
         mockContext = {
             subscriptions: [],
             extensionPath: '/test/extension',
-            asAbsolutePath: jest.fn((p) => path.join('/test/extension', p))
+            asAbsolutePath: vi.fn((p) => path.join('/test/extension', p))
         } as any;
 
         // Mock output channel
         mockOutputChannel = {
-            appendLine: jest.fn()
+            appendLine: vi.fn()
         } as any;
 
         // Mock agent manager
         mockAgentManager = {
-            getAgentList: jest.fn(),
-            initializeBuiltInAgents: jest.fn(),
-            initializeSystemPrompts: jest.fn(),
-            getAgentPath: jest.fn(),
-            checkAgentExists: jest.fn()
+            getAgentList: vi.fn(),
+            initializeBuiltInAgents: vi.fn(),
+            initializeSystemPrompts: vi.fn(),
+            getAgentPath: vi.fn(),
+            checkAgentExists: vi.fn()
         } as any;
 
         // Mock file watcher events
-        mockOnDidCreate = jest.fn((listener) => {
+        mockOnDidCreate = vi.fn((listener) => {
             onDidCreateCallback = listener;
-            return { dispose: jest.fn() };
+            return { dispose: vi.fn() };
         }) as any;
 
-        mockOnDidChange = jest.fn((listener) => {
+        mockOnDidChange = vi.fn((listener) => {
             onDidChangeCallback = listener;
-            return { dispose: jest.fn() };
+            return { dispose: vi.fn() };
         }) as any;
 
-        mockOnDidDelete = jest.fn((listener) => {
+        mockOnDidDelete = vi.fn((listener) => {
             onDidDeleteCallback = listener;
-            return { dispose: jest.fn() };
+            return { dispose: vi.fn() };
         }) as any;
 
         // Mock file watcher
@@ -73,7 +74,7 @@ describe('AgentsExplorerProvider', () => {
             onDidCreate: mockOnDidCreate,
             onDidChange: mockOnDidChange,
             onDidDelete: mockOnDidDelete,
-            dispose: jest.fn()
+            dispose: vi.fn()
         } as any;
 
         // Mock vscode.workspace
@@ -81,19 +82,19 @@ describe('AgentsExplorerProvider', () => {
             workspaceFolders: [{
                 uri: { fsPath: '/test/workspace' }
             }],
-            createFileSystemWatcher: jest.fn((pattern) => mockFileWatcher)
+            createFileSystemWatcher: vi.fn((pattern) => mockFileWatcher)
         };
 
         // Mock vscode.Uri
         (vscode.Uri as any) = {
-            file: jest.fn((path) => ({ fsPath: path, scheme: 'file' }))
+            file: vi.fn((path) => ({ fsPath: path, scheme: 'file' }))
         };
 
         // Mock os.homedir
-        (os.homedir as jest.Mock).mockReturnValue('/home/test');
+        (os.homedir as Mock).mockReturnValue('/home/test');
 
         // Mock vscode modules
-        (vscode.TreeItem as any) = jest.fn().mockImplementation((label, collapsibleState) => ({
+        (vscode.TreeItem as any) = vi.fn().mockImplementation((label, collapsibleState) => ({
             label,
             collapsibleState
         }));
@@ -104,12 +105,12 @@ describe('AgentsExplorerProvider', () => {
             Expanded: 2
         };
 
-        (vscode.ThemeIcon as any) = jest.fn().mockImplementation((icon) => ({ id: icon }));
+        (vscode.ThemeIcon as any) = vi.fn().mockImplementation((icon) => ({ id: icon }));
 
-        (vscode.EventEmitter as any) = jest.fn().mockImplementation(() => ({
-            event: jest.fn(),
-            fire: jest.fn(),
-            dispose: jest.fn()
+        (vscode.EventEmitter as any) = vi.fn().mockImplementation(() => ({
+            event: vi.fn(),
+            fire: vi.fn(),
+            dispose: vi.fn()
         }));
 
         // Create provider instance
@@ -117,7 +118,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     describe('1. Constructor and Initialization', () => {
@@ -160,7 +161,7 @@ describe('AgentsExplorerProvider', () => {
             expect(loadingChildren[0].contextValue).toBe('agent-loading');
 
             // Fast forward time
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
 
             // Get children after loading
             const normalChildren = await provider.getChildren();
@@ -279,8 +280,8 @@ describe('AgentsExplorerProvider', () => {
         test('TC-AEP-010: File changes trigger refresh', () => {
             // Arrange
             const mockEventEmitter = {
-                fire: jest.fn(),
-                event: jest.fn()
+                fire: vi.fn(),
+                event: vi.fn()
             };
             (provider as any)._onDidChangeTreeData = mockEventEmitter;
 
@@ -304,8 +305,8 @@ describe('AgentsExplorerProvider', () => {
         test('TC-AEP-011: Manual refresh functionality', async () => {
             // Arrange
             const mockEventEmitter = {
-                fire: jest.fn(),
-                event: jest.fn()
+                fire: vi.fn(),
+                event: vi.fn()
             };
             (provider as any)._onDidChangeTreeData = mockEventEmitter;
 
@@ -317,7 +318,7 @@ describe('AgentsExplorerProvider', () => {
             expect(mockEventEmitter.fire).toHaveBeenCalledTimes(1);
 
             // Fast forward
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
 
             // Assert - back to normal
             expect(provider['isLoading']).toBe(false);
@@ -349,7 +350,7 @@ describe('AgentsExplorerProvider', () => {
 
             // Act - refresh
             provider.refresh();
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
 
             // Assert - new data
             const updatedAgents = await provider.getChildren(groupNode);
@@ -392,7 +393,7 @@ describe('AgentsExplorerProvider', () => {
             // 2) project watcher (secondary)
             // 3) user watcher (primary)
             // 4) user watcher (secondary) -> simulate failure
-            (vscode.workspace.createFileSystemWatcher as jest.Mock)
+            (vscode.workspace.createFileSystemWatcher as Mock)
                 .mockImplementationOnce(() => mockFileWatcher) // 1) project primary
                 .mockImplementationOnce(() => mockFileWatcher) // 2) project secondary
                 .mockImplementationOnce(() => mockFileWatcher) // 3) user primary
@@ -400,7 +401,7 @@ describe('AgentsExplorerProvider', () => {
                     throw new Error('Watcher creation failed');
                 });
 
-            const prevCalls = (vscode.workspace.createFileSystemWatcher as jest.Mock).mock.calls.length;
+            const prevCalls = (vscode.workspace.createFileSystemWatcher as Mock).mock.calls.length;
 
             // Act - create new provider
             const newProvider = new AgentsExplorerProvider(mockContext, mockAgentManager, mockOutputChannel);
@@ -412,7 +413,7 @@ describe('AgentsExplorerProvider', () => {
             expect(newProvider).toBeDefined();
 
             // Four watcher attempts (2 project + 2 user) were made
-            expect((vscode.workspace.createFileSystemWatcher as jest.Mock).mock.calls.length)
+            expect((vscode.workspace.createFileSystemWatcher as Mock).mock.calls.length)
                 .toBe(prevCalls + 4);
         });
     });

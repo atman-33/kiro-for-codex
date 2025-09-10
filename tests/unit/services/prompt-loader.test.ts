@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { beforeEach, describe, expect, vi, test } from 'vitest';
 import * as prompts from '../../../src/prompts/target';
 import { PromptLoader } from '../../../src/services/prompt-loader';
 
 // Mock the prompts module
-jest.mock('../../../src/prompts/target', () => ({
+vi.mock('../../../src/prompts/target', () => ({
   testPrompt: {
     frontmatter: {
       id: 'test-prompt',
@@ -56,7 +56,7 @@ describe('PromptLoader', () => {
 
     test('PL-11: Handle invalid prompt modules', () => {
       // Mock prompts with invalid module
-      const mockedPrompts = jest.mocked(prompts) as any;
+      const mockedPrompts = vi.mocked(prompts) as any;
       mockedPrompts.invalidPrompt = { invalid: true };
 
       // Should not throw during initialization

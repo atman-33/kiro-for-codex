@@ -1,98 +1,73 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { SpecManager } from '../../../../src/features/spec/spec-manager';
 import { CodexProvider } from '../../../../src/providers/codex-provider';
 
 // Mock vscode
-jest.mock('vscode', () => ({
-  window: {
-    showInputBox: jest.fn(),
-    showErrorMessage: jest.fn(),
-    createOutputChannel: jest.fn(() => ({
-      appendLine: jest.fn(),
-      show: jest.fn(),
-      dispose: jest.fn()
-    })),
-    withProgress: jest.fn()
-  },
-  workspace: {
-    workspaceFolders: [{
-      uri: { fsPath: '/test/workspace' }
-    }],
-    fs: {
-      createDirectory: jest.fn(),
-      readDirectory: jest.fn(),
-      stat: jest.fn(),
-      delete: jest.fn()
+vi.mock('vscode', () => ({
+    window: {
+        showInputBox: vi.fn(),
     },
-    createFileSystemWatcher: jest.fn(() => ({
-      onDidCreate: jest.fn(),
-      dispose: jest.fn()
-    })),
-    openTextDocument: jest.fn()
-  },
-  Uri: {
-    file: jest.fn((path) => ({ fsPath: path })),
-    joinPath: jest.fn()
-  },
-  FileType: {
-    Directory: 2
-  },
-  ViewColumn: {
-    Two: 2,
-    Active: -1
-  },
-  RelativePattern: jest.fn(),
-  ProgressLocation: {
-    Notification: 15
-  }
+    workspace: {
+        workspaceFolders: [{
+            uri: { fsPath: '/test/workspace' }
+        }],
+        createFileSystemWatcher: vi.fn(() => ({
+            onDidCreate: vi.fn(),
+            onDidChange: vi.fn(),
+            onDidDelete: vi.fn(),
+            dispose: vi.fn()
+        })),
+    },
+    RelativePattern: vi.fn()
 }));
 
 // Mock CodexProvider
-jest.mock('../../../../src/providers/codex-provider');
+vi.mock('../../../../src/providers/codex-provider');
 
 // Mock NotificationUtils
-jest.mock('../../../../src/utils/notification-utils', () => ({
-  NotificationUtils: {
-    showAutoDismissNotification: jest.fn()
-  }
+vi.mock('../../../../src/utils/notification-utils', () => ({
+    NotificationUtils: {
+        showAutoDismissNotification: vi.fn(),
+    }
 }));
 
 // Mock PromptLoader
-jest.mock('../../../../src/services/prompt-loader', () => ({
-  PromptLoader: {
-    getInstance: jest.fn(() => ({
-      renderPrompt: jest.fn(() => 'mocked prompt content')
-    }))
-  }
+vi.mock('../../../../src/services/prompt-loader', () => ({
+    PromptLoader: {
+        getInstance: vi.fn(() => ({
+            renderPrompt: vi.fn().mockReturnValue('mocked prompt content'),
+        })),
+    }
 }));
 
 describe('SpecManager with CodexProvider Integration', () => {
   let specManager: SpecManager;
-  let mockCodexProvider: jest.Mocked<CodexProvider>;
+  let mockCodexProvider: vi.Mocked<CodexProvider>;
   let mockOutputChannel: any;
 
   beforeEach(() => {
     mockOutputChannel = {
-      appendLine: jest.fn(),
-      show: jest.fn(),
-      dispose: jest.fn()
+      appendLine: vi.fn(),
+      show: vi.fn(),
+      dispose: vi.fn()
     };
 
     mockCodexProvider = {
-      isCodexReady: jest.fn(),
-      getCodexAvailabilityStatus: jest.fn(),
-      showSetupGuidance: jest.fn(),
-      getCodexConfig: jest.fn(),
-      invokeCodexSplitView: jest.fn(),
-      renameTerminal: jest.fn(),
-      setApprovalMode: jest.fn()
+      isCodexReady: vi.fn(),
+      getCodexAvailabilityStatus: vi.fn(),
+      showSetupGuidance: vi.fn(),
+      getCodexConfig: vi.fn(),
+      invokeCodexSplitView: vi.fn(),
+      renameTerminal: vi.fn(),
+      setApprovalMode: vi.fn()
     } as any;
 
     specManager = new SpecManager(mockCodexProvider, mockOutputChannel);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Codex Integration', () => {
@@ -108,7 +83,7 @@ describe('SpecManager with CodexProvider Integration', () => {
         setupGuidance: 'Please install Codex CLI'
       });
 
-      (vscode.window.showInputBox as jest.Mock).mockResolvedValue('Test feature');
+      vi.spyOn(vscode.window, 'showInputBox').mockResolvedValue('Test feature');
 
       // Act
       await specManager.create();
@@ -132,7 +107,7 @@ describe('SpecManager with CodexProvider Integration', () => {
       });
       mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
 
-      (vscode.window.showInputBox as jest.Mock).mockResolvedValue('Test feature');
+      vi.spyOn(vscode.window, 'showInputBox').mockResolvedValue('Test feature');
 
       // Act
       await specManager.create();

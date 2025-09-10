@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import * as fs from 'fs';
+import { afterEach, beforeEach, describe, expect, it, Mock, Mocked, MockedClass, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { ApprovalMode, CodexOptions, CodexProvider } from '../../../src/providers/codex-provider';
 import { CommandBuilder } from '../../../src/services/command-builder';
@@ -7,98 +8,142 @@ import { ProcessManager } from '../../../src/services/process-manager';
 import { RetryService } from '../../../src/services/retry-service';
 
 // Mock dependencies
-jest.mock('../../../src/services/command-builder');
-jest.mock('../../../src/services/process-manager');
-jest.mock('../../../src/services/error-handler');
-jest.mock('../../../src/services/retry-service');
-jest.mock('../../../src/services/codex-setup-service', () => ({
+vi.mock('../../../src/services/command-builder');
+vi.mock('../../../src/services/process-manager');
+vi.mock('../../../src/services/error-handler');
+vi.mock('../../../src/services/retry-service');
+vi.mock('../../../src/services/codex-setup-service', () => ({
   CodexSetupService: {
-    getInstance: jest.fn().mockReturnValue({
-      getInstallationGuidance: jest.fn().mockReturnValue('Install Codex CLI'),
-      getVersionUpgradeGuidance: jest.fn().mockReturnValue('Upgrade Codex CLI'),
-      getPermissionGuidance: jest.fn().mockReturnValue('Fix permissions'),
-      getTroubleshootingGuidance: jest.fn().mockReturnValue('Troubleshoot'),
-      showSetupGuidance: jest.fn(),
+    getInstance: vi.fn().mockReturnValue({
+      getInstallationGuidance: vi.fn().mockReturnValue('Install Codex CLI'),
+      getVersionUpgradeGuidance: vi.fn().mockReturnValue('Upgrade Codex CLI'),
+      getPermissionGuidance: vi.fn().mockReturnValue('Fix permissions'),
+      getTroubleshootingGuidance: vi.fn().mockReturnValue('Troubleshoot'),
+      showSetupGuidance: vi.fn(),
     }),
   },
 }));
-jest.mock('../../../src/utils/config-manager', () => ({
+vi.mock('../../../src/utils/config-manager', () => ({
   ConfigManager: {
-    getInstance: jest.fn().mockReturnValue({
-      loadSettings: jest.fn(),
-      getSettings: jest.fn().mockReturnValue({}),
+    getInstance: vi.fn().mockReturnValue({
+      loadSettings: vi.fn(),
+      getSettings: vi.fn().mockReturnValue({}),
     }),
   },
 }));
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
   promises: {
-    writeFile: jest.fn(),
-    unlink: jest.fn(),
+    writeFile: vi.fn(),
+    unlink: vi.fn(),
   },
+}));
+vi.mock('vscode', () => ({
+  window: {
+    // No specific mocks for window in this file, but keeping it as a placeholder
+  },
+  workspace: {
+    getConfiguration: vi.fn(),
+    workspaceFolders: [],
+    onDidChangeConfiguration: vi.fn(),
+    fs: {
+      createDirectory: vi.fn().mockResolvedValue(undefined),
+      writeFile: vi.fn().mockResolvedValue(undefined),
+      readFile: vi.fn().mockResolvedValue(new Uint8Array()),
+      stat: vi.fn(),
+      copy: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
+  commands: {
+    executeCommand: vi.fn(),
+  },
+  Uri: {
+    file: vi.fn((path) => ({ fsPath: path })),
+    joinPath: vi.fn((base: any, ...paths: string[]) => ({
+      fsPath: [base?.fsPath ?? String(base), ...paths].join('/'),
+    })),
+  },
+  ViewColumn: { Two: 2 },
+  FileType: {
+    File: 1,
+    Directory: 2
+  },
+  ProgressLocation: {
+    Notification: 15,
+  }
 }));
 
 describe('CodexProvider', () => {
   let codexProvider: CodexProvider;
-  let mockContext: jest.Mocked<vscode.ExtensionContext>;
-  let mockOutputChannel: jest.Mocked<vscode.OutputChannel>;
-  let mockCommandBuilder: jest.Mocked<CommandBuilder>;
-  let mockProcessManager: jest.Mocked<ProcessManager>;
-  let mockErrorHandler: jest.Mocked<CodexErrorHandler>;
-  let mockRetryService: jest.Mocked<RetryService>;
+  let mockContext: Mocked<vscode.ExtensionContext>;
+  let mockOutputChannel: Mocked<vscode.OutputChannel>;
+  let mockCommandBuilder: Mocked<CommandBuilder>;
+  let mockProcessManager: Mocked<ProcessManager>;
+  let mockErrorHandler: Mocked<CodexErrorHandler>;
+  let mockRetryService: Mocked<RetryService>;
 
   beforeEach(() => {
     // Setup mocks
+    (vscode.workspace as any).fs ||= {
+      createDirectory: vi.fn().mockResolvedValue(undefined),
+      writeFile: vi.fn().mockResolvedValue(undefined),
+      readFile: vi.fn().mockResolvedValue(new Uint8Array()),
+      stat: vi.fn(),
+      copy: vi.fn(),
+      delete: vi.fn(),
+    };
+
     mockContext = {
       globalStorageUri: { fsPath: '/tmp/test' } as vscode.Uri,
-    } as jest.Mocked<vscode.ExtensionContext>;
+    } as Mocked<vscode.ExtensionContext>;
 
     mockOutputChannel = {
       name: 'Test Channel',
-      appendLine: jest.fn(),
-      append: jest.fn(),
-      replace: jest.fn(),
-      clear: jest.fn(),
-      show: jest.fn(),
-      hide: jest.fn(),
-      dispose: jest.fn(),
-    } as jest.Mocked<vscode.OutputChannel>;
+      appendLine: vi.fn(),
+      append: vi.fn(),
+      replace: vi.fn(),
+      clear: vi.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
+      dispose: vi.fn(),
+    } as Mocked<vscode.OutputChannel>;
 
     // Create proper mocked instances
     mockCommandBuilder = {
-      buildCommand: jest.fn(),
-      buildVersionCommand: jest.fn(),
-      buildApprovalModeFlag: jest.fn(),
-      buildWorkingDirectoryFlag: jest.fn(),
-      buildHelpCommand: jest.fn(),
-      buildSecureCommand: jest.fn(),
-    } as unknown as jest.Mocked<CommandBuilder>;
+      buildCommand: vi.fn(),
+      buildVersionCommand: vi.fn(),
+      buildApprovalModeFlag: vi.fn(),
+      buildWorkingDirectoryFlag: vi.fn(),
+      buildHelpCommand: vi.fn(),
+      buildSecureCommand: vi.fn(),
+    } as unknown as Mocked<CommandBuilder>;
 
     mockProcessManager = {
-      executeCommand: jest.fn(),
-      createTerminal: jest.fn(),
-      executeCommandWithShellIntegration: jest.fn(),
-      killProcess: jest.fn(),
-      killAllProcesses: jest.fn(),
-      getActiveProcessCount: jest.fn(),
-      dispose: jest.fn(),
-    } as unknown as jest.Mocked<ProcessManager>;
+      executeCommand: vi.fn(),
+      createTerminal: vi.fn(),
+      executeCommandWithShellIntegration: vi.fn(),
+      killProcess: vi.fn(),
+      killAllProcesses: vi.fn(),
+      getActiveProcessCount: vi.fn(),
+      dispose: vi.fn(),
+    } as unknown as Mocked<ProcessManager>;
 
     mockErrorHandler = {
-      analyzeError: jest.fn(),
-      executeWithRetry: jest.fn(),
-      showErrorToUser: jest.fn(),
-    } as unknown as jest.Mocked<CodexErrorHandler>;
+      analyzeError: vi.fn(),
+      executeWithRetry: vi.fn(),
+      showErrorToUser: vi.fn(),
+    } as unknown as Mocked<CodexErrorHandler>;
 
     mockRetryService = {
-      executeWithRetry: jest.fn(),
-      getActiveRetries: jest.fn(),
-      cancelAllRetries: jest.fn(),
-      getRetryStatistics: jest.fn(),
-    } as unknown as jest.Mocked<RetryService>;
+      executeWithRetry: vi.fn(),
+      getActiveRetries: vi.fn(),
+      cancelAllRetries: vi.fn(),
+      getRetryStatistics: vi.fn(),
+    } as unknown as Mocked<RetryService>;
 
     // Mock workspace configuration
     const mockConfig = {
-      get: jest.fn((key: string, defaultValue?: any) => {
+      get: vi.fn((key: string, defaultValue?: any) => {
         const configMap: Record<string, any> = {
           'codex.path': 'codex',
           'codex.defaultApprovalMode': ApprovalMode.Interactive,
@@ -110,38 +155,38 @@ describe('CodexProvider', () => {
       }),
     };
 
-    (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
+    (vscode.workspace.getConfiguration as Mock).mockReturnValue(mockConfig);
     (vscode.workspace.workspaceFolders as any) = [{ uri: { fsPath: '/workspace' } }];
-    (vscode.workspace.onDidChangeConfiguration as jest.Mock).mockReturnValue({ dispose: jest.fn() });
+    (vscode.workspace.onDidChangeConfiguration as Mock).mockReturnValue({ dispose: vi.fn() });
 
     // Mock ConfigManager
     const mockConfigManager = {
-      loadSettings: jest.fn(),
-      getInstance: jest.fn(),
+      loadSettings: vi.fn(),
+      getInstance: vi.fn(),
     };
 
     // Mock the constructor dependencies
-    (CommandBuilder as jest.MockedClass<typeof CommandBuilder>).mockImplementation(() => mockCommandBuilder);
-    (ProcessManager as jest.MockedClass<typeof ProcessManager>).mockImplementation(() => mockProcessManager);
-    (CodexErrorHandler as jest.MockedClass<typeof CodexErrorHandler>).mockImplementation(() => mockErrorHandler);
-    (RetryService as jest.MockedClass<typeof RetryService>).mockImplementation(() => mockRetryService);
+    (CommandBuilder as MockedClass<typeof CommandBuilder>).mockImplementation(() => mockCommandBuilder);
+    (ProcessManager as MockedClass<typeof ProcessManager>).mockImplementation(() => mockProcessManager);
+    (CodexErrorHandler as MockedClass<typeof CodexErrorHandler>).mockImplementation(() => mockErrorHandler);
+    (RetryService as MockedClass<typeof RetryService>).mockImplementation(() => mockRetryService);
 
     // Mock ConfigManager.getInstance
-    jest.doMock('../../../src/utils/config-manager', () => ({
+    vi.doMock('../../../src/utils/config-manager', () => ({
       ConfigManager: {
-        getInstance: jest.fn().mockReturnValue(mockConfigManager),
+        getInstance: vi.fn().mockReturnValue(mockConfigManager),
       },
     }));
 
     // Mock CodexSetupService.getInstance
-    jest.doMock('../../../src/services/codex-setup-service', () => ({
+    vi.doMock('../../../src/services/codex-setup-service', () => ({
       CodexSetupService: {
-        getInstance: jest.fn().mockReturnValue({
-          getInstallationGuidance: jest.fn().mockReturnValue('Install Codex CLI'),
-          getVersionUpgradeGuidance: jest.fn().mockReturnValue('Upgrade Codex CLI'),
-          getPermissionGuidance: jest.fn().mockReturnValue('Fix permissions'),
-          getTroubleshootingGuidance: jest.fn().mockReturnValue('Troubleshoot'),
-          showSetupGuidance: jest.fn(),
+        getInstance: vi.fn().mockReturnValue({
+          getInstallationGuidance: vi.fn().mockReturnValue('Install Codex CLI'),
+          getVersionUpgradeGuidance: vi.fn().mockReturnValue('Upgrade Codex CLI'),
+          getPermissionGuidance: vi.fn().mockReturnValue('Fix permissions'),
+          getTroubleshootingGuidance: vi.fn().mockReturnValue('Troubleshoot'),
+          showSetupGuidance: vi.fn(),
         }),
       },
     }));
@@ -150,7 +195,7 @@ describe('CodexProvider', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Constructor and Configuration', () => {
@@ -168,11 +213,11 @@ describe('CodexProvider', () => {
 
     it('should update configuration when workspace settings change', () => {
       const mockEvent = {
-        affectsConfiguration: jest.fn().mockReturnValue(true),
+        affectsConfiguration: vi.fn().mockReturnValue(true),
       } as any;
 
       // Trigger configuration change
-      const configChangeHandler = (vscode.workspace.onDidChangeConfiguration as jest.Mock).mock.calls[0]?.[0];
+      const configChangeHandler = (vscode.workspace.onDidChangeConfiguration as Mock).mock.calls[0]?.[0];
       if (configChangeHandler && typeof configChangeHandler === 'function') {
         configChangeHandler(mockEvent);
         expect(mockEvent.affectsConfiguration).toHaveBeenCalled();
@@ -242,7 +287,7 @@ describe('CodexProvider', () => {
   describe('Codex Execution', () => {
     beforeEach(() => {
       // Mock successful availability check
-      jest.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
+      vi.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
         isAvailable: true,
         isInstalled: true,
         version: '1.0.0',
@@ -253,6 +298,9 @@ describe('CodexProvider', () => {
 
       // Mock retry service to execute operation directly
       mockRetryService.executeWithRetry.mockImplementation(async <T>(operation: () => Promise<T>) => {
+        if (typeof operation !== 'function') {
+          throw new Error('Operation passed to executeWithRetry is not a function');
+        }
         return await operation();
       });
     });
@@ -268,9 +316,8 @@ describe('CodexProvider', () => {
       });
 
       // Mock file operations
-      const fs = require('fs');
-      fs.promises.writeFile.mockResolvedValue(undefined);
-      fs.promises.unlink.mockResolvedValue(undefined);
+      (fs.promises.writeFile as Mock).mockResolvedValue(undefined);
+      (fs.promises.unlink as Mock).mockResolvedValue(undefined);
 
       const result = await codexProvider.executeCodex(mockPrompt);
 
@@ -289,6 +336,9 @@ describe('CodexProvider', () => {
       });
 
       mockRetryService.executeWithRetry.mockImplementation(async <T>(operation: () => Promise<T>) => {
+        if (typeof operation !== 'function') {
+          throw new Error('Operation passed to executeWithRetry is not a function');
+        }
         return await operation();
       });
 
@@ -305,6 +355,9 @@ describe('CodexProvider', () => {
       });
 
       mockRetryService.executeWithRetry.mockImplementation(async <T>(operation: () => Promise<T>) => {
+        if (typeof operation !== 'function') {
+          throw new Error('Operation passed to executeWithRetry is not a function');
+        }
         return await operation();
       });
 
@@ -327,9 +380,8 @@ describe('CodexProvider', () => {
         error: '',
       });
 
-      const fs = require('fs');
-      fs.promises.writeFile.mockResolvedValue(undefined);
-      fs.promises.unlink.mockResolvedValue(undefined);
+      (fs.promises.writeFile as Mock).mockResolvedValue(undefined);
+      (fs.promises.unlink as Mock).mockResolvedValue(undefined);
 
       await codexProvider.executeCodex(mockPrompt, options);
 
@@ -347,7 +399,7 @@ describe('CodexProvider', () => {
 
   describe('Terminal Operations', () => {
     beforeEach(() => {
-      jest.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
+      vi.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
         isAvailable: true,
         isInstalled: true,
         version: '1.0.0',
@@ -357,6 +409,9 @@ describe('CodexProvider', () => {
       });
 
       mockRetryService.executeWithRetry.mockImplementation(async <T>(operation: () => Promise<T>) => {
+        if (typeof operation !== 'function') {
+          throw new Error('Operation passed to executeWithRetry is not a function');
+        }
         return await operation();
       });
     });
@@ -364,23 +419,22 @@ describe('CodexProvider', () => {
     it('should create terminal in split view', async () => {
       const mockPrompt = 'Create a new component';
       const mockTerminal = {
-        show: jest.fn(),
-        sendText: jest.fn(),
-        dispose: jest.fn(),
+        show: vi.fn(),
+        sendText: vi.fn(),
+        dispose: vi.fn(),
       } as any;
 
       mockCommandBuilder.buildCommand.mockReturnValue('codex "Create a new component"');
       mockProcessManager.createTerminal.mockReturnValue(mockTerminal);
 
-      const fs = require('fs');
-      fs.promises.writeFile.mockResolvedValue(undefined);
+      (fs.promises.writeFile as Mock).mockResolvedValue(undefined);
 
       const result = await codexProvider.invokeCodexSplitView(mockPrompt, 'Test Terminal');
 
       expect(result).toBe(mockTerminal);
       // Be OS-agnostic: command differs on Windows (stdin pipe) vs POSIX (direct command)
       expect(mockProcessManager.createTerminal).toHaveBeenCalled();
-      const [calledCommand, calledOptions] = (mockProcessManager.createTerminal as jest.Mock).mock.calls[0];
+      const [calledCommand, calledOptions] = (mockProcessManager.createTerminal as Mock).mock.calls[0];
       expect(typeof calledCommand).toBe('string');
       expect(calledCommand).toContain('codex');
       expect(calledOptions).toEqual(expect.objectContaining({
@@ -398,7 +452,7 @@ describe('CodexProvider', () => {
         error: '',
       });
 
-      jest.spyOn(codexProvider, 'executeCodex').mockResolvedValue({
+      vi.spyOn(codexProvider, 'executeCodex').mockResolvedValue({
         exitCode: 0,
         output: 'Documentation generated',
         filesModified: ['README.md'],
@@ -438,7 +492,7 @@ describe('CodexProvider', () => {
     });
 
     it('should check if Codex is ready', async () => {
-      jest.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
+      vi.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
         isAvailable: true,
         isInstalled: true,
         version: '1.0.0',
@@ -454,7 +508,7 @@ describe('CodexProvider', () => {
 
   describe('Error Handling', () => {
     it('should handle CLI not installed error', async () => {
-      jest.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
+      vi.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
         isAvailable: false,
         isInstalled: false,
         version: null,
@@ -464,6 +518,9 @@ describe('CodexProvider', () => {
       });
 
       mockRetryService.executeWithRetry.mockImplementation(async <T>(operation: () => Promise<T>) => {
+        if (typeof operation !== 'function') {
+          throw new Error('Operation passed to executeWithRetry is not a function');
+        }
         return await operation();
       });
 
@@ -506,7 +563,7 @@ describe('CodexProvider', () => {
         Writing to: docs/README.md
       `;
 
-      jest.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
+      vi.spyOn(codexProvider, 'checkCodexInstallationAndCompatibility').mockResolvedValue({
         isAvailable: true,
         isInstalled: true,
         version: '1.0.0',
@@ -521,13 +578,15 @@ describe('CodexProvider', () => {
         error: '',
       });
 
-      mockRetryService.executeWithRetry.mockImplementation(async <T>(operation: () => Promise<T>) => {
-        return await operation();
+      mockRetryService.executeWithRetry.mockImplementation((operation: unknown) => {
+        if (typeof operation !== 'function') {
+          return Promise.reject(new Error('Operation passed to executeWithRetry is not a function'));
+        }
+        return (operation as () => any)();
       });
 
-      const fs = require('fs');
-      fs.promises.writeFile.mockResolvedValue(undefined);
-      fs.promises.unlink.mockResolvedValue(undefined);
+      (fs.promises.writeFile as Mock).mockResolvedValue(undefined);
+      (fs.promises.unlink as Mock).mockResolvedValue(undefined);
 
       const result = await codexProvider.executeCodex('test prompt');
 
@@ -557,7 +616,7 @@ describe('CodexProvider', () => {
   describe('Terminal Management', () => {
     it('should rename terminal', async () => {
       const mockTerminal = {
-        show: jest.fn(),
+        show: vi.fn(),
       } as any;
 
       await codexProvider.renameTerminal(mockTerminal, 'New Terminal Name');

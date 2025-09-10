@@ -43,7 +43,7 @@ vi.mock('../../../../src/utils/notification-utils', () => ({
 const renderPromptMock = vi.fn(() => 'mocked prompt content');
 vi.mock('../../../../src/services/prompt-loader', () => ({
   PromptLoader: {
-    getInstance: jest.fn(() => ({
+    getInstance: vi.fn(() => ({
       renderPrompt: renderPromptMock
     }))
   }
@@ -53,7 +53,7 @@ vi.mock('../../../../src/services/prompt-loader', () => ({
 const getPathMock = vi.fn((key: string) => (key === 'steering' ? '.codex/steering' : ''));
 vi.mock('../../../../src/utils/config-manager', () => ({
   ConfigManager: {
-    getInstance: jest.fn(() => ({
+    getInstance: vi.fn(() => ({
       loadSettings: vi.fn(),
       getPath: getPathMock
     }))

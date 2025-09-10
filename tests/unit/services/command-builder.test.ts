@@ -9,7 +9,7 @@ describe('CommandBuilder', () => {
         commandBuilder = new CommandBuilder();
     });
 
-    describe('buildCommand', () => {
+    describe('buildCommand', () => {3
         it('should build basic command with default options', () => {
             const promptFilePath = '/tmp/prompt.md';
             const options: CommandOptions = {

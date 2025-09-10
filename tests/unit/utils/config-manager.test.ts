@@ -1,35 +1,36 @@
+import { vi, describe, test, expect, beforeEach, Mock } from 'vitest';
+import { workspace } from 'vscode';
 import { ConfigManager, KfcSettings } from '../../../src/utils/config-manager';
 
 // Mock vscode
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   workspace: {
     workspaceFolders: [{
       uri: { fsPath: '/test/workspace' }
     }],
     fs: {
-      createDirectory: jest.fn().mockResolvedValue(undefined),
-      writeFile: jest.fn().mockResolvedValue(undefined),
-      readFile: jest.fn().mockResolvedValue(Buffer.from('{}'))
+      createDirectory: vi.fn().mockResolvedValue(undefined),
+      writeFile: vi.fn().mockResolvedValue(undefined),
+      readFile: vi.fn().mockResolvedValue(Buffer.from('{}'))
     },
-    getConfiguration: jest.fn(() => ({ get: jest.fn() }))
+    getConfiguration: vi.fn(() => ({ get: vi.fn() }))
   },
   Uri: {
-    file: jest.fn((path: string) => ({ fsPath: path }))
+    file: vi.fn((path: string) => ({ fsPath: path }))
   }
 }));
 
 describe('ConfigManager (paths-only settings)', () => {
   let configManager: ConfigManager;
-  const vscode = require('vscode');
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     configManager = ConfigManager.getInstance();
   });
 
   test('returns default paths when file missing', async () => {
     // Simulate file not found
-    (vscode.workspace.fs.readFile as jest.Mock).mockRejectedValueOnce(new Error('ENOENT'));
+    (workspace.fs.readFile as Mock).mockRejectedValueOnce(new Error('ENOENT'));
 
     const settings = await configManager.loadSettings();
 
@@ -50,7 +51,7 @@ describe('ConfigManager (paths-only settings)', () => {
         prompts: '.codex/prompts'
       }
     };
-    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValueOnce(
+    (workspace.fs.readFile as Mock).mockResolvedValueOnce(
       Buffer.from(JSON.stringify(fileContent))
     );
 
@@ -62,7 +63,7 @@ describe('ConfigManager (paths-only settings)', () => {
 
   test('getPath returns overridden or default value', async () => {
     // Reset to defaults for this test
-    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValueOnce(Buffer.from('{}'));
+    (workspace.fs.readFile as Mock).mockResolvedValueOnce(Buffer.from('{}'));
     await configManager.loadSettings();
 
     const specs = configManager.getPath('specs');
@@ -83,8 +84,8 @@ describe('ConfigManager (paths-only settings)', () => {
 
     await configManager.saveSettings(newSettings);
 
-    expect(vscode.workspace.fs.writeFile).toHaveBeenCalled();
-    const [, content] = (vscode.workspace.fs.writeFile as jest.Mock).mock.calls[0];
+    expect(workspace.fs.writeFile).toHaveBeenCalled();
+    const [, content] = (workspace.fs.writeFile as Mock).mock.calls[0];
     const saved = JSON.parse(Buffer.from(content).toString());
     expect(Object.keys(saved)).toEqual(['paths']);
     expect(saved.paths).toEqual(newSettings.paths);
@@ -92,7 +93,7 @@ describe('ConfigManager (paths-only settings)', () => {
 
   test('getAbsolutePath builds from workspace root', async () => {
     // Reset to defaults for this test
-    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValueOnce(Buffer.from('{}'));
+    (workspace.fs.readFile as Mock).mockResolvedValueOnce(Buffer.from('{}'));
     await configManager.loadSettings();
 
     const abs = configManager.getAbsolutePath('prompts');

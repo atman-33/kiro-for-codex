@@ -1,49 +1,49 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, Mocked } from 'vitest';
 import * as vscode from 'vscode';
 import { CodexErrorHandler, ErrorType } from '../../../src/services/error-handler';
 import { RetryService } from '../../../src/services/retry-service';
 
 // Mock vscode module
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   window: {
-    setStatusBarMessage: jest.fn(),
-    showInformationMessage: jest.fn(),
+    setStatusBarMessage: vi.fn(),
+    showInformationMessage: vi.fn(),
   },
 }));
 
 describe('RetryService', () => {
   let retryService: RetryService;
-  let mockErrorHandler: jest.Mocked<CodexErrorHandler>;
-  let mockOutputChannel: jest.Mocked<vscode.OutputChannel>;
+  let mockErrorHandler: Mocked<CodexErrorHandler>;
+  let mockOutputChannel: Mocked<vscode.OutputChannel>;
 
   beforeEach(() => {
     mockOutputChannel = {
       name: 'Test Channel',
-      appendLine: jest.fn(),
-      append: jest.fn(),
-      replace: jest.fn(),
-      clear: jest.fn(),
-      show: jest.fn(),
-      hide: jest.fn(),
-      dispose: jest.fn(),
+      appendLine: vi.fn(),
+      append: vi.fn(),
+      replace: vi.fn(),
+      clear: vi.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
+      dispose: vi.fn(),
     } as any;
 
     mockErrorHandler = {
-      analyzeError: jest.fn(),
-      executeWithRetry: jest.fn(),
-      showErrorToUser: jest.fn(),
-    } as unknown as jest.Mocked<CodexErrorHandler>;
+      analyzeError: vi.fn(),
+      executeWithRetry: vi.fn(),
+      showErrorToUser: vi.fn(),
+    } as unknown as Mocked<CodexErrorHandler>;
 
     retryService = new RetryService(mockErrorHandler, mockOutputChannel);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Basic Retry Logic', () => {
     it('should execute operation successfully on first attempt', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockResolvedValue('success');
+      const operation = vi.fn<[], Promise<string>>().mockResolvedValue('success');
 
       const result = await retryService.executeWithRetry(
         operation,
@@ -59,7 +59,7 @@ describe('RetryService', () => {
 
     it('should retry on retryable errors', async () => {
       let attemptCount = 0;
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 3) {
           throw new Error('Timeout error');
@@ -93,7 +93,7 @@ describe('RetryService', () => {
     });
 
     it('should not retry on non-retryable errors', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Permission denied');
       });
 
@@ -116,7 +116,7 @@ describe('RetryService', () => {
     });
 
     it('should respect maximum attempts', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -142,7 +142,7 @@ describe('RetryService', () => {
 
   describe('Retry Configuration', () => {
     it('should use custom retry options', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Network error');
       });
 
@@ -167,7 +167,7 @@ describe('RetryService', () => {
     });
 
     it('should apply exponential backoff', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -198,7 +198,7 @@ describe('RetryService', () => {
     });
 
     it('should respect maximum delay', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -227,11 +227,11 @@ describe('RetryService', () => {
 
   describe('Callback Handling', () => {
     it('should call onRetry callback', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
-      const onRetry = jest.fn<(attempt: number, error: Error) => void>();
+      const onRetry = vi.fn<(attempt: number, error: Error) => void>();
 
       mockErrorHandler.analyzeError.mockReturnValue({
         type: ErrorType.TIMEOUT,
@@ -255,7 +255,7 @@ describe('RetryService', () => {
 
     it('should call onSuccess callback', async () => {
       let attemptCount = 0;
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 2) {
           throw new Error('Timeout error');
@@ -263,7 +263,7 @@ describe('RetryService', () => {
         return Promise.resolve('success');
       });
 
-      const onSuccess = jest.fn<(result: string, attempts: number) => void>();
+      const onSuccess = vi.fn<(result: string, attempts: number) => void>();
 
       mockErrorHandler.analyzeError.mockReturnValue({
         type: ErrorType.TIMEOUT,
@@ -289,11 +289,11 @@ describe('RetryService', () => {
     });
 
     it('should call onFailure callback', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
-      const onFailure = jest.fn<(error: Error, attempts: number) => void>();
+      const onFailure = vi.fn<(error: Error, attempts: number) => void>();
 
       mockErrorHandler.analyzeError.mockReturnValue({
         type: ErrorType.TIMEOUT,
@@ -316,11 +316,11 @@ describe('RetryService', () => {
     });
 
     it('should use custom shouldRetry logic', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Custom error');
       });
 
-      const shouldRetry = jest.fn<(error: Error, attempt: number) => boolean>().mockReturnValue(false);
+      const shouldRetry = vi.fn<(error: Error, attempt: number) => boolean>().mockReturnValue(false);
 
       mockErrorHandler.analyzeError.mockReturnValue({
         type: ErrorType.UNKNOWN_ERROR,
@@ -369,8 +369,8 @@ describe('RetryService', () => {
 
   describe('Error Handling', () => {
     it('should propagate callback errors', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockResolvedValue('success');
-      const onSuccess = jest.fn<(result: string, attempts: number) => void>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockResolvedValue('success');
+      const onSuccess = vi.fn<(result: string, attempts: number) => void>().mockImplementation(() => {
         throw new Error('Callback error');
       });
 
@@ -387,7 +387,7 @@ describe('RetryService', () => {
     });
 
     it('should show user notifications for retries', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -399,7 +399,7 @@ describe('RetryService', () => {
         troubleshootingSteps: [],
       });
 
-      const mockSetStatusBarMessage = vscode.window.setStatusBarMessage as jest.MockedFunction<any>;
+      const mockSetStatusBarMessage = vscode.window.setStatusBarMessage as Mocked<any>;
       mockSetStatusBarMessage.mockImplementation(() => { });
 
       await expect(
@@ -418,7 +418,7 @@ describe('RetryService', () => {
 
     it('should show success notification for recovered operations', async () => {
       let attemptCount = 0;
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 2) {
           throw new Error('Timeout error');
@@ -434,7 +434,7 @@ describe('RetryService', () => {
         troubleshootingSteps: [],
       });
 
-      const mockShowInformationMessage = vscode.window.showInformationMessage as jest.MockedFunction<any>;
+      const mockShowInformationMessage = vscode.window.showInformationMessage as Mocked<any>;
       mockShowInformationMessage.mockResolvedValue('OK');
 
       await retryService.executeWithRetry(operation, 'Test Operation', {
@@ -451,7 +451,7 @@ describe('RetryService', () => {
 
   describe('Rate Limiting', () => {
     it('should handle rate limit errors with limited retries (max 3 attempts)', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Rate limit exceeded');
       });
 
@@ -478,7 +478,7 @@ describe('RetryService', () => {
 
   describe('Logging', () => {
     it('should log retry attempts', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -510,7 +510,7 @@ describe('RetryService', () => {
     });
 
     it('should log final failure', async () => {
-      const operation = jest.fn<() => Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
