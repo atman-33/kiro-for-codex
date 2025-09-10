@@ -76,7 +76,7 @@
 
 ## Phase 2: Switch defaults and remove legacy tooling
 
-- [ ] 9. Switch default npm scripts to Vite/Vitest
+- [x] 9. Switch default npm scripts to Vite/Vitest
   - Update build script to use Vite instead of Webpack
   - Update test script to use Vitest instead of Jest
   - Update vscode:prepublish to use Vite build

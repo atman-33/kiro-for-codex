@@ -23,22 +23,15 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
-    "build": "npm run package-web",
-    "vscode:prepublish": "npm run package-web",
+    "build": "npm run build-prompts && vite build",
+    "vscode:prepublish": "npm run build",
     "compile": "npm run build-prompts && tsc -p ./ && npm run package",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
     "package": "vsce package",
     "build-prompts": "node scripts/build-prompts.js",
-    "compile-web": "webpack --mode development",
-    "watch-web": "webpack --mode development --watch",
-    "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
-    "build:vite": "npm run build-prompts && vite build",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:vitest": "vitest",
-    "test:vitest:watch": "vitest --watch",
-    "test:vitest:coverage": "vitest --coverage"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
   },
   "contributes": {
     "viewsContainers": {
