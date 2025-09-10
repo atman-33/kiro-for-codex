@@ -95,7 +95,7 @@
   - Remove legacy npm scripts (compile-web, watch-web, package-web)
   - _Requirements: 5.3_
 
-- [ ] 12. Update documentation to reflect new tooling
+- [x] 12. Update documentation to reflect new tooling
   - Update README.md to reference Vite/Vitest instead of Webpack/Jest
   - Update any development documentation with new commands
   - Remove references to obsolete build commands

@@ -243,7 +243,7 @@ src/
 
 ### Testing
 
-- Jest + ts-jest
+- Vitest
 - Run: `npm test` (watch: `npm run test:watch`, coverage: `npm run test:coverage`)
 - Target coverage for new code: >= 80%
 

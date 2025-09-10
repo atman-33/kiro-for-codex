@@ -25,6 +25,9 @@
   "scripts": {
     "build": "npm run build-prompts && vite build",
     "vscode:prepublish": "npm run build",
+    "compile": "npm run build-prompts && tsc -p ./ && npm run package",
+    "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
+    "package": "vsce package",
     "build-prompts": "node scripts/build-prompts.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
