@@ -6,46 +6,46 @@ import { AgentManager } from '../../../../src/features/agents/agent-manager';
 import type { CodexProvider } from '../../../../src/providers/codex-provider';
 
 // Mock vscode
-jest.mock('vscode');
+vi.mock('vscode');
 
 // Mock fs
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
     promises: {
-        readFile: jest.fn()
+        readFile: vi.fn()
     },
-    existsSync: jest.fn(),
-    mkdirSync: jest.fn(),
-    copyFileSync: jest.fn(),
-    readdirSync: jest.fn(),
-    readFileSync: jest.fn()
+    existsSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    copyFileSync: vi.fn(),
+    readdirSync: vi.fn(),
+    readFileSync: vi.fn()
 }));
 
 // Mock os
-jest.mock('os');
+vi.mock('os');
 
 describe('AgentManager', () => {
     let agentManager: AgentManager;
     let mockContext: vscode.ExtensionContext;
     let mockOutputChannel: vscode.OutputChannel;
-    let mockCodexProvider: jest.Mocked<CodexProvider>;
+    let mockCodexProvider: vi.Mocked<CodexProvider>;
     let mockWorkspaceRoot: string;
 
     beforeEach(() => {
         // Reset all mocks
-        jest.clearAllMocks();
+        vi.clearAllMocks();
 
         // Setup mock paths
         mockWorkspaceRoot = '/test/workspace';
 
         // Setup mock output channel
         mockOutputChannel = {
-            appendLine: jest.fn(),
-            append: jest.fn(),
-            show: jest.fn(),
-            hide: jest.fn(),
-            clear: jest.fn(),
-            dispose: jest.fn(),
-            replace: jest.fn()
+            appendLine: vi.fn(),
+            append: vi.fn(),
+            show: vi.fn(),
+            hide: vi.fn(),
+            clear: vi.fn(),
+            dispose: vi.fn(),
+            replace: vi.fn()
         } as any;
 
         // Setup mock context
@@ -56,16 +56,16 @@ describe('AgentManager', () => {
 
         // Setup mock CodexProvider
         mockCodexProvider = {
-            isCodexReady: jest.fn().mockResolvedValue(true),
-            getCodexAvailabilityStatus: jest.fn(),
-            showSetupGuidance: jest.fn(),
-            getCodexConfig: jest.fn().mockReturnValue({
+            isCodexReady: vi.fn().mockResolvedValue(true),
+            getCodexAvailabilityStatus: vi.fn(),
+            showSetupGuidance: vi.fn(),
+            getCodexConfig: vi.fn().mockReturnValue({
                 defaultApprovalMode: 'interactive'
             }),
-            setApprovalMode: jest.fn(),
-            invokeCodexSplitView: jest.fn(),
-            invokeCodexHeadless: jest.fn(),
-            renameTerminal: jest.fn()
+            setApprovalMode: vi.fn(),
+            invokeCodexSplitView: vi.fn(),
+            invokeCodexHeadless: vi.fn(),
+            renameTerminal: vi.fn()
         } as any;
 
         // Mock vscode.workspace
@@ -74,11 +74,11 @@ describe('AgentManager', () => {
                 uri: { fsPath: mockWorkspaceRoot }
             }],
             fs: {
-                createDirectory: jest.fn().mockResolvedValue(undefined),
-                stat: jest.fn(),
-                copy: jest.fn().mockResolvedValue(undefined),
-                readDirectory: jest.fn(),
-                readFile: jest.fn()
+                createDirectory: vi.fn().mockResolvedValue(undefined),
+                stat: vi.fn(),
+                copy: vi.fn().mockResolvedValue(undefined),
+                readDirectory: vi.fn(),
+                readFile: vi.fn()
             }
         };
 
@@ -88,7 +88,7 @@ describe('AgentManager', () => {
         };
 
         // Mock os.homedir
-        (os.homedir as jest.Mock).mockReturnValue('/home/test');
+        vi.spyOn(os, 'homedir').mockReturnValue('/home/test');
 
         // Mock vscode.FileType
         (vscode.FileType as any) = {
@@ -101,7 +101,7 @@ describe('AgentManager', () => {
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     describe('1. Constructor and Initialization', () => {
@@ -122,7 +122,7 @@ describe('AgentManager', () => {
             const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc');
 
             // Mock stat to throw (file doesn't exist)
-            (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(new Error('File not found'));
+            vi.spyOn(vscode.workspace.fs, 'stat').mockRejectedValue(new Error('File not found'));
 
             // Act
             await agentManager.initializeBuiltInAgents();
@@ -141,7 +141,7 @@ describe('AgentManager', () => {
         test('TC-AM-003: Skip existing built-in agents', async () => {
             // Arrange
             // Mock that some agents already exist
-            (vscode.workspace.fs.stat as jest.Mock).mockImplementation((uri) => {
+            vi.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri) => {
                 const path = uri.fsPath;
                 if (path.includes('spec-requirements-codex') || path.includes('spec-design-codex')) {
                     return Promise.resolve({ type: vscode.FileType.File });
@@ -162,7 +162,7 @@ describe('AgentManager', () => {
 
         test('TC-AM-004: Handle initialization errors', async () => {
             // Arrange
-            (vscode.workspace.fs.createDirectory as jest.Mock).mockRejectedValue(
+            vi.spyOn(vscode.workspace.fs, 'createDirectory').mockRejectedValue(
                 new Error('Permission denied')
             );
 
@@ -188,12 +188,12 @@ tools: ["Read", "Write"]
 Agent content here`;
 
             // Mock vscode.workspace.fs.readDirectory to return agent files
-            (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
                 ['test-agent.md', vscode.FileType.File]
             ]);
 
             // Mock fs.promises.readFile for agent content
-            (fs.promises.readFile as jest.Mock).mockResolvedValue(mockAgentContent);
+            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(mockAgentContent);
 
             // Mock vscode.FileType
             (vscode.FileType as any) = {
@@ -223,7 +223,7 @@ tools: Read, Write, Task
 ---`;
 
             // Mock vscode.workspace.fs.readDirectory
-            (vscode.workspace.fs.readDirectory as jest.Mock).mockImplementation((uri) => {
+            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockImplementation((uri) => {
                 if (uri.fsPath.includes('subfolder')) {
                     return Promise.resolve([['nested-agent.md', vscode.FileType.File]]);
                 }
@@ -234,7 +234,7 @@ tools: Read, Write, Task
             });
 
             // Mock fs.promises.readFile
-            (fs.promises.readFile as jest.Mock).mockResolvedValue(mockAgentContent);
+            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(mockAgentContent);
 
             // Act
             const agents = await agentManager.getAgentList('user');
@@ -247,7 +247,7 @@ tools: Read, Write, Task
 
         test('TC-AM-007: Handle empty directories', async () => {
             // Arrange
-            (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([]);
+            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([]);
 
             // Act
             const agents = await agentManager.getAgentList('project');
@@ -286,12 +286,12 @@ description: No tools
             ];
 
             // Mock readDirectory
-            (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue(
+            vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue(
                 testCases.map(tc => [tc.filename, vscode.FileType.File])
             );
 
             // Mock readFile
-            (fs.promises.readFile as jest.Mock).mockImplementation((path) => {
+            vi.spyOn(fs.promises, 'readFile').mockImplementation((path) => {
                 const testCase = testCases.find(tc => path.includes(tc.filename));
                 return Promise.resolve(testCase?.content || '');
             });
@@ -325,7 +325,7 @@ description: No tools
 
         test('TC-AM-010: Get non-existent agent path returns null', () => {
             // Arrange
-            (fs.existsSync as jest.Mock).mockReturnValue(false);
+            vi.spyOn(fs, 'existsSync').mockReturnValue(false);
 
             // Act
             const agentPath = agentManager.getAgentPath('non-existing-agent');
@@ -361,7 +361,7 @@ tools: [unclosed array
             (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
                 ['invalid.md', vscode.FileType.File]
             ]);
-            (fs.promises.readFile as jest.Mock).mockResolvedValue(invalidYaml);
+            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(invalidYaml);
 
             // Act
             const agents = await agentManager.getAgentList('project');
@@ -380,7 +380,7 @@ tools: [unclosed array
                 ['protected.md', vscode.FileType.File]
             ]);
             // Mock readFile to throw permission error
-            (fs.promises.readFile as jest.Mock).mockRejectedValue(
+            vi.spyOn(fs.promises, 'readFile').mockRejectedValue(
                 new Error('EACCES: permission denied')
             );
 
@@ -429,7 +429,7 @@ This is a test agent for {{parameter1}}.`;
             (fs.existsSync as jest.Mock).mockImplementation((p) => {
                 return p.includes(`${agentName}.md`);
             });
-            (fs.promises.readFile as jest.Mock).mockResolvedValue(agentContent);
+            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(agentContent);
             mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
 
             // Act
@@ -466,7 +466,7 @@ This is a test agent for {{parameter1}}.`;
 
         test('TC-AM-019: Execute non-existent agent', async () => {
             // Arrange
-            (fs.existsSync as jest.Mock).mockReturnValue(false);
+            vi.spyOn(fs, 'existsSync').mockReturnValue(false);
 
             // Act
             const result = await agentManager.executeAgent('non-existent-agent');
@@ -489,7 +489,7 @@ description: A test agent
             (fs.existsSync as jest.Mock).mockImplementation((p) => {
                 return p.includes(`${agentName}.md`);
             });
-            (fs.promises.readFile as jest.Mock).mockResolvedValue(agentContent);
+            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(agentContent);
             mockCodexProvider.invokeCodexHeadless.mockResolvedValue({
                 exitCode: 0,
                 output: 'Success'
@@ -555,7 +555,7 @@ description: Creates requirements
             (fs.existsSync as jest.Mock).mockImplementation((p) => {
                 return p.includes(`${agentName}.md`);
             });
-            (fs.promises.readFile as jest.Mock).mockResolvedValue(agentContent);
+            vi.spyOn(fs.promises, 'readFile').mockResolvedValue(agentContent);
             mockCodexProvider.invokeCodexSplitView.mockResolvedValue({} as any);
 
             // Act

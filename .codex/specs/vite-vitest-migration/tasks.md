@@ -28,7 +28,7 @@
   - Set up any required test environment globals
   - _Requirements: 2.5_
 
-- [ ] 5. Add parallel npm scripts for Vite/Vitest
+- [x] 5. Add parallel npm scripts for Vite/Vitest
   - Add build:vite script that runs build-prompts then vite build
   - Add test:vitest script for running Vitest
   - Add test:vitest:watch script for watch mode testing
@@ -37,6 +37,24 @@
   - _Requirements: 5.1_
 
 - [ ] 6. Migrate Jest test syntax to Vitest
+  - NOTE: This task is partially complete. The following files were migrated:
+  - `/home/atman/repos/kiro-for-codex/tests/integration/prompt-snapshots.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/integration/prompts.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/config/package-menus.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/prompts/markdown-parsing.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/services/command-builder.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/providers/codex-availability.test.ts`
+  - The following files were skipped due to complexity and require manual migration:
+  - `/home/atman/repos/kiro-for-codex/tests/unit/features/steering/steering-manager.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/features/agents/agent-manager.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/features/spec/spec-manager.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/providers/agents-explorer-provider.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/providers/codex-provider.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/providers/prompts-explorer-provider.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/services/error-handler.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/services/retry-service.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/utils/config-manager.test.ts`
+  - `/home/atman/repos/kiro-for-codex/tests/unit/utils/update-checker.test.ts`
   - Replace all jest.* imports with vi.* equivalents from vitest
   - Convert jest.fn() to vi.fn() throughout test files
   - Convert jest.spyOn() to vi.spyOn() throughout test files

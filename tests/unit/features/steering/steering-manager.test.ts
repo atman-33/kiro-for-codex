@@ -1,46 +1,47 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { SteeringManager } from '../../../../src/features/steering/steering-manager';
 import { CodexProvider } from '../../../../src/providers/codex-provider';
 
 // Mock vscode
-jest.mock('vscode', () => ({
+vi.mock('vscode', () => ({
   window: {
-    showInputBox: jest.fn(),
-    showErrorMessage: jest.fn(),
-    withProgress: jest.fn(),
-    showWarningMessage: jest.fn()
+    showInputBox: vi.fn(),
+    showErrorMessage: vi.fn(),
+    withProgress: vi.fn(),
+    showWarningMessage: vi.fn()
   },
   workspace: {
     workspaceFolders: [{ uri: { fsPath: '/test/workspace' } }],
     fs: {
-      createDirectory: jest.fn(),
-      readDirectory: jest.fn(),
-      stat: jest.fn(),
-      delete: jest.fn(),
-      writeFile: jest.fn()
+      createDirectory: vi.fn(),
+      readDirectory: vi.fn(),
+      stat: vi.fn(),
+      delete: vi.fn(),
+      writeFile: vi.fn()
     },
-    openTextDocument: jest.fn()
+    openTextDocument: vi.fn()
   },
   Uri: {
-    file: jest.fn((p) => ({ fsPath: p }))
+    file: vi.fn((p) => ({ fsPath: p }))
   },
   FileType: { File: 1, Directory: 2 },
   ProgressLocation: { Notification: 15 }
 }));
 
 // Mock CodexProvider
-jest.mock('../../../../src/providers/codex-provider');
+vi.mock('../../../../src/providers/codex-provider');
 
 // Mock NotificationUtils
-jest.mock('../../../../src/utils/notification-utils', () => ({
+vi.mock('../../../../src/utils/notification-utils', () => ({
   NotificationUtils: {
-    showAutoDismissNotification: jest.fn()
+    showAutoDismissNotification: vi.fn()
   }
 }));
 
 // Mock PromptLoader
-const renderPromptMock = jest.fn(() => 'mocked prompt content');
-jest.mock('../../../../src/services/prompt-loader', () => ({
+const renderPromptMock = vi.fn(() => 'mocked prompt content');
+vi.mock('../../../../src/services/prompt-loader', () => ({
   PromptLoader: {
     getInstance: jest.fn(() => ({
       renderPrompt: renderPromptMock
@@ -49,11 +50,11 @@ jest.mock('../../../../src/services/prompt-loader', () => ({
 }));
 
 // Mock ConfigManager
-const getPathMock = jest.fn((key: string) => (key === 'steering' ? '.codex/steering' : ''));
-jest.mock('../../../../src/utils/config-manager', () => ({
+const getPathMock = vi.fn((key: string) => (key === 'steering' ? '.codex/steering' : ''));
+vi.mock('../../../../src/utils/config-manager', () => ({
   ConfigManager: {
     getInstance: jest.fn(() => ({
-      loadSettings: jest.fn(),
+      loadSettings: vi.fn(),
       getPath: getPathMock
     }))
   }
@@ -61,27 +62,27 @@ jest.mock('../../../../src/utils/config-manager', () => ({
 
 describe('SteeringManager.createProjectDocumentation', () => {
   let steeringManager: SteeringManager;
-  let mockCodexProvider: jest.Mocked<CodexProvider>;
+  let mockCodexProvider: vi.Mocked<CodexProvider>;
   let mockOutputChannel: any;
 
   beforeEach(() => {
     mockOutputChannel = {
-      appendLine: jest.fn(),
-      show: jest.fn(),
-      dispose: jest.fn()
+      appendLine: vi.fn(),
+      show: vi.fn(),
+      dispose: vi.fn()
     };
 
     mockCodexProvider = {
-      invokeCodexSplitView: jest.fn().mockResolvedValue({} as any),
-      getCodexConfig: jest.fn(() => ({ defaultApprovalMode: 'interactive' }))
-    } as unknown as jest.Mocked<CodexProvider>;
+      invokeCodexSplitView: vi.fn().mockResolvedValue({} as any),
+      getCodexConfig: vi.fn(() => ({ defaultApprovalMode: 'interactive' }))
+    } as unknown as vi.Mocked<CodexProvider>;
 
     steeringManager = new SteeringManager(mockCodexProvider, mockOutputChannel);
     renderPromptMock.mockClear();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders the create-agents-md prompt with correct variables and invokes Codex', async () => {

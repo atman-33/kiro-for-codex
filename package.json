@@ -32,9 +32,13 @@
     "compile-web": "webpack --mode development",
     "watch-web": "webpack --mode development --watch",
     "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
+    "build:vite": "npm run build-prompts && vite build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:vitest": "vitest",
+    "test:vitest:watch": "vitest --watch",
+    "test:vitest:coverage": "vitest --coverage"
   },
   "contributes": {
     "viewsContainers": {

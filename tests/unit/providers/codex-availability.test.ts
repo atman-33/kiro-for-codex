@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 describe('Codex CLI Availability Checking', () => {
   describe('Task 3 Implementation', () => {

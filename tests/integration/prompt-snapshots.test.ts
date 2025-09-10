@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from '@jest/globals';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { PromptLoader } from '../../src/services/prompt-loader';
 
 describe('Prompt Snapshot Tests', () => {
