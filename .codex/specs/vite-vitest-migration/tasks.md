@@ -2,12 +2,12 @@
 
 ## Phase 1: Introduce Vite/Vitest alongside existing tooling
 
-- [ ] 1. Install Vite and Vitest dependencies
+- [x] 1. Install Vite and Vitest dependencies
   - Add Vite, Vitest, and required plugins as devDependencies
   - Install vite-plugin-static-copy for resource copying
   - _Requirements: 1.1, 2.1_
 
-- [ ] 2. Create Vite configuration for SSR/Node build
+- [x] 2. Create Vite configuration for SSR/Node build
   - Create vite.config.ts with SSR build targeting Node environment
   - Configure Rollup options for CommonJS output to dist/extension.js
   - Externalize vscode module to prevent bundling
@@ -15,14 +15,14 @@
   - Generate external source maps without inlined sources
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 3. Create Vitest configuration for Node environment testing
+- [x] 3. Create Vitest configuration for Node environment testing
   - Create vitest.config.ts with Node test environment
   - Configure test includes for tests/**/*.test.ts pattern
   - Set up vscode module alias to tests/__mocks__/vscode.ts
   - Configure V8 coverage provider with text, lcov, and html reporters
   - _Requirements: 2.1, 2.2, 2.4_
 
-- [ ] 4. Create Vitest setup file for Jest compatibility
+- [x] 4. Create Vitest setup file for Jest compatibility
   - Create vitest.setup.ts for global test configuration
   - Configure snapshot format to match existing Jest settings
   - Set up any required test environment globals
