@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Prompt Snapshot Tests > INT-15: create spec prompt snapshot 1`] = `
+exports[`Prompt Snapshot Tests > create spec prompt snapshot 1`] = `
 "
 
 <system>
@@ -352,7 +352,15 @@ You have full control over the naming and file creation.
 "
 `;
 
-exports[`Prompt Snapshot Tests > INT-16: init steering prompt snapshot 1`] = `
+exports[`Prompt Snapshot Tests > delete steering prompt snapshot 1`] = `
+"
+The steering document "deprecated-guidelines.md" has been deleted from /snapshot/test/.codex/steering.
+
+If a project documentation file exists and contains a "## Steering Documents" section, please update it to remove the reference to this deleted document.
+"
+`;
+
+exports[`Prompt Snapshot Tests > init steering prompt snapshot 1`] = `
 "
 <system>
 You are analyzing a codebase to create steering documents that will guide AI assistants working on this project.
@@ -425,7 +433,7 @@ IMPORTANT:
 "
 `;
 
-exports[`Prompt Snapshot Tests > INT-18: refine steering prompt snapshot 1`] = `
+exports[`Prompt Snapshot Tests > refine steering prompt snapshot 1`] = `
 "
 <system>
 You are refining a steering document. The current content is provided below.
@@ -458,15 +466,7 @@ After refining, overwrite the original file with the improved content.
 "
 `;
 
-exports[`Prompt Snapshot Tests > INT-19: delete steering prompt snapshot 1`] = `
-"
-The steering document "deprecated-guidelines.md" has been deleted from /snapshot/test/.codex/steering.
-
-If a project documentation file exists and contains a "## Steering Documents" section, please update it to remove the reference to this deleted document.
-"
-`;
-
-exports[`Prompt Snapshot Tests INT-15: create spec prompt snapshot 1`] = `
+exports[`Prompt Snapshot Tests create spec prompt snapshot 1`] = `
 "
 
 <system>
@@ -818,7 +818,15 @@ You have full control over the naming and file creation.
 "
 `;
 
-exports[`Prompt Snapshot Tests INT-16: init steering prompt snapshot 1`] = `
+exports[`Prompt Snapshot Tests delete steering prompt snapshot 1`] = `
+"
+The steering document "deprecated-guidelines.md" has been deleted from /snapshot/test/.codex/steering.
+
+If a project documentation file exists and contains a "## Steering Documents" section, please update it to remove the reference to this deleted document.
+"
+`;
+
+exports[`Prompt Snapshot Tests init steering prompt snapshot 1`] = `
 "
 <system>
 You are analyzing a codebase to create steering documents that will guide AI assistants working on this project.
@@ -891,7 +899,7 @@ IMPORTANT:
 "
 `;
 
-exports[`Prompt Snapshot Tests INT-18: refine steering prompt snapshot 1`] = `
+exports[`Prompt Snapshot Tests refine steering prompt snapshot 1`] = `
 "
 <system>
 You are refining a steering document. The current content is provided below.
@@ -921,13 +929,5 @@ Refine this document to:
 5. Keep the refined content focused on actionable guidance
 
 After refining, overwrite the original file with the improved content.
-"
-`;
-
-exports[`Prompt Snapshot Tests INT-19: delete steering prompt snapshot 1`] = `
-"
-The steering document "deprecated-guidelines.md" has been deleted from /snapshot/test/.codex/steering.
-
-If a project documentation file exists and contains a "## Steering Documents" section, please update it to remove the reference to this deleted document.
 "
 `;

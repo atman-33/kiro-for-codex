@@ -1,6 +1,6 @@
-import { vi, describe, test, expect, beforeEach, afterEach, Mock, Mocked } from 'vitest';
 import * as os from 'os';
 import * as path from 'path';
+import { afterEach, beforeEach, describe, expect, Mock, Mocked, test, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { AgentInfo, AgentManager } from '../../../src/features/agents/agent-manager';
 import { AgentsExplorerProvider } from '../../../src/providers/agents-explorer-provider';
@@ -122,7 +122,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('1. Constructor and Initialization', () => {
-        test('TC-AEP-001: Constructor initialization', () => {
+        test('Constructor initialization', () => {
             // Assert
             expect(provider).toBeDefined();
             expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(4);
@@ -130,7 +130,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('2. Tree Structure Generation', () => {
-        test('TC-AEP-002: Get root nodes (user and project groups)', async () => {
+        test('Get root nodes (user and project groups)', async () => {
             // Arrange
             mockAgentManager.getAgentList.mockResolvedValue([]);
 
@@ -145,7 +145,7 @@ describe('AgentsExplorerProvider', () => {
             expect(children[1].collapsibleState).toBe(vscode.TreeItemCollapsibleState.Expanded);
         });
 
-        test('TC-AEP-003: Display loading state', async () => {
+        test('Display loading state', async () => {
             // Arrange
             mockAgentManager.getAgentList.mockResolvedValue([]);
 
@@ -171,7 +171,7 @@ describe('AgentsExplorerProvider', () => {
             expect(normalChildren[0].label).toBe('User Agents');
         });
 
-        test('TC-AEP-004: Get agents within group', async () => {
+        test('Get agents within group', async () => {
             // Arrange
             const mockAgents: AgentInfo[] = [
                 {
@@ -204,7 +204,7 @@ describe('AgentsExplorerProvider', () => {
             expect(agentNodes[1].label).toBe('Test Agent 2');
         });
 
-        test('TC-AEP-005: Handle no workspace situation', async () => {
+        test('Handle no workspace situation', async () => {
             // Arrange
             (vscode.workspace as any).workspaceFolders = undefined;
 
@@ -217,7 +217,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('3. Tree Node Properties', () => {
-        test('TC-AEP-006: Agent node properties', async () => {
+        test('Agent node properties', async () => {
             // Arrange
             const mockAgent: AgentInfo = {
                 name: 'Test Agent',
@@ -244,7 +244,7 @@ describe('AgentsExplorerProvider', () => {
             });
         });
 
-        test('TC-AEP-007: Group node properties', async () => {
+        test('Group node properties', async () => {
             // Arrange
             mockAgentManager.getAgentList.mockResolvedValue([]);
 
@@ -264,7 +264,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('4. File Watching Functionality', () => {
-        test('TC-AEP-008: Set up project agents file watching', () => {
+        test('Set up project agents file watching', () => {
             // Assert
             expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalled();
             expect(mockFileWatcher.onDidCreate).toHaveBeenCalled();
@@ -272,12 +272,12 @@ describe('AgentsExplorerProvider', () => {
             expect(mockFileWatcher.onDidDelete).toHaveBeenCalled();
         });
 
-        test('TC-AEP-009: Set up user agents file watching', () => {
+        test('Set up user agents file watching', () => {
             // Assert
             expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(4);
         });
 
-        test('TC-AEP-010: File changes trigger refresh', () => {
+        test('File changes trigger refresh', () => {
             // Arrange
             const mockEventEmitter = {
                 fire: vi.fn(),
@@ -302,7 +302,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('5. Refresh Mechanism', () => {
-        test('TC-AEP-011: Manual refresh functionality', async () => {
+        test('Manual refresh functionality', async () => {
             // Arrange
             const mockEventEmitter = {
                 fire: vi.fn(),
@@ -325,7 +325,7 @@ describe('AgentsExplorerProvider', () => {
             expect(mockEventEmitter.fire).toHaveBeenCalledTimes(2);
         });
 
-        test('TC-AEP-012: Data update during refresh', async () => {
+        test('Data update during refresh', async () => {
             // Arrange - initial data
             mockAgentManager.getAgentList.mockResolvedValue([{
                 name: 'Old Agent',
@@ -359,7 +359,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('6. Error Handling', () => {
-        test('TC-AEP-013: Handle AgentManager errors', async () => {
+        test('Handle AgentManager errors', async () => {
             // Note: The actual implementation doesn't have error handling,
             // so we'll just verify that the method doesn't crash
             // when getAgentList fails
@@ -386,7 +386,7 @@ describe('AgentsExplorerProvider', () => {
             expect(agents).toEqual([]);
         });
 
-        test('TC-AEP-014: Handle user watcher creation failure', () => {
+        test('Handle user watcher creation failure', () => {
             // Arrange
             // The provider creates four watchers in order:
             // 1) project watcher (primary)
@@ -419,7 +419,7 @@ describe('AgentsExplorerProvider', () => {
     });
 
     describe('7. Resource Cleanup', () => {
-        test('TC-AEP-015: dispose method resource cleanup', () => {
+        test('dispose method resource cleanup', () => {
             // Act
             provider.dispose();
 

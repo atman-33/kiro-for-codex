@@ -115,7 +115,7 @@ describe('AgentManager', () => {
     });
 
     describe('1. Constructor and Initialization', () => {
-        test('TC-AM-001: Constructor initialization', () => {
+        test('Constructor initialization', () => {
             // Arrange & Act - already done in beforeEach
 
             // Assert
@@ -127,7 +127,7 @@ describe('AgentManager', () => {
     });
 
     describe('2. Built-in Agents Initialization', () => {
-        test('TC-AM-002: Successfully initialize built-in agents', async () => {
+        test('Successfully initialize built-in agents', async () => {
             // Arrange
             const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc');
 
@@ -148,7 +148,7 @@ describe('AgentManager', () => {
             );
         });
 
-        test('TC-AM-003: Skip existing built-in agents', async () => {
+        test('Skip existing built-in agents', async () => {
             // Arrange
             // Mock that some agents already exist
             (vscode.workspace.fs.stat as Mocked<any>).mockImplementation((uri) => {
@@ -170,7 +170,7 @@ describe('AgentManager', () => {
             );
         });
 
-        test('TC-AM-004: Handle initialization errors', async () => {
+        test('Handle initialization errors', async () => {
             // Arrange
             (vscode.workspace.fs.createDirectory as Mocked<any>).mockRejectedValue(
                 new Error('Permission denied')
@@ -187,7 +187,7 @@ describe('AgentManager', () => {
     });
 
     describe('3. Agent List Retrieval', () => {
-        test('TC-AM-005: Get project-level agents', async () => {
+        test('Get project-level agents', async () => {
             // Arrange
             const mockAgentContent = `---
 name: Test Agent
@@ -218,7 +218,7 @@ Agent content here`;
             });
         });
 
-        test('TC-AM-006: Get user-level agents', async () => {
+        test('Get user-level agents', async () => {
             // Arrange
             const mockAgentContent = `---
 name: User Agent
@@ -249,7 +249,7 @@ tools: Read, Write, Task
             expect(agents[0].tools).toEqual(['Read', 'Write', 'Task']);
         });
 
-        test('TC-AM-007: Handle empty directories', async () => {
+        test('Handle empty directories', async () => {
             // Arrange
             (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue([]);
 
@@ -260,7 +260,7 @@ tools: Read, Write, Task
             expect(agents).toEqual([]);
         });
 
-        test('TC-AM-008: Parse YAML frontmatter', async () => {
+        test('Parse YAML frontmatter', async () => {
             // Arrange
             const testCases = [
                 {
@@ -312,7 +312,7 @@ description: No tools
     });
 
     describe('4. Agent Path Management', () => {
-        test('TC-AM-009: Get agent path', () => {
+        test('Get agent path', () => {
             // Arrange (normalize path comparison for cross-OS)
             const expectedNeedle = path.join('.codex', 'agents', 'kfc', 'test-agent.md');
             (fs.existsSync as Mocked<any>).mockImplementation((p: string) => {
@@ -327,7 +327,7 @@ description: No tools
             expect(agentPath).toBe(expectedFull);
         });
 
-        test('TC-AM-010: Get non-existent agent path returns null', () => {
+        test('Get non-existent agent path returns null', () => {
             // Arrange
             (fs.existsSync as Mocked<any>).mockReturnValue(false);
 
@@ -338,7 +338,7 @@ description: No tools
             expect(agentPath).toBeNull();
         });
 
-        test('TC-AM-011: Check agent existence', () => {
+        test('Check agent existence', () => {
             // Arrange
             const expectedExisting = path.join('kfc', 'existing-agent.md');
             (fs.existsSync as Mocked<any>).mockImplementation((p: string) => {
@@ -355,7 +355,7 @@ description: No tools
     // Note: initializeSystemPrompts was moved to initializeBuiltInAgents
 
     describe('6. Boundary Cases and Error Handling', () => {
-        test('TC-AM-014: Handle invalid YAML', async () => {
+        test('Handle invalid YAML', async () => {
             // Arrange
             const invalidYaml = `---
 name: Invalid Agent
@@ -377,7 +377,7 @@ tools: [unclosed array
             );
         });
 
-        test('TC-AM-015: Handle file read permission issues', async () => {
+        test('Handle file read permission issues', async () => {
             // Arrange
             // Mock readDirectory to return files
             (vscode.workspace.fs.readDirectory as Mocked<any>).mockResolvedValue([
@@ -399,7 +399,7 @@ tools: [unclosed array
             );
         });
 
-        test('TC-AM-016: Handle empty workspace', async () => {
+        test('Handle empty workspace', async () => {
             // Arrange
             (vscode.workspace as any).workspaceFolders = undefined;
             const noWorkspaceManager = new AgentManager(mockContext, mockOutputChannel, mockCodexProvider);
@@ -419,7 +419,7 @@ tools: [unclosed array
     });
 
     describe('7. Agent Execution with Codex Integration', () => {
-        test('TC-AM-017: Execute agent successfully', async () => {
+        test('Execute agent successfully', async () => {
             // Arrange
             const agentName = 'test-agent';
             const agentContent = `---
@@ -447,7 +447,7 @@ This is a test agent for {{parameter1}}.`;
             );
         });
 
-        test('TC-AM-018: Execute agent with Codex unavailable', async () => {
+        test('Execute agent with Codex unavailable', async () => {
             // Arrange
             mockCodexProvider.isCodexReady.mockResolvedValue(false);
             mockCodexProvider.getCodexAvailabilityStatus.mockResolvedValue({
@@ -468,7 +468,7 @@ This is a test agent for {{parameter1}}.`;
             expect(mockCodexProvider.showSetupGuidance).toHaveBeenCalled();
         });
 
-        test('TC-AM-019: Execute non-existent agent', async () => {
+        test('Execute non-existent agent', async () => {
             // Arrange
             (fs.existsSync as Mocked<any>).mockReturnValue(false);
 
@@ -480,7 +480,7 @@ This is a test agent for {{parameter1}}.`;
             expect(result.error).toContain('not found');
         });
 
-        test('TC-AM-020: Execute agent in headless mode', async () => {
+        test('Execute agent in headless mode', async () => {
             // Arrange
             const agentName = 'test-agent';
             const agentContent = `---
@@ -508,7 +508,7 @@ description: A test agent
             expect(mockCodexProvider.invokeCodexHeadless).toHaveBeenCalled();
         });
 
-        test('TC-AM-021: Check agent readiness', async () => {
+        test('Check agent readiness', async () => {
             // Arrange
             (fs.existsSync as Mocked<any>).mockImplementation((p) => {
                 return p.includes('existing-agent.md');
@@ -519,7 +519,7 @@ description: A test agent
             expect(await agentManager.isAgentReady('non-existent-agent')).toBe(false);
         });
 
-        test('TC-AM-022: Get Codex status', async () => {
+        test('Get Codex status', async () => {
             // Arrange
             const mockConfig = {
                 codexPath: 'codex',
@@ -537,7 +537,7 @@ description: A test agent
             expect(status.config).toEqual(mockConfig);
         });
 
-        test('TC-AM-023: Set Codex approval mode', async () => {
+        test('Set Codex approval mode', async () => {
             // Act
             await agentManager.setCodexApprovalMode('auto-edit' as any);
 
@@ -545,7 +545,7 @@ description: A test agent
             expect(mockCodexProvider.setApprovalMode).toHaveBeenCalledWith('auto-edit');
         });
 
-        test('TC-AM-024: Execute spec agent', async () => {
+        test('Execute spec agent', async () => {
             // Arrange
             const agentName = 'spec-requirements-codex';
             const specName = 'test-spec';
