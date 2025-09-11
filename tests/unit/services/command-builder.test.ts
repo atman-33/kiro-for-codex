@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ApprovalMode } from '../../../src/providers/codex-provider';
 import { CommandBuilder, CommandOptions } from '../../../src/services/command-builder';
 
@@ -9,7 +9,7 @@ describe('CommandBuilder', () => {
         commandBuilder = new CommandBuilder();
     });
 
-    describe('buildCommand', () => {
+    describe('buildCommand', () => {3
         it('should build basic command with default options', () => {
             const promptFilePath = '/tmp/prompt.md';
             const options: CommandOptions = {

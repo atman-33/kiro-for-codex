@@ -1,18 +1,30 @@
+import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
 import * as vscode from 'vscode';
 import { UpdateChecker } from '../../../src/utils/update-checker';
 
 // Mock fetch globally
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
-// Mock vscode.env
-(vscode as any).env = {
-    openExternal: jest.fn()
-};
+// Mock vscode
+vi.mock('vscode', () => ({
+    env: {
+        openExternal: vi.fn()
+    },
+    extensions: {
+        getExtension: vi.fn()
+    },
+    window: {
+        showInformationMessage: vi.fn()
+    },
+    Uri: {
+        parse: (s: string) => s
+    }
+}));
 
 // Mock NotificationUtils
-jest.mock('../../../src/utils/notification-utils', () => ({
+vi.mock('../../../src/utils/notification-utils', () => ({
     NotificationUtils: {
-        showAutoDismissNotification: jest.fn().mockResolvedValue(undefined)
+        showAutoDismissNotification: vi.fn().mockResolvedValue(undefined)
     }
 }));
 
@@ -24,13 +36,13 @@ describe('UpdateChecker', () => {
 
     beforeEach(() => {
         // Reset all mocks
-        jest.clearAllMocks();
-        (global.fetch as jest.Mock).mockClear();
+        vi.clearAllMocks();
+        (global.fetch as Mock).mockClear();
 
         // Mock global state
         mockGlobalState = {
-            get: jest.fn(),
-            update: jest.fn().mockResolvedValue(undefined)
+            get: vi.fn(),
+            update: vi.fn().mockResolvedValue(undefined)
         };
 
         // Mock extension context
@@ -40,7 +52,7 @@ describe('UpdateChecker', () => {
 
         // Mock output channel
         mockOutputChannel = {
-            appendLine: jest.fn()
+            appendLine: vi.fn()
         } as any;
 
         // Mock vscode.extensions
@@ -49,10 +61,10 @@ describe('UpdateChecker', () => {
                 version: '0.1.8'
             }
         };
-        (vscode.extensions.getExtension as jest.Mock).mockReturnValue(mockExtension);
+        (vscode.extensions.getExtension as Mock).mockReturnValue(mockExtension);
 
         // Mock showInformationMessage
-        (vscode.window.showInformationMessage as jest.Mock).mockResolvedValue(undefined);
+        (vscode.window.showInformationMessage as Mock).mockResolvedValue(undefined);
 
         updateChecker = new UpdateChecker(mockContext, mockOutputChannel);
     });
@@ -66,7 +78,7 @@ describe('UpdateChecker', () => {
                 body: 'Release notes'
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockRelease
             });
@@ -85,7 +97,7 @@ describe('UpdateChecker', () => {
         });
 
         it('should handle API errors gracefully', async () => {
-            (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+            (global.fetch as Mock).mockRejectedValueOnce(new Error('Network error'));
 
             await updateChecker.checkForUpdates();
 
@@ -95,7 +107,7 @@ describe('UpdateChecker', () => {
         });
 
         it('should handle non-OK responses', async () => {
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: false,
                 status: 404,
                 statusText: 'Not Found'
@@ -122,7 +134,7 @@ describe('UpdateChecker', () => {
         testCases.forEach(({ current, latest, shouldUpdate }) => {
             it(`should ${shouldUpdate ? 'show' : 'not show'} update for ${current} -> ${latest}`, async () => {
                 // Mock current version
-                (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
+                (vscode.extensions.getExtension as Mock).mockReturnValue({
                     packageJSON: { version: current }
                 });
 
@@ -135,7 +147,7 @@ describe('UpdateChecker', () => {
                     name: `Release ${latest}`
                 };
 
-                (global.fetch as jest.Mock).mockResolvedValueOnce({
+                (global.fetch as Mock).mockResolvedValueOnce({
                     ok: true,
                     json: async () => mockRelease
                 });
@@ -154,7 +166,7 @@ describe('UpdateChecker', () => {
     describe('User Interactions', () => {
         beforeEach(() => {
             // Mock NotificationUtils
-            jest.mock('../../../src/utils/notification-utils');
+            vi.mock('../../../src/utils/notification-utils');
         });
 
         it('should open changelog when "View Changelog" is clicked', async () => {
@@ -163,13 +175,13 @@ describe('UpdateChecker', () => {
                 name: 'Release v0.1.9'
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockRelease
             });
 
             // Mock user clicking "View Changelog"
-            (vscode.window.showInformationMessage as jest.Mock).mockResolvedValueOnce('View Changelog');
+            (vscode.window.showInformationMessage as Mock).mockResolvedValueOnce('View Changelog');
 
             await updateChecker.checkForUpdates();
 
@@ -187,13 +199,13 @@ describe('UpdateChecker', () => {
                 name: 'Release v0.1.9'
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockRelease
             });
 
             // Mock user clicking "Skip"
-            (vscode.window.showInformationMessage as jest.Mock).mockResolvedValueOnce('Skip');
+            (vscode.window.showInformationMessage as Mock).mockResolvedValueOnce('Skip');
 
             await updateChecker.checkForUpdates();
 
@@ -215,7 +227,7 @@ describe('UpdateChecker', () => {
                 name: 'Release v0.1.9'
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockRelease
             });
@@ -253,7 +265,7 @@ describe('UpdateChecker', () => {
                 name: 'Release v0.1.8'
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockRelease
             });

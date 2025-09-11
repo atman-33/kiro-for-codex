@@ -1,14 +1,14 @@
-import { describe, expect, test } from '@jest/globals';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import matter from 'gray-matter';
 import * as path from 'path';
+import { describe, expect, test } from 'vitest';
 
 describe('Markdown Prompt Parsing', () => {
   const promptsDir = path.join(__dirname, '../../../src/prompts');
 
   describe('Markdown File Structure', () => {
-    test('MD-01: Verify frontmatter of all markdown files', () => {
+    test('Verify frontmatter of all markdown files', () => {
       const mdFiles = glob.sync('**/*.md', { cwd: promptsDir });
 
       expect(mdFiles.length).toBeGreaterThan(0);
@@ -37,7 +37,7 @@ describe('Markdown Prompt Parsing', () => {
       });
     });
 
-    test('MD-02: Verify Handlebars variable definition consistency', () => {
+    test('Verify Handlebars variable definition consistency', () => {
       const mdFiles = glob.sync('**/*.md', { cwd: promptsDir });
 
       mdFiles.forEach((file: string) => {
@@ -71,7 +71,7 @@ describe('Markdown Prompt Parsing', () => {
   });
 
   describe('Example Markdown Prompts', () => {
-    test('MD-03: Verify create-spec.md file structure', () => {
+    test('Verify create-spec.md file structure', () => {
       const specPromptPath = path.join(promptsDir, 'spec/create-spec.md');
       const content = fs.readFileSync(specPromptPath, 'utf-8');
       const { data, content: body } = matter(content);
@@ -109,7 +109,7 @@ describe('Markdown Prompt Parsing', () => {
       expect(body).toContain('{{specBasePath}}');
     });
 
-    test('MD-04: Verify init-steering.md file structure', () => {
+    test('Verify init-steering.md file structure', () => {
       const steeringPromptPath = path.join(promptsDir, 'steering/init-steering.md');
       const content = fs.readFileSync(steeringPromptPath, 'utf-8');
       const { data, content: body } = matter(content);
@@ -122,7 +122,7 @@ describe('Markdown Prompt Parsing', () => {
   });
 
   describe('Markdown to TypeScript Compilation', () => {
-    test('MD-05: Verify compiled TypeScript file consistency', () => {
+    test('Verify compiled TypeScript file consistency', () => {
       // Compare a markdown file with its compiled TypeScript
       const mdPath = path.join(promptsDir, 'spec/create-spec.md');
       const tsPath = path.join(promptsDir, 'target/spec/create-spec.ts');
@@ -151,7 +151,7 @@ describe('Markdown Prompt Parsing', () => {
 });
 
 describe('Test with Mock Markdown Files', () => {
-  test('MD-06: Parse simple greeting prompt', () => {
+  test('Parse simple greeting prompt', () => {
     const mockMarkdown = `---
 id: test-greeting
 name: Greeting Prompt
@@ -188,7 +188,7 @@ Let me help you with your request.`;
     expect(content).toContain('{{#if mood}}');
   });
 
-  test('MD-07: Parse complex prompt with system tags', () => {
+  test('Parse complex prompt with system tags', () => {
     const mockMarkdown = `---
 id: complex-prompt
 name: Complex System Prompt

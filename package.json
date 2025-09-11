@@ -23,18 +23,15 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
-    "build": "npm run package-web",
-    "vscode:prepublish": "npm run package-web",
+    "build": "npm run build-prompts && vite build",
+    "vscode:prepublish": "npm run build",
     "compile": "npm run build-prompts && tsc -p ./ && npm run package",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
     "package": "vsce package",
     "build-prompts": "node scripts/build-prompts.js",
-    "compile-web": "webpack --mode development",
-    "watch-web": "webpack --mode development --watch",
-    "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
   },
   "contributes": {
     "viewsContainers": {
@@ -461,21 +458,18 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
     "@types/glob": "^8.1.0",
     "@types/handlebars": "^4.0.40",
-    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.x",
     "@types/vscode": "^1.84.0",
+    "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.0",
-    "copy-webpack-plugin": "^13.0.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.3.0",
-    "vsce": "^2.15.0",
-    "webpack": "^5.100.2",
-    "webpack-cli": "^6.0.1"
+    "vite": "^7.1.5",
+    "vite-plugin-static-copy": "^3.1.2",
+    "vitest": "^3.2.4",
+    "vsce": "^2.15.0"
   }
 }

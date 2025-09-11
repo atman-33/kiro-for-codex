@@ -25,7 +25,7 @@ tests/
     ├── prompts.md               # Prompts integration test documentation
     ├── prompt-snapshots.test.ts # Prompt snapshot tests
     ├── prompt-snapshots.md      # Prompt snapshot test documentation
-    └── __snapshots__/           # Jest snapshot files
+    └── __snapshots__/           # Vitest snapshot files
 ```
 
 ## Testing Strategy
