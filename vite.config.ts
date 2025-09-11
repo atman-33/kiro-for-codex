@@ -16,7 +16,8 @@ export default defineConfig({
         // CommonJS output format
         format: 'cjs',
         // Generate external source maps without inlined sources
-        sourcemapExcludeSources: true
+        sourcemapExcludeSources: true,
+        interop: 'compat'
       }
     }
   },
