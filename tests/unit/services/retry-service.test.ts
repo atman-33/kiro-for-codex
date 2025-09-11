@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi, Mocked } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mocked, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { CodexErrorHandler, ErrorType } from '../../../src/services/error-handler';
 import { RetryService } from '../../../src/services/retry-service';
@@ -43,7 +43,7 @@ describe('RetryService', () => {
 
   describe('Basic Retry Logic', () => {
     it('should execute operation successfully on first attempt', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockResolvedValue('success');
+      const operation = vi.fn().mockResolvedValue('success');
 
       const result = await retryService.executeWithRetry(
         operation,
@@ -59,7 +59,7 @@ describe('RetryService', () => {
 
     it('should retry on retryable errors', async () => {
       let attemptCount = 0;
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 3) {
           throw new Error('Timeout error');
@@ -93,7 +93,7 @@ describe('RetryService', () => {
     });
 
     it('should not retry on non-retryable errors', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Permission denied');
       });
 
@@ -116,7 +116,7 @@ describe('RetryService', () => {
     });
 
     it('should respect maximum attempts', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -142,7 +142,7 @@ describe('RetryService', () => {
 
   describe('Retry Configuration', () => {
     it('should use custom retry options', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Network error');
       });
 
@@ -167,7 +167,7 @@ describe('RetryService', () => {
     });
 
     it('should apply exponential backoff', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -198,7 +198,7 @@ describe('RetryService', () => {
     });
 
     it('should respect maximum delay', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -227,7 +227,7 @@ describe('RetryService', () => {
 
   describe('Callback Handling', () => {
     it('should call onRetry callback', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -255,7 +255,7 @@ describe('RetryService', () => {
 
     it('should call onSuccess callback', async () => {
       let attemptCount = 0;
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 2) {
           throw new Error('Timeout error');
@@ -289,7 +289,7 @@ describe('RetryService', () => {
     });
 
     it('should call onFailure callback', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -316,7 +316,7 @@ describe('RetryService', () => {
     });
 
     it('should use custom shouldRetry logic', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Custom error');
       });
 
@@ -369,7 +369,7 @@ describe('RetryService', () => {
 
   describe('Error Handling', () => {
     it('should propagate callback errors', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockResolvedValue('success');
+      const operation = vi.fn().mockResolvedValue('success');
       const onSuccess = vi.fn<(result: string, attempts: number) => void>().mockImplementation(() => {
         throw new Error('Callback error');
       });
@@ -387,7 +387,7 @@ describe('RetryService', () => {
     });
 
     it('should show user notifications for retries', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -418,7 +418,7 @@ describe('RetryService', () => {
 
     it('should show success notification for recovered operations', async () => {
       let attemptCount = 0;
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 2) {
           throw new Error('Timeout error');
@@ -451,7 +451,7 @@ describe('RetryService', () => {
 
   describe('Rate Limiting', () => {
     it('should handle rate limit errors with limited retries (max 3 attempts)', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Rate limit exceeded');
       });
 
@@ -478,7 +478,7 @@ describe('RetryService', () => {
 
   describe('Logging', () => {
     it('should log retry attempts', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 
@@ -510,7 +510,7 @@ describe('RetryService', () => {
     });
 
     it('should log final failure', async () => {
-      const operation = vi.fn<[], Promise<string>>().mockImplementation(() => {
+      const operation = vi.fn().mockImplementation(() => {
         throw new Error('Timeout error');
       });
 

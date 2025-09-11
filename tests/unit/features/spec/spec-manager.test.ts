@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import * as vscode from 'vscode';
 import { SpecManager } from '../../../../src/features/spec/spec-manager';
 import { CodexProvider } from '../../../../src/providers/codex-provider';
@@ -43,7 +43,7 @@ vi.mock('../../../../src/services/prompt-loader', () => ({
 
 describe('SpecManager with CodexProvider Integration', () => {
   let specManager: SpecManager;
-  let mockCodexProvider: vi.Mocked<CodexProvider>;
+  let mockCodexProvider: Mocked<CodexProvider>;
   let mockOutputChannel: any;
 
   beforeEach(() => {

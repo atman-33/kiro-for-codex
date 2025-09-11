@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as vscode from 'vscode';
+import { afterEach, beforeEach, describe, expect, it, Mocked, vi } from 'vitest';
 import { SteeringManager } from '../../../../src/features/steering/steering-manager';
 import { CodexProvider } from '../../../../src/providers/codex-provider';
 
@@ -62,7 +61,7 @@ vi.mock('../../../../src/utils/config-manager', () => ({
 
 describe('SteeringManager.createProjectDocumentation', () => {
   let steeringManager: SteeringManager;
-  let mockCodexProvider: vi.Mocked<CodexProvider>;
+  let mockCodexProvider: Mocked<CodexProvider>;
   let mockOutputChannel: any;
 
   beforeEach(() => {
@@ -75,7 +74,7 @@ describe('SteeringManager.createProjectDocumentation', () => {
     mockCodexProvider = {
       invokeCodexSplitView: vi.fn().mockResolvedValue({} as any),
       getCodexConfig: vi.fn(() => ({ defaultApprovalMode: 'interactive' }))
-    } as unknown as vi.Mocked<CodexProvider>;
+    } as unknown as Mocked<CodexProvider>;
 
     steeringManager = new SteeringManager(mockCodexProvider, mockOutputChannel);
     renderPromptMock.mockClear();
