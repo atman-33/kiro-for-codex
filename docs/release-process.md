@@ -32,7 +32,7 @@ This document describes how to cut a release and publish the extension to both t
    - Input `release_type`: `patch`, `minor`, or `major`.
 3) The workflow bumps the version (and updates `CHANGELOG.md`) and then creates/pushes tag `vX.Y.Z`.
 4) Tag push triggers `release.yml`, which:
-   - Checks out and builds (`npm ci`, `npm run compile`).
+   - Checks out and builds (`npm ci`, `npm run build`).
    - Packages the extension (`vsce package`) and attaches `*.vsix` to a GitHub Release named `Release vX.Y.Z` with changelog content.
    - Publishes to both registries using `HaaLeo/publish-vscode-extension@v2` (`skipDuplicate: true`).
 5) Verify:

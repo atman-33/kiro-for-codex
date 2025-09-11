@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import * as prompts from '../../../src/prompts/target';
 import { PromptLoader } from '../../../src/services/prompt-loader';
 
 // Mock the prompts module
-jest.mock('../../../src/prompts/target', () => ({
+vi.mock('../../../src/prompts/target', () => ({
   testPrompt: {
     frontmatter: {
       id: 'test-prompt',
@@ -38,7 +38,7 @@ describe('PromptLoader', () => {
   });
 
   describe('Singleton Pattern', () => {
-    test('PL-01: Get singleton instance', () => {
+    test('Get singleton instance', () => {
       const instance1 = PromptLoader.getInstance();
       const instance2 = PromptLoader.getInstance();
       expect(instance1).toBe(instance2);
@@ -46,7 +46,7 @@ describe('PromptLoader', () => {
   });
 
   describe('initialize()', () => {
-    test('PL-02: Initialize and load all prompts', () => {
+    test('Initialize and load all prompts', () => {
       promptLoader.initialize();
 
       // Check if prompts are loaded
@@ -54,9 +54,9 @@ describe('PromptLoader', () => {
       expect(() => promptLoader.loadPrompt('simple-prompt')).not.toThrow();
     });
 
-    test('PL-11: Handle invalid prompt modules', () => {
+    test('Handle invalid prompt modules', () => {
       // Mock prompts with invalid module
-      const mockedPrompts = jest.mocked(prompts) as any;
+      const mockedPrompts = vi.mocked(prompts) as any;
       mockedPrompts.invalidPrompt = { invalid: true };
 
       // Should not throw during initialization
@@ -69,7 +69,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-03: Load prompt by ID', () => {
+    test('Load prompt by ID', () => {
       const prompt = promptLoader.loadPrompt('test-prompt');
 
       expect(prompt).toBeDefined();
@@ -78,7 +78,7 @@ describe('PromptLoader', () => {
       expect(prompt.content).toContain('Hello {{name}}!');
     });
 
-    test('PL-04: Load non-existent prompt', () => {
+    test('Load non-existent prompt', () => {
       expect(() => promptLoader.loadPrompt('non-existent'))
         .toThrow('Prompt not found: non-existent');
     });
@@ -89,7 +89,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-05: Render prompt with all variables', () => {
+    test('Render prompt with all variables', () => {
       const result = promptLoader.renderPrompt('test-prompt', {
         name: 'John',
         age: 30
@@ -98,7 +98,7 @@ describe('PromptLoader', () => {
       expect(result).toBe('Hello John! You are 30 years old.');
     });
 
-    test('PL-06: Render prompt with missing optional variables', () => {
+    test('Render prompt with missing optional variables', () => {
       const result = promptLoader.renderPrompt('test-prompt', {
         name: 'Jane'
       });
@@ -106,12 +106,12 @@ describe('PromptLoader', () => {
       expect(result).toBe('Hello Jane! ');
     });
 
-    test('PL-07: Render prompt with missing required variables', () => {
+    test('Render prompt with missing required variables', () => {
       expect(() => promptLoader.renderPrompt('test-prompt', {}))
         .toThrow('Variable validation failed: Missing required variable: name');
     });
 
-    test('PL-08: Render simple prompt without variables', () => {
+    test('Render simple prompt without variables', () => {
       const result = promptLoader.renderPrompt('simple-prompt');
 
       expect(result).toBe('This is a simple prompt without any variables.');
@@ -134,7 +134,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-09: Get all prompts list', () => {
+    test('Get all prompts list', () => {
       const prompts = promptLoader.listPrompts();
 
       expect(prompts).toHaveLength(2);
@@ -163,7 +163,7 @@ describe('PromptLoader', () => {
       promptLoader.initialize();
     });
 
-    test('PL-04: Provide helpful error message and available prompts list', () => {
+    test('Provide helpful error message and available prompts list', () => {
       try {
         promptLoader.loadPrompt('wrong-id');
       } catch (error: any) {
@@ -171,7 +171,7 @@ describe('PromptLoader', () => {
       }
     });
 
-    test('PL-10: Handle invalid Handlebars syntax', () => {
+    test('Handle invalid Handlebars syntax', () => {
       // First initialize normally
       promptLoader.initialize();
 
