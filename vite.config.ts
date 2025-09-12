@@ -6,6 +6,8 @@ export default defineConfig({
     // SSR build targeting Node environment
     ssr: true,
     outDir: 'dist',
+    // Ensure previous artifacts are removed to avoid stale duplicates
+    emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
       input: 'src/extension.ts',
@@ -22,11 +24,13 @@ export default defineConfig({
     }
   },
   plugins: [
-    // Configure static copy plugin for src/resources to dist/resources
+    // Copy only the direct children of src/resources (e.g., agents/, prompts/)
+    // to dist/resources, preserving their internal structure and avoiding
+    // an extra nested "resources" directory.
     viteStaticCopy({
       targets: [
         {
-          src: 'src/resources/**',
+          src: 'src/resources/*',
           dest: 'resources'
         }
       ]
