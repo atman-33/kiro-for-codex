@@ -33,5 +33,4 @@ Use this guide to keep the VS Code extension "Kiro for Codex" aligned with its p
 ## Examples
 - Spec base path resolution: `SpecManager.getSpecBasePath()` returns `.codex/specs` by default.
 - Steering generation entry: `kfc.steering.generateInitial` uses `src/prompts/target/steering/init-steering.ts` through `PromptLoader`.
-- Packaging is extension-first; CLIs are invoked via terminal using `CommandBuilder` to assemble flags and model.
-
+- Packaging is extension-first; build artifacts are produced by Vite and then packaged with `vsce`. CLIs are invoked via terminal using `CommandBuilder` to assemble flags and model.
