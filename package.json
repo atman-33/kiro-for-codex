@@ -23,7 +23,8 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
-    "build": "npm run build-prompts && vite build",
+    "install:all": "npm install && cd webview-ui && npm install",
+    "build": "npm run build-prompts && vite build && npm run build:webview",
     "vscode:prepublish": "npm run build",
     "compile": "npm run build-prompts && tsc -p ./ && npm run package",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
@@ -39,7 +40,9 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "--- WEBVIEW ---": "--- --- --- --- ---",
+    "build:webview": "npm --prefix webview-ui run build"
   },
   "contributes": {
     "viewsContainers": {
@@ -125,6 +128,12 @@
       }
     ],
     "commands": [
+      {
+        "command": "kfc.codexChat.open",
+        "title": "Open Codex Chat (Preview)",
+        "category": "Kiro for Codex",
+        "icon": "$(comment-discussion)"
+      },
       {
         "command": "kfc.prompts.create",
         "title": "Create Prompt",
