@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { vscode } from '../bridge/vscode';
 
-export function Composer({ onSend }: { onSend?: (text: string) => void; }) {
+export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string, id: string) => void; isRunning?: boolean; onStop?: () => void; }) {
   const [text, setText] = useState('');
 
   const send = () => {
     const payload = text.trim();
     if (!payload) return;
     const id = Math.random().toString(36).slice(2);
-    // Send to extension as runOnce
-    vscode.postMessage({ type: 'codex.chat/runOnce', id, text: payload });
-    onSend?.(payload);
+    // Stream execution
+    vscode.postMessage({ type: 'codex.chat/runStream', id, text: payload });
+    onSend?.(payload, id);
     setText('');
   };
 
@@ -19,11 +19,16 @@ export function Composer({ onSend }: { onSend?: (text: string) => void; }) {
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-        placeholder="Type a message and press Enter"
+        onKeyDown={(e) => { if (!isRunning && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+        placeholder={isRunning ? 'Running...' : 'Type a message and press Enter'}
+        disabled={!!isRunning}
         style={{ flex: 1, padding: '8px 10px', borderRadius: 6, border: '1px solid var(--vscode-editorWidget-border, #555)' }}
       />
-      <button onClick={send} style={{ padding: '8px 12px', borderRadius: 6 }}>Send</button>
+      {isRunning ? (
+        <button onClick={onStop} style={{ padding: '8px 12px', borderRadius: 6 }}>Stop</button>
+      ) : (
+        <button onClick={send} style={{ padding: '8px 12px', borderRadius: 6 }}>Send</button>
+      )}
     </div>
   );
 }

@@ -31,8 +31,31 @@ export interface ErrorMessage {
 	ts: number;
 }
 
-export type InboundWebviewMessage = EchoMessage | RunOnceMessage;
+export interface RunStreamMessage {
+	type: "codex.chat/runStream";
+	id: string;
+	text: string;
+}
+
+export interface StopMessage {
+	type: "codex.chat/stop";
+	id: string; // correlation id of the running request
+}
+
+export interface ChunkMessage {
+	type: "codex.chat/chunk";
+	id: string;
+	text: string;
+	ts: number;
+}
+
+export type InboundWebviewMessage =
+	| EchoMessage
+	| RunOnceMessage
+	| RunStreamMessage
+	| StopMessage;
 export type OutboundWebviewMessage =
 	| EchoResultMessage
+	| ChunkMessage
 	| CompleteMessage
 	| ErrorMessage;

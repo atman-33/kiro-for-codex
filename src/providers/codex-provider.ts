@@ -667,6 +667,67 @@ export class CodexProvider {
 	}
 
 	/**
+	 * Execute Codex and stream output via callbacks. Returns a cancel controller.
+	 */
+	async executeCodexStream(
+		prompt: string,
+		options: CodexOptions | undefined,
+		handlers: {
+			onStdout?: (chunk: string) => void;
+			onStderr?: (chunk: string) => void;
+			onClose?: (exitCode: number) => void;
+		},
+	): Promise<{ cancel: () => void }> {
+		const availabilityResult =
+			await this.checkCodexInstallationAndCompatibility();
+		if (!availabilityResult.isAvailable) {
+			await this.showSetupGuidance(availabilityResult);
+			const error = new Error(
+				availabilityResult.errorMessage || "Codex CLI is not available",
+			) as Error & { codexErrorType?: ErrorType };
+			error.codexErrorType = availabilityResult.isInstalled
+				? ErrorType.VERSION_INCOMPATIBLE
+				: ErrorType.CLI_NOT_INSTALLED;
+			throw error;
+		}
+
+		const workingDir =
+			options?.workingDirectory ||
+			vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+		const args = (this.commandBuilder as any).buildArgs({
+			...this.codexConfig,
+			...options,
+		}) as string[];
+
+		const filteredArgs: string[] = [];
+		for (let i = 0; i < args.length; i++) {
+			const arg = args[i];
+			if (arg === "-a") {
+				i++;
+				continue;
+			}
+			if (arg === "--full-auto") {
+				continue;
+			}
+			filteredArgs.push(arg);
+		}
+		const execArgs = ["exec", ...filteredArgs, "-"];
+
+		const controller = this.processManager.executeCommandArgsStream(
+			this.codexConfig.codexPath,
+			execArgs,
+			{ cwd: workingDir, input: prompt },
+			{
+				onStdout: (chunk) => handlers.onStdout?.(chunk),
+				onStderr: (chunk) => handlers.onStderr?.(chunk),
+				onClose: (code) => handlers.onClose?.(code),
+			},
+		);
+
+		return { cancel: controller.cancel };
+	}
+
+	/**
 	 * Set the approval mode for Codex operations
 	 */
 	setApprovalMode(mode: ApprovalMode): void {

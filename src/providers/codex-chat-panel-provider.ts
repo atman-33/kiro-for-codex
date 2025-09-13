@@ -9,6 +9,8 @@ import { IPC } from "../types/ipc/codex-chat-events";
 export namespace CodexChatPanelProvider {
 	let panel: vscode.WebviewPanel | undefined;
 	let chatManager: ChatManager | undefined;
+	let currentCancel: (() => void) | undefined;
+	let currentId: string | undefined;
 
 	export function open(
 		context: vscode.ExtensionContext,
@@ -67,19 +69,83 @@ export namespace CodexChatPanelProvider {
 								id: msg.id,
 								text: out,
 								ts: Date.now(),
-							} as any;
+							};
 							newPanel.webview.postMessage(response);
-						} catch (e: any) {
-							const errMsg = e?.message || String(e);
+						} catch (e: unknown) {
+							const errMsg = e instanceof Error ? e.message : String(e);
 							const response: OutboundWebviewMessage = {
 								type: IPC.Error,
 								id: msg.id,
 								error: errMsg,
 								ts: Date.now(),
-							} as any;
+							};
 							newPanel.webview.postMessage(response);
 						}
 					})();
+					break;
+				}
+				case IPC.RunStream: {
+					(async () => {
+						try {
+							if (!chatManager) throw new Error("ChatManager unavailable");
+							// Cancel previous stream if exists
+							if (currentCancel) {
+								currentCancel();
+								currentCancel = undefined;
+								currentId = undefined;
+							}
+							currentId = msg.id;
+							const controller = await chatManager.runStream(msg.text, {
+								onChunk: (chunk) => {
+									const response: OutboundWebviewMessage = {
+										type: IPC.Chunk,
+										id: msg.id,
+										text: chunk,
+										ts: Date.now(),
+									};
+									newPanel.webview.postMessage(response);
+								},
+								onError: (err) => {
+									const response: OutboundWebviewMessage = {
+										type: IPC.Error,
+										id: msg.id,
+										error: err,
+										ts: Date.now(),
+									};
+									newPanel.webview.postMessage(response);
+								},
+								onComplete: (code) => {
+									const response: OutboundWebviewMessage = {
+										type: IPC.Complete,
+										id: msg.id,
+										text: "", // UI will already have chunks
+										ts: Date.now(),
+									};
+									newPanel.webview.postMessage(response);
+									currentCancel = undefined;
+									currentId = undefined;
+								},
+							});
+							currentCancel = controller.cancel;
+						} catch (e) {
+							const errMsg = e instanceof Error ? e.message : String(e);
+							const response: OutboundWebviewMessage = {
+								type: IPC.Error,
+								id: msg.id,
+								error: errMsg,
+								ts: Date.now(),
+							};
+							newPanel.webview.postMessage(response);
+						}
+					})();
+					break;
+				}
+				case IPC.Stop: {
+					if (currentCancel && currentId === msg.id) {
+						currentCancel();
+						currentCancel = undefined;
+						currentId = undefined;
+					}
 					break;
 				}
 				default:

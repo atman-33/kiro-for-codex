@@ -16,4 +16,32 @@ export class ChatManager {
 		}
 		return res.output || "";
 	}
+
+	async runStream(
+		prompt: string,
+		handlers: {
+			onChunk?: (chunk: string) => void;
+			onError?: (err: string) => void;
+			onComplete?: (exitCode: number) => void;
+		},
+	): Promise<{ cancel: () => void }> {
+		this.output.appendLine(`[ChatManager] runStream len=${prompt.length}`);
+		try {
+			const controller = await this.codex.executeCodexStream(
+				prompt,
+				undefined,
+				{
+					onStdout: (chunk) => handlers.onChunk?.(chunk),
+					onStderr: (chunk) =>
+						this.output.appendLine(`[ChatManager][stderr] ${chunk.trim()}`),
+					onClose: (code) => handlers.onComplete?.(code),
+				},
+			);
+			return { cancel: controller.cancel };
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e);
+			handlers.onError?.(msg);
+			throw e;
+		}
+	}
 }
