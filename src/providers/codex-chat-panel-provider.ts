@@ -1,4 +1,9 @@
 import * as vscode from "vscode";
+import type {
+	InboundWebviewMessage,
+	OutboundWebviewMessage,
+} from "../types/codex-chat-types";
+import { IPC } from "../types/ipc/codex-chat-events";
 
 export namespace CodexChatPanelProvider {
 	let panel: vscode.WebviewPanel | undefined;
@@ -30,6 +35,25 @@ export namespace CodexChatPanelProvider {
 
 		const html = getHtml(context, newPanel.webview);
 		newPanel.webview.html = html;
+
+		// Minimal IPC: echo back a message
+		newPanel.webview.onDidReceiveMessage((msg: InboundWebviewMessage) => {
+			if (!msg || typeof msg !== "object" || !("type" in msg)) return;
+			switch (msg.type) {
+				case IPC.Echo: {
+					const response: OutboundWebviewMessage = {
+						type: IPC.EchoResult,
+						id: msg.id,
+						text: msg.text,
+						ts: Date.now(),
+					};
+					newPanel.webview.postMessage(response);
+					break;
+				}
+				default:
+					break;
+			}
+		});
 
 		newPanel.onDidDispose(() => {
 			panel = undefined;
