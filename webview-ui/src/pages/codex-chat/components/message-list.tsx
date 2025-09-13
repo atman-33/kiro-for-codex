@@ -3,7 +3,7 @@ export type Msg = { role: 'user' | 'assistant'; text: string; ts: number; };
 
 export function MessageList({ items }: { items: Msg[]; }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '90%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', boxSizing: 'border-box' }}>
       {items.map((m, i) => (
         <div key={i} style={{
           alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
@@ -12,7 +12,10 @@ export function MessageList({ items }: { items: Msg[]; }) {
           border: m.role === 'assistant' ? '1px solid var(--vscode-editorWidget-border, #555)' : 'none',
           padding: '6px 10px',
           borderRadius: 8,
-          maxWidth: '80%'
+          maxWidth: '80%',
+          overflowWrap: 'anywhere',
+          wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap'
         }}>
           {m.text}
         </div>

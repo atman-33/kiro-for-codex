@@ -15,6 +15,7 @@ import { SpecManager } from "./features/spec/spec-manager";
 import { SteeringManager } from "./features/steering/steering-manager";
 import { AgentsExplorerProvider } from "./providers/agents-explorer-provider";
 import { CodexChatPanelProvider } from "./providers/codex-chat-panel-provider";
+import { CodexChatViewProvider } from "./providers/codex-chat-view-provider";
 import { CodexProvider } from "./providers/codex-provider";
 import { HooksExplorerProvider } from "./providers/hooks-explorer-provider";
 import { MCPExplorerProvider } from "./providers/mcp-explorer-provider";
@@ -31,6 +32,7 @@ let codexProvider: CodexProvider;
 let specManager: SpecManager;
 let steeringManager: SteeringManager;
 let agentManager: AgentManager;
+let chatManager: ChatManager;
 export let outputChannel: vscode.OutputChannel;
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -147,6 +149,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Initialize update checker
 	const updateChecker = new UpdateChecker(context, outputChannel);
+
+	// Instantiate ChatManager (shared by panel and sidebar view)
+	chatManager = new ChatManager(codexProvider, outputChannel);
+
+	// No sidebar mode toggle; Chat is a dedicated view below Prompts
+
+	// Register webview view provider for sidebar Chat
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			CodexChatViewProvider.viewId,
+			new CodexChatViewProvider(context, chatManager),
+			{ webviewOptions: { retainContextWhenHidden: true } },
+		),
+	);
 
 	// Register commands
 	registerCommands(
@@ -424,10 +440,11 @@ function registerCommands(
 		}),
 	);
 
-	// Webview (Codex Chat preview)
+	// No UI mode toggle commands required
+
+	// Webview (Codex Chat preview panel)
 	context.subscriptions.push(
 		vscode.commands.registerCommand("kfc.codexChat.open", async () => {
-			const chatManager = new ChatManager(codexProvider, outputChannel);
 			CodexChatPanelProvider.open(context, chatManager);
 		}),
 	);
@@ -811,3 +828,4 @@ export function deactivate() {
 		codexProvider.cancelAllRetries();
 	}
 }
+//

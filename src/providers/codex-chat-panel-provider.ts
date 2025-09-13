@@ -179,7 +179,7 @@ export namespace CodexChatPanelProvider {
 			`img-src ${webview.cspSource} data: blob:`,
 			`style-src 'unsafe-inline' ${webview.cspSource}`,
 			`font-src ${webview.cspSource}`,
-			`script-src 'nonce-${nonce}'`,
+			`script-src 'nonce-${nonce}' ${webview.cspSource}`,
 		].join("; ");
 
 		return `<!DOCTYPE html>
@@ -197,7 +197,7 @@ export namespace CodexChatPanelProvider {
       </head>
       <body>
         <div id="root"></div>
-        <script nonce="${nonce}" src="${scriptUri}"></script>
+			<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
       </body>
     </html>`;
 	}

@@ -75,6 +75,13 @@
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.prompts.visible"
         },
         {
+          "id": "kfc.views.codexChat",
+          "name": "Chat",
+          "icon": "comment-discussion",
+          "type": "webview",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.chat.visible"
+        },
+        {
           "id": "kfc.views.hooksStatus",
           "name": "Hooks",
           "icon": "plug",
@@ -410,6 +417,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show Prompts view"
+        },
+        "kfc.views.chat.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Chat view"
         },
         "kfc.views.agents.visible": {
           "type": "boolean",

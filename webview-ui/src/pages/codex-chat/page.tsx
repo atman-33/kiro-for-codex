@@ -57,18 +57,18 @@ export function CodexChatPage() {
   }, []);
 
   const header = useMemo(() => (
-    <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--vscode-editorWidget-border, #555)' }}>
+    <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--vscode-editorWidget-border, #555)' }}>
       <strong>Codex Chat (Preview)</strong>
     </div>
   ), []);
 
   return (
-    <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto', height: '90vh', width: '90vw' }}>
+    <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto', height: '100%', width: '100%', minWidth: 0, minHeight: 0 }}>
       {header}
-      <div style={{ padding: 12, overflow: 'auto' }}>
+      <div style={{ padding: 10, overflow: 'auto', overflowX: 'hidden', minWidth: 0, minHeight: 0 }}>
         <MessageList items={state.messages} />
       </div>
-      <div style={{ padding: 12, borderTop: '1px solid var(--vscode-editorWidget-border, #555)' }}>
+      <div style={{ padding: 10, borderTop: '1px solid var(--vscode-editorWidget-border, #555)', overflow: 'hidden' }}>
         <Composer
           isRunning={running}
           onStop={() => {
