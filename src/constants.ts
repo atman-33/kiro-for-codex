@@ -1,40 +1,40 @@
 // VSCode configuration namespace for this extension
-export const VSC_CONFIG_NAMESPACE = 'kfc';
+export const VSC_CONFIG_NAMESPACE = "kfc";
 
 // File names
-export const CONFIG_FILE_NAME = 'kfc-settings.json';
+export const CONFIG_FILE_NAME = "kfc-settings.json";
 
 // Default configuration
 export const DEFAULT_CONFIG = {
-    paths: {
-        specs: '.codex/specs',
-        steering: '.codex/steering',
-        settings: '.codex/settings',
-        // New: prompts base path
-        prompts: '.codex/prompts'
-    },
-    views: {
-        specs: true,
-        steering: true,
-        // Temporarily hide MCP view until CLI commands are available
-        mcp: false,
-        // Temporarily hide Hooks view until CLI feature is available
-        hooks: false,
-        // Prompts view is enabled by default
-        prompts: true,
-        settings: false
-    },
-    codex: {
-        path: 'codex',
-        defaultApprovalMode: 'interactive',
-        defaultModel: 'gpt-5',
-        timeout: 30000,
-        terminalDelay: 1000
-    },
-    migration: {
-        backupOriginalFiles: true,
-        migrationCompleted: false
-    }
+	paths: {
+		specs: ".codex/specs",
+		steering: ".codex/steering",
+		settings: ".codex/settings",
+		// New: prompts base path
+		prompts: ".codex/prompts",
+	},
+	views: {
+		specs: true,
+		steering: true,
+		// Temporarily hide MCP view until CLI commands are available
+		mcp: false,
+		// Temporarily hide Hooks view until CLI feature is available
+		hooks: false,
+		// Prompts view is enabled by default
+		prompts: true,
+		settings: false,
+	},
+	codex: {
+		path: "codex",
+		defaultApprovalMode: "interactive",
+		defaultModel: "gpt-5",
+		timeout: 30000,
+		terminalDelay: 1000,
+	},
+	migration: {
+		backupOriginalFiles: true,
+		migrationCompleted: false,
+	},
 } as const;
 
 // Legacy exports for backward compatibility (can be removed after updating all references)
@@ -54,4 +54,4 @@ export const ENABLE_AGENTS_UI = false as const;
 export const ENABLE_SPEC_AGENTS = false as const;
 
 // Minimum supported Codex CLI version (hardcoded requirement)
-export const MIN_CODEX_CLI_VERSION = '0.28.0' as const;
+export const MIN_CODEX_CLI_VERSION = "0.28.0" as const;

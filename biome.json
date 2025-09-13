@@ -6,10 +6,7 @@
 		"useIgnoreFile": false
 	},
 	"files": {
-		"includes": [
-			"src/**/*.ts",
-			"tests/**/*.ts"
-		],
+		"includes": ["src/**/*.ts", "tests/**/*.ts", "!src/prompts/target/**/*.ts"],
 		"ignoreUnknown": false
 	},
 	"formatter": {
@@ -19,7 +16,25 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"suspicious": {
+				"noImplicitAnyLet": "off",
+				"noAssignInExpressions": "off",
+				"noExplicitAny": "off",
+				"noConfusingVoidType": "off"
+			},
+			"style": {
+				"useNodejsImportProtocol": "off",
+				"noNonNullAssertion": "off"
+			},
+			"complexity": {
+				"noStaticOnlyClass": "off"
+			},
+			"correctness": {
+				"noUnusedFunctionParameters": "off",
+				"noUnusedVariables": "off",
+				"noUnusedPrivateClassMembers": "off"
+			}
 		}
 	},
 	"javascript": {
@@ -32,7 +47,7 @@
 		"enabled": true,
 		"actions": {
 			"source": {
-				"organizeImports": "on"
+				"organizeImports": "off"
 			}
 		}
 	}

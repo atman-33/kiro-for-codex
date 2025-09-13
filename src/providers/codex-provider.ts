@@ -652,7 +652,7 @@ export class CodexProvider {
 				error instanceof Error ? error : String(error),
 				{
 					mode: "headless",
-					prompt: prompt.substring(0, 100) + "...", // Truncated for logging
+					prompt: `${prompt.substring(0, 100)}...`, // Truncated for logging
 				},
 			);
 

@@ -611,7 +611,7 @@ function registerCommands(
 					else if (filePathOrItem && typeof filePathOrItem === "object") {
 						const candidate =
 							(filePathOrItem.resourcePath as string | undefined) ||
-							(filePathOrItem.resourceUri && filePathOrItem.resourceUri.fsPath);
+							filePathOrItem.resourceUri?.fsPath;
 						if (candidate) target = candidate;
 					}
 					// 3) Fallback to active editor
