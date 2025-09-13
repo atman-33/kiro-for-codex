@@ -1,10 +1,9 @@
-import React from 'react';
 
-export type Msg = { role: 'user' | 'assistant'; text: string; ts: number };
+export type Msg = { role: 'user' | 'assistant'; text: string; ts: number; };
 
-export function MessageList({ items }: { items: Msg[] }) {
+export function MessageList({ items }: { items: Msg[]; }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '90%' }}>
       {items.map((m, i) => (
         <div key={i} style={{
           alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',

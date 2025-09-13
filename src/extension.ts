@@ -10,6 +10,7 @@ import {
 	VSC_CONFIG_NAMESPACE,
 } from "./constants";
 import { AgentManager } from "./features/agents/agent-manager";
+import { ChatManager } from "./features/codex-chat/chat-manager";
 import { SpecManager } from "./features/spec/spec-manager";
 import { SteeringManager } from "./features/steering/steering-manager";
 import { AgentsExplorerProvider } from "./providers/agents-explorer-provider";
@@ -426,7 +427,8 @@ function registerCommands(
 	// Webview (Codex Chat preview)
 	context.subscriptions.push(
 		vscode.commands.registerCommand("kfc.codexChat.open", async () => {
-			CodexChatPanelProvider.open(context);
+			const chatManager = new ChatManager(codexProvider, outputChannel);
+			CodexChatPanelProvider.open(context, chatManager);
 		}),
 	);
 

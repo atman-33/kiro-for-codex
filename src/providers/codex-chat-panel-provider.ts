@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import type { ChatManager } from "../features/codex-chat/chat-manager";
 import type {
 	InboundWebviewMessage,
 	OutboundWebviewMessage,
@@ -7,8 +8,12 @@ import { IPC } from "../types/ipc/codex-chat-events";
 
 export namespace CodexChatPanelProvider {
 	let panel: vscode.WebviewPanel | undefined;
+	let chatManager: ChatManager | undefined;
 
-	export function open(context: vscode.ExtensionContext) {
+	export function open(
+		context: vscode.ExtensionContext,
+		manager?: ChatManager,
+	) {
 		if (panel) {
 			panel.reveal(vscode.ViewColumn.Beside);
 			return panel;
@@ -36,7 +41,9 @@ export namespace CodexChatPanelProvider {
 		const html = getHtml(context, newPanel.webview);
 		newPanel.webview.html = html;
 
-		// Minimal IPC: echo back a message
+		chatManager = manager;
+
+		// Minimal IPC: echo + runOnce
 		newPanel.webview.onDidReceiveMessage((msg: InboundWebviewMessage) => {
 			if (!msg || typeof msg !== "object" || !("type" in msg)) return;
 			switch (msg.type) {
@@ -48,6 +55,31 @@ export namespace CodexChatPanelProvider {
 						ts: Date.now(),
 					};
 					newPanel.webview.postMessage(response);
+					break;
+				}
+				case IPC.RunOnce: {
+					(async () => {
+						try {
+							if (!chatManager) throw new Error("ChatManager unavailable");
+							const out = await chatManager.runOnce(msg.text);
+							const response: OutboundWebviewMessage = {
+								type: IPC.Complete,
+								id: msg.id,
+								text: out,
+								ts: Date.now(),
+							} as any;
+							newPanel.webview.postMessage(response);
+						} catch (e: any) {
+							const errMsg = e?.message || String(e);
+							const response: OutboundWebviewMessage = {
+								type: IPC.Error,
+								id: msg.id,
+								error: errMsg,
+								ts: Date.now(),
+							} as any;
+							newPanel.webview.postMessage(response);
+						}
+					})();
 					break;
 				}
 				default:

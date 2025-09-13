@@ -24,6 +24,10 @@ export function App() {
       if (!data || typeof data !== 'object') return;
       if (data.type === 'codex.chat/echoResult') {
         dispatch({ type: 'push', message: { role: 'assistant', text: data.text, ts: data.ts } });
+      } else if (data.type === 'codex.chat/complete') {
+        dispatch({ type: 'push', message: { role: 'assistant', text: data.text, ts: data.ts } });
+      } else if (data.type === 'codex.chat/error') {
+        dispatch({ type: 'push', message: { role: 'assistant', text: `Error: ${data.error}`, ts: data.ts } });
       }
     };
     window.addEventListener('message', onMessage);
@@ -43,7 +47,7 @@ export function App() {
         <MessageList items={state.messages} />
       </div>
       <div style={{ padding: 12, borderTop: '1px solid var(--vscode-editorWidget-border, #555)' }}>
-        <Composer />
+        <Composer onSend={(text) => dispatch({ type: 'push', message: { role: 'user', text, ts: Date.now() } })} />
       </div>
     </div>
   );

@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { vscode } from '../bridge/vscode';
 
-export function Composer() {
+export function Composer({ onSend }: { onSend?: (text: string) => void; }) {
   const [text, setText] = useState('');
 
   const send = () => {
     const payload = text.trim();
     if (!payload) return;
     const id = Math.random().toString(36).slice(2);
-    vscode.postMessage({ type: 'codex.chat/echo', id, text: payload });
+    // Send to extension as runOnce
+    vscode.postMessage({ type: 'codex.chat/runOnce', id, text: payload });
+    onSend?.(payload);
     setText('');
   };
 
   return (
-    <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+    <div style={{ display: 'flex', gap: 8, width: '90%' }}>
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -25,4 +27,3 @@ export function Composer() {
     </div>
   );
 }
-
