@@ -1,13 +1,12 @@
-import React from 'react';
 import { useEffect, useMemo, useReducer, useState } from 'react';
-import { Composer } from './composer';
-import { vscode } from '../bridge/vscode';
-import { MessageList, type Msg } from './message-list';
+import { vscode } from '../../bridge/vscode';
+import { Composer } from './components/composer';
+import { MessageList, type Msg } from './components/message-list';
 
-type State = { messages: Msg[] };
+type State = { messages: Msg[]; };
 type Action =
-  | { type: 'push'; message: Msg }
-  | { type: 'append'; chunk: string };
+  | { type: 'push'; message: Msg; }
+  | { type: 'append'; chunk: string; };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -29,7 +28,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function App() {
+export function CodexChatPage() {
   const [state, dispatch] = useReducer(reducer, { messages: [] });
   const [running, setRunning] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
@@ -64,7 +63,7 @@ export function App() {
   ), []);
 
   return (
-    <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto', height: '100vh', width: '100vw' }}>
+    <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto', height: '90vh', width: '90vw' }}>
       {header}
       <div style={{ padding: 12, overflow: 'auto' }}>
         <MessageList items={state.messages} />

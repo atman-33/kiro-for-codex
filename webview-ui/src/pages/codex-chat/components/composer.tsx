@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { vscode } from '../bridge/vscode';
+import { vscode } from '../../../bridge/vscode';
 
 export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string, id: string) => void; isRunning?: boolean; onStop?: () => void; }) {
   const [text, setText] = useState('');
