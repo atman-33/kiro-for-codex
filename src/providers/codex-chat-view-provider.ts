@@ -72,53 +72,43 @@ export class CodexChatViewProvider implements vscode.WebviewViewProvider {
 							break;
 						}
 						case IPC.RunStream: {
-							// Cancel previous stream if any
-							if (this.currentCancel) {
-								this.currentCancel();
-								this.currentCancel = undefined;
-								this.currentId = undefined;
+							// Route to Codex terminal session (Proposal 1)
+							let ack = "";
+							try {
+								const result = await this.chatManager.ensureTerminalOrSend(
+									msg.text,
+									"Codex Chat",
+								);
+								ack =
+									result === "started"
+										? "Opened Codex terminal. Conversation continues there."
+										: "Sent to Codex terminal.";
+							} catch (err) {
+								const response: OutboundWebviewMessage = {
+									type: IPC.Error,
+									id: msg.id,
+									error: err instanceof Error ? err.message : String(err),
+									ts: Date.now(),
+								};
+								webviewView.webview.postMessage(response);
+								break;
 							}
-							this.currentId = msg.id;
-							const controller = await this.chatManager.runStream(msg.text, {
-								onChunk: (chunk) => {
-									const response: OutboundWebviewMessage = {
-										type: IPC.Chunk,
-										id: msg.id,
-										text: chunk,
-										ts: Date.now(),
-									};
-									webviewView.webview.postMessage(response);
-								},
-								onError: (err) => {
-									const response: OutboundWebviewMessage = {
-										type: IPC.Error,
-										id: msg.id,
-										error: String(err),
-										ts: Date.now(),
-									};
-									webviewView.webview.postMessage(response);
-								},
-								onComplete: (_code) => {
-									const response: OutboundWebviewMessage = {
-										type: IPC.Complete,
-										id: msg.id,
-										text: "",
-										ts: Date.now(),
-									};
-									webviewView.webview.postMessage(response);
-									this.currentCancel = undefined;
-									this.currentId = undefined;
-								},
-							});
-							this.currentCancel = controller.cancel;
+
+							// Send lightweight completion to unlock the input UI
+							{
+								const response: OutboundWebviewMessage = {
+									type: IPC.Complete,
+									id: msg.id,
+									text: ack,
+									ts: Date.now(),
+								};
+								webviewView.webview.postMessage(response);
+							}
 							break;
 						}
 						case IPC.Stop: {
-							if (this.currentCancel && this.currentId === msg.id) {
-								this.currentCancel();
-								this.currentCancel = undefined;
-								this.currentId = undefined;
-							}
+							// Stop Codex terminal session
+							this.chatManager.stopTerminalSession();
 							break;
 						}
 						default:
