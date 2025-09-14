@@ -122,7 +122,7 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
                     '',
                     this.context,
                     {
-                        command: 'kfc.steering.createUserRule',
+                        command: 'kiroCodex.steering.createUserRule',
                         title: 'Create Global Configuration'
                     }
                 ));
@@ -136,7 +136,7 @@ export class SteeringExplorerProvider implements vscode.TreeDataProvider<Steerin
                     '',
                     this.context,
                     {
-                        command: 'kfc.steering.createProjectRule',
+                        command: 'kiroCodex.steering.createProjectRule',
                         title: 'Create Agents Configuration'
                     }
                 ));

@@ -21,7 +21,8 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./dist/extension.js",
+  "main": "dist/extension.js",
+  "extensionKind": ["workspace"],
   "scripts": {
     "build": "npm run package-web",
     "vscode:prepublish": "npm run package-web",
@@ -37,221 +38,292 @@
     "test:coverage": "jest --coverage"
   },
   "contributes": {
+    "configuration": {
+      "title": "Kiro for Codex",
+      "properties": {
+        "kiroCodex.paths.specs": {
+          "type": "string",
+          "default": ".codex/specs",
+          "description": "Relative path to specs directory"
+        },
+        "kiroCodex.paths.steering": {
+          "type": "string",
+          "default": ".codex/steering",
+          "description": "Relative path to steering directory"
+        },
+        "kiroCodex.paths.settings": {
+          "type": "string",
+          "default": ".codex/settings",
+          "description": "Relative path to settings directory (folder containing kiroCodex-settings.json)"
+        },
+        "kiroCodex.paths.prompts": {
+          "type": "string",
+          "default": ".codex/prompts",
+          "description": "Relative path to prompts directory"
+        },
+        "kiroCodex.views.specs.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Specs view in the Kiro activity container"
+        },
+        "kiroCodex.views.steering.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Steering view in the Kiro activity container"
+        },
+        "kiroCodex.views.prompts.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Prompts view in the Kiro activity container"
+        },
+        "kiroCodex.views.settings.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Settings view in the Kiro activity container"
+        },
+        "kiroCodex.codex.path": {
+          "type": "string",
+          "default": "codex",
+          "description": "Codex CLI executable name or path"
+        },
+        "kiroCodex.codex.defaultApprovalMode": {
+          "type": "string",
+          "enum": ["interactive", "auto-edit", "full-auto"],
+          "default": "interactive",
+          "description": "Default approval mode when invoking Codex CLI"
+        },
+        "kiroCodex.codex.defaultModel": {
+          "type": "string",
+          "default": "gpt-5",
+          "description": "Default model identifier for Codex CLI"
+        },
+        "kiroCodex.codex.timeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "Command timeout in milliseconds for Codex CLI"
+        },
+        "kiroCodex.codex.terminalDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay in milliseconds before writing to terminal to improve UX"
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "kfc",
+          "id": "kiroCodex",
           "title": "Kiro for Codex",
           "icon": "./icons/kiro.svg"
         }
       ]
     },
     "views": {
-      "kfc": [
+      "kiroCodex": [
         {
-          "id": "kfc.views.specExplorer",
+          "id": "kiroCodex.views.specExplorer",
           "name": "Specs",
           "icon": "symbol-structure",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.specs.visible"
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.specs.visible"
         },
         {
-          "id": "kfc.views.steeringExplorer",
+          "id": "kiroCodex.views.steeringExplorer",
           "name": "Steering",
           "icon": "symbol-parameter",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.steering.visible"
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.steering.visible"
         },
         {
-          "id": "kfc.views.promptsExplorer",
+          "id": "kiroCodex.views.promptsExplorer",
           "name": "Prompts",
           "icon": "symbol-string",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.prompts.visible"
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.prompts.visible"
         },
         {
-          "id": "kfc.views.hooksStatus",
+          "id": "kiroCodex.views.hooksStatus",
           "name": "Hooks",
           "icon": "plug",
           "when": "false"
         },
         {
-          "id": "kfc.views.agentsExplorer",
+          "id": "kiroCodex.views.agentsExplorer",
           "name": "Agents",
           "icon": "account",
           "when": "false"
         },
         {
-          "id": "kfc.views.mcpServerStatus",
+          "id": "kiroCodex.views.mcpServerStatus",
           "name": "MCP Servers",
           "icon": "server",
           "when": "false"
         },
         {
-          "id": "kfc.views.overview",
+          "id": "kiroCodex.views.overview",
           "name": "Settings",
           "icon": "gear",
           "visibility": "collapsed",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kfc.views.settings.visible"
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.settings.visible"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "kfc.views.promptsExplorer",
-        "contents": "Create and run prompts (.md) under .codex/prompts\n\n[$(plus) Create Prompt](command:kfc.prompts.create)\n[$(refresh) Refresh](command:kfc.prompts.refresh)"
+        "view": "kiroCodex.views.promptsExplorer",
+        "contents": "Create and run prompts (.md) under .codex/prompts\n\n[$(plus) Create Prompt](command:kiroCodex.prompts.create)\n[$(refresh) Refresh](command:kiroCodex.prompts.refresh)"
       },
       {
-        "view": "kfc.views.overview",
-        "contents": "Configure Kiro for Codex\n\n[$(gear) Open Settings](command:kfc.settings.open)\n[$(question) Help](command:kfc.help.open)"
+        "view": "kiroCodex.views.overview",
+        "contents": "Configure Kiro for Codex\n\n[$(gear) Open Settings](command:kiroCodex.settings.open)\n[$(question) Help](command:kiroCodex.help.open)"
       },
       {
-        "view": "kfc.views.specExplorer",
-        "contents": "Build complex features with structured planning\n\n[$(plus) Create New Spec](command:kfc.spec.create)"
+        "view": "kiroCodex.views.specExplorer",
+        "contents": "Build complex features with structured planning\n\n[$(plus) Create New Spec](command:kiroCodex.spec.create)"
       },
       {
-        "view": "kfc.views.hooksStatus",
+        "view": "kiroCodex.views.hooksStatus",
         "contents": "Hooks are temporarily disabled in this build"
       },
       {
-        "view": "kfc.views.steeringExplorer",
-        "contents": "[$(globe) Create User Rule](command:kfc.steering.createUserRule)\n\n[$(root-folder) Create Project Rule](command:kfc.steering.createProjectRule)"
+        "view": "kiroCodex.views.steeringExplorer",
+        "contents": "[$(globe) Create User Rule](command:kiroCodex.steering.createUserRule)\n\n[$(root-folder) Create Project Rule](command:kiroCodex.steering.createProjectRule)"
       },
       {
-        "view": "kfc.views.mcpServerStatus",
+        "view": "kiroCodex.views.mcpServerStatus",
         "contents": "MCP is temporarily disabled in this build"
       }
     ],
     "commands": [
       {
-        "command": "kfc.prompts.create",
+        "command": "kiroCodex.prompts.create",
         "title": "Create Prompt",
         "category": "Kiro for Codex",
         "icon": "$(plus)"
       },
       {
-        "command": "kfc.prompts.refresh",
+        "command": "kiroCodex.prompts.refresh",
         "title": "Refresh Prompts",
         "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
-        "command": "kfc.prompts.run",
+        "command": "kiroCodex.prompts.run",
         "title": "Run Prompt",
         "category": "Kiro for Codex",
         "icon": "$(play)"
       },
       {
-        "command": "kfc.spec.create",
+        "command": "kiroCodex.spec.create",
         "title": "Create New Spec",
         "category": "Kiro for Codex",
         "icon": "$(plus)"
       },
       {
-        "command": "kfc.spec.createWithAgents",
+        "command": "kiroCodex.spec.createWithAgents",
         "title": "New Spec with Agents",
         "category": "Kiro for Codex",
         "icon": "$(sparkle)",
         "enablement": "false"
       },
       {
-        "command": "kfc.steering.create",
+        "command": "kiroCodex.steering.create",
         "title": "Create Custom Steering",
         "category": "Kiro for Codex",
         "icon": "$(plus)"
       },
       {
-        "command": "kfc.steering.generateInitial",
+        "command": "kiroCodex.steering.generateInitial",
         "title": "Init Steering",
         "category": "Kiro for Codex",
         "icon": "$(sparkle)"
       },
       {
-        "command": "kfc.steering.refine",
+        "command": "kiroCodex.steering.refine",
         "title": "Refine Steering",
         "category": "Kiro for Codex",
         "icon": "$(sparkle)"
       },
       {
-        "command": "kfc.spec.delete",
+        "command": "kiroCodex.spec.delete",
         "title": "Delete Spec",
         "category": "Kiro for Codex",
         "icon": "$(trash)"
       },
       {
-        "command": "kfc.steering.delete",
+        "command": "kiroCodex.steering.delete",
         "title": "Delete Steering",
         "category": "Kiro for Codex",
         "icon": "$(trash)"
       },
       {
-        "command": "kfc.steering.createUserRule",
+        "command": "kiroCodex.steering.createUserRule",
         "title": "Create User Rule",
         "category": "Kiro for Codex",
         "icon": "$(globe)"
       },
       {
-        "command": "kfc.steering.createProjectRule",
+        "command": "kiroCodex.steering.createProjectRule",
         "title": "Create Project Rule",
         "category": "Kiro for Codex",
         "icon": "$(root-folder)"
       },
       {
-        "command": "kfc.hooks.refresh",
+        "command": "kiroCodex.hooks.refresh",
         "title": "Refresh Hooks",
         "category": "Kiro for Codex",
         "icon": "$(refresh)",
         "enablement": "false"
       },
       {
-        "command": "kfc.mcp.refresh",
+        "command": "kiroCodex.mcp.refresh",
         "title": "Refresh MCP Status",
         "category": "Kiro for Codex",
         "icon": "$(refresh)",
         "enablement": "false"
       },
       {
-        "command": "kfc.settings.open",
+        "command": "kiroCodex.settings.open",
         "title": "Kiro Settings",
         "category": "Kiro for Codex",
         "icon": "$(gear)"
       },
       {
-        "command": "kfc.checkForUpdates",
+        "command": "kiroCodex.checkForUpdates",
         "title": "Check for Updates",
         "category": "Kiro for Codex",
         "icon": "$(sync)"
       },
       {
-        "command": "kfc.spec.refresh",
+        "command": "kiroCodex.spec.refresh",
         "title": "Refresh Specs",
         "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
-        "command": "kfc.steering.refresh",
+        "command": "kiroCodex.steering.refresh",
         "title": "Refresh Steering",
         "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
       {
-        "command": "kfc.agents.refresh",
+        "command": "kiroCodex.agents.refresh",
         "title": "Refresh Agents",
         "category": "Kiro for Codex",
         "icon": "$(refresh)",
         "enablement": "false"
       },
       {
-        "command": "kfc.help.open",
+        "command": "kiroCodex.help.open",
         "title": "Kiro Help",
         "category": "Kiro for Codex",
         "icon": "$(question)"
       },
       {
-        "command": "kfc.menu.open",
+        "command": "kiroCodex.menu.open",
         "title": "Kiro Menu",
         "category": "Kiro for Codex",
         "icon": "$(ellipsis)"
       },
       {
-        "command": "kfc.spec.implTask",
+        "command": "kiroCodex.spec.implTask",
         "title": "Implement Task",
         "category": "Kiro for Codex"
       }
@@ -259,200 +331,120 @@
     "menus": {
       "view/title": [
         {
-          "command": "kfc.menu.open",
-          "when": "view == kfc.views.overview",
+          "command": "kiroCodex.menu.open",
+          "when": "view == kiroCodex.views.overview",
           "group": "navigation"
         },
         {
-          "command": "kfc.spec.create",
-          "when": "view == kfc.views.specExplorer",
+          "command": "kiroCodex.spec.create",
+          "when": "view == kiroCodex.views.specExplorer",
           "group": "navigation@1"
         },
         {
-          "command": "kfc.spec.createWithAgents",
+          "command": "kiroCodex.spec.createWithAgents",
           "when": "false",
           "group": "navigation@2"
         },
         {
-          "command": "kfc.spec.refresh",
-          "when": "view == kfc.views.specExplorer",
+          "command": "kiroCodex.spec.refresh",
+          "when": "view == kiroCodex.views.specExplorer",
           "group": "navigation@3"
         },
         {
-          "command": "kfc.steering.generateInitial",
-          "when": "view == kfc.views.steeringExplorer",
+          "command": "kiroCodex.steering.generateInitial",
+          "when": "view == kiroCodex.views.steeringExplorer",
           "group": "navigation@2"
         },
         {
-          "command": "kfc.steering.create",
-          "when": "view == kfc.views.steeringExplorer",
+          "command": "kiroCodex.steering.create",
+          "when": "view == kiroCodex.views.steeringExplorer",
           "group": "navigation@1"
         },
         {
-          "command": "kfc.steering.refresh",
-          "when": "view == kfc.views.steeringExplorer",
+          "command": "kiroCodex.steering.refresh",
+          "when": "view == kiroCodex.views.steeringExplorer",
           "group": "navigation@3"
         },
         {
-          "command": "kfc.prompts.create",
-          "when": "view == kfc.views.promptsExplorer",
+          "command": "kiroCodex.prompts.create",
+          "when": "view == kiroCodex.views.promptsExplorer",
           "group": "navigation@1"
         },
         {
-          "command": "kfc.prompts.refresh",
-          "when": "view == kfc.views.promptsExplorer",
+          "command": "kiroCodex.prompts.refresh",
+          "when": "view == kiroCodex.views.promptsExplorer",
           "group": "navigation@2"
         },
         {
-          "command": "kfc.mcp.refresh",
-          "when": "view == kfc.views.mcpServerStatus",
+          "command": "kiroCodex.mcp.refresh",
+          "when": "view == kiroCodex.views.mcpServerStatus",
           "group": "navigation"
         },
         {
-          "command": "kfc.hooks.refresh",
-          "when": "view == kfc.views.hooksStatus",
+          "command": "kiroCodex.hooks.refresh",
+          "when": "view == kiroCodex.views.hooksStatus",
           "group": "navigation"
         },
         {
-          "command": "kfc.agents.refresh",
-          "when": "view == kfc.views.agentsExplorer",
+          "command": "kiroCodex.agents.refresh",
+          "when": "view == kiroCodex.views.agentsExplorer",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "kfc.spec.delete",
-          "when": "view == kfc.views.specExplorer && viewItem == spec",
+          "command": "kiroCodex.spec.delete",
+          "when": "view == kiroCodex.views.specExplorer && viewItem == spec",
           "group": "7_modification"
         },
         {
-          "command": "kfc.prompts.run",
-          "when": "view == kfc.views.promptsExplorer && viewItem == prompt",
+          "command": "kiroCodex.prompts.run",
+          "when": "view == kiroCodex.views.promptsExplorer && viewItem == prompt",
           "group": "inline"
         },
         {
-          "command": "kfc.steering.refine",
-          "when": "view == kfc.views.steeringExplorer && viewItem == steering-document",
+          "command": "kiroCodex.steering.refine",
+          "when": "view == kiroCodex.views.steeringExplorer && viewItem == steering-document",
           "group": "inline"
         },
         {
-          "command": "kfc.steering.delete",
-          "when": "view == kfc.views.steeringExplorer && viewItem == steering-document",
+          "command": "kiroCodex.steering.delete",
+          "when": "view == kiroCodex.views.steeringExplorer && viewItem == steering-document",
           "group": "7_modification"
         }
       ],
       "commandPalette": [
         {
-          "command": "kfc.spec.create"
+          "command": "kiroCodex.spec.create"
         },
         {
-          "command": "kfc.prompts.create",
+          "command": "kiroCodex.prompts.create",
           "when": "workspaceFolderCount > 0"
         },
         {
-          "command": "kfc.steering.create",
+          "command": "kiroCodex.steering.create",
           "when": "workspaceFolderCount > 0"
         },
         {
-          "command": "kfc.checkForUpdates"
+          "command": "kiroCodex.checkForUpdates"
         },
         {
-          "command": "kfc.spec.createWithAgents",
+          "command": "kiroCodex.spec.createWithAgents",
           "when": "false"
         },
         {
-          "command": "kfc.hooks.refresh",
+          "command": "kiroCodex.hooks.refresh",
           "when": "false"
         },
         {
-          "command": "kfc.mcp.refresh",
+          "command": "kiroCodex.mcp.refresh",
           "when": "false"
         },
         {
-          "command": "kfc.agents.refresh",
+          "command": "kiroCodex.agents.refresh",
           "when": "false"
         }
       ]
-    },
-    "configuration": {
-      "title": "Kiro for Codex",
-      "properties": {
-        "kfc.autoRefreshSpecs": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically refresh specs when requirements are saved"
-        },
-        "kfc.showWelcomeMessage": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show welcome message on startup"
-        },
-        "kfc.views.specs.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Specs view"
-        },
-        "kfc.views.prompts.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Prompts view"
-        },
-        "kfc.views.agents.visible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show Agents view (temporarily disabled)"
-        },
-        "kfc.views.hooks.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Agent Hooks view"
-        },
-        "kfc.views.steering.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Agent Steering view"
-        },
-        "kfc.views.mcp.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show MCP Servers view"
-        },
-        "kfc.views.settings.visible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show Settings view"
-        },
-        "kfc.codex.path": {
-          "type": "string",
-          "default": "codex",
-          "description": "Path to Codex CLI executable"
-        },
-        "kfc.codex.defaultApprovalMode": {
-          "type": "string",
-          "default": "interactive",
-          "enum": [
-            "interactive",
-            "auto-edit",
-            "full-auto"
-          ],
-          "description": "Default approval mode for Codex operations"
-        },
-        "kfc.codex.defaultModel": {
-          "type": "string",
-          "default": "gpt-5",
-          "description": "Default model to use with Codex CLI"
-        },
-        "kfc.codex.timeout": {
-          "type": "number",
-          "default": 30000,
-          "description": "Timeout for Codex CLI operations in milliseconds"
-        },
-        "kfc.codex.terminalDelay": {
-          "type": "number",
-          "default": 1000,
-          "description": "Delay before sending commands to terminal in milliseconds"
-        }
-      }
     }
   },
   "dependencies": {
