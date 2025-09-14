@@ -587,11 +587,19 @@ export class CodexProvider {
 						);
 					}
 
-					// Create terminal in split view
+					// Choose location: if no editor is open, use Active; otherwise open in split (Two)
+					const hasVisibleEditor =
+						vscode.window.visibleTextEditors &&
+						vscode.window.visibleTextEditors.length > 0;
+
+					const locationOption = hasVisibleEditor
+						? { viewColumn: vscode.ViewColumn.Two }
+						: { viewColumn: vscode.ViewColumn.Active };
+
 					const terminal = this.processManager.createTerminal(command, {
 						name: title,
 						cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-						location: { viewColumn: vscode.ViewColumn.Two },
+						location: locationOption,
 						...(process.platform === "win32"
 							? {
 									shellPath: "powershell.exe",
