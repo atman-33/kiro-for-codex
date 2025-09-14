@@ -14,7 +14,6 @@ import { ChatManager } from "./features/codex-chat/chat-manager";
 import { SpecManager } from "./features/spec/spec-manager";
 import { SteeringManager } from "./features/steering/steering-manager";
 import { AgentsExplorerProvider } from "./providers/agents-explorer-provider";
-import { CodexChatPanelProvider } from "./providers/codex-chat-panel-provider";
 import { CodexChatViewProvider } from "./providers/codex-chat-view-provider";
 import { CodexProvider } from "./providers/codex-provider";
 import { HooksExplorerProvider } from "./providers/hooks-explorer-provider";
@@ -441,13 +440,6 @@ function registerCommands(
 	);
 
 	// No UI mode toggle commands required
-
-	// Webview (Codex Chat preview panel)
-	context.subscriptions.push(
-		vscode.commands.registerCommand("kfc.codexChat.open", async () => {
-			CodexChatPanelProvider.open(context, chatManager);
-		}),
-	);
 
 	// Steering commands
 	context.subscriptions.push(

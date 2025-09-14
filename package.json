@@ -136,12 +136,6 @@
     ],
     "commands": [
       {
-        "command": "kfc.codexChat.open",
-        "title": "Open Codex Chat (Preview)",
-        "category": "Kiro for Codex",
-        "icon": "$(comment-discussion)"
-      },
-      {
         "command": "kfc.prompts.create",
         "title": "Create Prompt",
         "category": "Kiro for Codex",
