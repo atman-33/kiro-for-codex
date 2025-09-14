@@ -34,7 +34,8 @@ export class SpecManager {
 			return;
 		}
 
-		// Get feature description only
+		// This method will be kept for backward compatibility if needed.
+		// New UI path should call createFromDescription().
 		const description = await vscode.window.showInputBox({
 			title: "✨ Create New Spec ✨",
 			prompt:
@@ -43,39 +44,8 @@ export class SpecManager {
 				"Enter your idea to generate requirement, design, and task specs...",
 			ignoreFocusOut: false,
 		});
-
-		if (!description) {
-			return;
-		}
-
-		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-		if (!workspaceFolder) {
-			vscode.window.showErrorMessage("No workspace folder open");
-			return;
-		}
-
-		// Show notification immediately after user input
-		NotificationUtils.showAutoDismissNotification(
-			"Codex is creating your spec. Check the terminal for progress.",
-		);
-
-		// Let Codex handle everything - directory creation, naming, and file creation
-		// Load and render the Codex-optimized spec creation prompt
-		const prompt = this.promptLoader.renderPrompt("create-spec", {
-			description,
-			workspacePath: workspaceFolder.uri.fsPath,
-			specBasePath: this.getSpecBasePath(),
-			approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
-		});
-
-		// Send to Codex and get the terminal
-		const terminal = await this.codexProvider.invokeCodexSplitView(
-			prompt,
-			"Codex -Creating Spec",
-		);
-
-		// Set up automatic terminal renaming when spec folder is created
-		this.setupSpecFolderWatcher(workspaceFolder, terminal);
+		if (!description) return;
+		await this.createFromDescription(description);
 	}
 
 	async createWithAgents() {
@@ -129,6 +99,46 @@ export class SpecManager {
 
 		// Set up automatic terminal renaming when spec folder is created
 		this.setupSpecFolderWatcher(workspaceFolder, terminal);
+	}
+
+	/**
+	 * New entry used by the Create New Spec webview UI.
+	 */
+	async createFromDescription(description: string) {
+		// Check Codex CLI availability first
+		const isCodexReady = await this.codexProvider.isCodexReady();
+		if (!isCodexReady) {
+			const availabilityResult =
+				await this.codexProvider.getCodexAvailabilityStatus();
+			await this.codexProvider.showSetupGuidance(availabilityResult);
+			return;
+		}
+
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+		if (!workspaceFolder) {
+			vscode.window.showErrorMessage("No workspace folder open");
+			return;
+		}
+
+		NotificationUtils.showAutoDismissNotification(
+			"Codex is creating your spec. Check the terminal for progress.",
+		);
+
+		// Render prompt and invoke Codex
+		const prompt = this.promptLoader.renderPrompt("create-spec", {
+			description,
+			workspacePath: workspaceFolder.uri.fsPath,
+			specBasePath: this.getSpecBasePath(),
+			approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
+		});
+
+		const terminal = await this.codexProvider.invokeCodexSplitView(
+			prompt,
+			"Codex -Creating Spec",
+		);
+
+		// Auto-rename terminal when new spec folder appears
+		await this.setupSpecFolderWatcher(workspaceFolder, terminal);
 	}
 
 	async implTask(taskFilePath: string, taskDescription: string) {

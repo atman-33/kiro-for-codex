@@ -3,15 +3,14 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
-// Build a tiny React app for VS Code Webview.
-// Output goes under ../dist/webview/codex-chat to be packaged with the extension.
+// Single-entry build for all webviews. Pages are selected at runtime via
+// data-page attribute on #root and dynamic imports in src/index.tsx.
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: resolve(__dirname, '../dist/webview/codex-chat'),
+    outDir: resolve(__dirname, '../dist/webview/app'),
     emptyOutDir: true,
-    // Use stable filenames for webview HTML
     rollupOptions: {
       input: resolve(__dirname, 'index.html'),
       output: {

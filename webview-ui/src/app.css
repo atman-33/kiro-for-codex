@@ -1,1 +1,4 @@
-@import "tailwindcss"
+@import "tailwindcss";
+
+/* Global theme alignment for text */
+html, body { color: var(--vscode-foreground); }

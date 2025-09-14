@@ -35,7 +35,7 @@ export class CodexChatViewProvider implements vscode.WebviewViewProvider {
 					this.context.extensionUri,
 					"dist",
 					"webview",
-					"codex-chat",
+					"app",
 				),
 			],
 		};
@@ -133,7 +133,7 @@ function getHtml(context: vscode.ExtensionContext, webview: vscode.Webview) {
 		context.extensionUri,
 		"dist",
 		"webview",
-		"codex-chat",
+		"app",
 	);
 
 	const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(base, "index.js"));
@@ -165,7 +165,7 @@ function getHtml(context: vscode.ExtensionContext, webview: vscode.Webview) {
 		</style>
 	</head>
 	<body>
-		<div id="root"></div>
+		<div id="root" data-page="codex-chat"></div>
 		<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 	</body>
 </html>`;

@@ -23,6 +23,7 @@ import { PromptsExplorerProvider } from "./providers/prompts-explorer-provider";
 import { SpecExplorerProvider } from "./providers/spec-explorer-provider";
 import { SpecTaskCodeLensProvider } from "./providers/spec-task-code-lens-provider";
 import { SteeringExplorerProvider } from "./providers/steering-explorer-provider";
+import { CreateNewSpecPanelProvider } from "./providers/create-new-spec-panel-provider";
 import { PromptLoader } from "./services/prompt-loader";
 import { ConfigManager } from "./utils/config-manager";
 import { UpdateChecker } from "./utils/update-checker";
@@ -344,17 +345,25 @@ function registerCommands(
 	updateChecker: UpdateChecker,
 ) {
 	// Spec commands
+	const createNewSpecPanelProvider = new CreateNewSpecPanelProvider(
+		context,
+		specManager,
+	);
+
 	const createSpecCommand = vscode.commands.registerCommand(
 		"kfc.spec.create",
 		async () => {
 			outputChannel.appendLine("\n=== COMMAND kfc.spec.create TRIGGERED ===");
 			outputChannel.appendLine(`Time: ${new Date().toLocaleTimeString()}`);
-
 			try {
-				await specManager.create();
+				createNewSpecPanelProvider.show();
 			} catch (error) {
-				outputChannel.appendLine(`Error in createNewSpec: ${error}`);
-				vscode.window.showErrorMessage(`Failed to create spec: ${error}`);
+				outputChannel.appendLine(
+					`Error opening Create New Spec panel: ${error}`,
+				);
+				vscode.window.showErrorMessage(
+					`Failed to open Create New Spec UI: ${error}`,
+				);
 			}
 		},
 	);
