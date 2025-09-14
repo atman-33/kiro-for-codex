@@ -1,26 +1,26 @@
 
-export type Msg = { role: 'user' | 'assistant'; text: string; ts: number; };
+export type Msg = { role: 'user' | 'assistant'; text: string; ts: number };
 
-export function MessageList({ items }: { items: Msg[]; }) {
+export function MessageList({ items }: { items: Msg[] }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', boxSizing: 'border-box' }}>
+    <div className="flex flex-col gap-1.5 w-full box-border">
       {items.map((m, i) => (
-        <div key={i} style={{
-          alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-          background: m.role === 'user' ? 'var(--vscode-button-background)' : 'transparent',
-          color: m.role === 'user' ? 'var(--vscode-button-foreground)' : 'inherit',
-          border: m.role === 'assistant' ? '1px solid var(--vscode-editorWidget-border, #555)' : 'none',
-          padding: '6px 10px',
-          borderRadius: 8,
-          maxWidth: '80%',
-          overflowWrap: 'anywhere',
-          wordBreak: 'break-word',
-          whiteSpace: 'pre-wrap'
-        }}>
+        <div
+          key={i}
+          className={
+            m.role === 'user'
+              ? 'self-end max-w-[80%] break-words whitespace-pre-wrap rounded-lg px-3 py-2'
+              : 'self-start max-w-[80%] break-words whitespace-pre-wrap rounded-lg px-3 py-2 border'
+          }
+          style={
+            m.role === 'user'
+              ? { background: 'var(--vscode-button-background)', color: 'var(--vscode-button-foreground)' }
+              : { borderColor: 'var(--vscode-editorWidget-border, #555)' }
+          }
+        >
           {m.text}
         </div>
       ))}
     </div>
   );
 }
-

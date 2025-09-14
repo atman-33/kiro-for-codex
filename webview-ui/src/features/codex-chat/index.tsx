@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { vscode } from '../../bridge/vscode';
 import { Composer } from './components/composer';
+import { ChatHeader } from './components/header';
 import { MessageList, type Msg } from './components/message-list';
 
 type State = { messages: Msg[]; };
 type Action =
   | { type: 'push'; message: Msg; }
-  | { type: 'append'; chunk: string; };
+  | { type: 'append'; chunk: string; }
+  | { type: 'clear'; };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -23,6 +25,8 @@ function reducer(state: State, action: Action): State {
       msgs.push({ role: 'assistant', text: action.chunk, ts: Date.now() });
       return { messages: msgs };
     }
+    case 'clear':
+      return { messages: [] };
     default:
       return state;
   }
@@ -32,6 +36,8 @@ export function CodexChatView() {
   const [state, dispatch] = useReducer(reducer, { messages: [] });
   const [running, setRunning] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [atBottom, setAtBottom] = useState(true);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -56,19 +62,52 @@ export function CodexChatView() {
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
-  const header = useMemo(() => (
-    <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--vscode-editorWidget-border, #555)' }}>
-      <strong>Codex Chat</strong>
-    </div>
-  ), []);
+  // Auto-scroll behavior
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    if (atBottom) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [state.messages.length, atBottom]);
+
+  const onScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    const threshold = 24; // px
+    const isBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+    setAtBottom(isBottom);
+  };
 
   return (
-    <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr auto', height: '100%', width: '100%', minWidth: 0, minHeight: 0 }}>
-      {header}
-      <div style={{ padding: 10, overflow: 'auto', overflowX: 'hidden', minWidth: 0, minHeight: 0 }}>
-        <MessageList items={state.messages} />
+    <div
+      className="flex gap-x-3 gap-y-2 px-3 pt-0.5 pb-2 flex-col h-full w-full min-w-0 min-h-0 shrink-0"
+      style={{ backgroundColor: 'var(--vscode-sideBar-background)' }}>
+      <div>
+        <ChatHeader running={running} onClear={() => dispatch({ type: 'clear' })} />
       </div>
-      <div style={{ padding: 10, borderTop: '1px solid var(--vscode-editorWidget-border, #555)', overflow: 'hidden' }}>
+      <div
+        ref={listRef}
+        onScroll={onScroll}
+        className="relative flex-1 min-h-0 overflow-auto overflow-x-hidden"
+      >
+        <MessageList items={state.messages} />
+        {!atBottom && (
+          <button
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded-full border bg-[color:var(--vscode-editor-background)] hover:opacity-90"
+            style={{ borderColor: 'var(--vscode-editorWidget-border, #555)' }}
+            onClick={() => {
+              const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; setAtBottom(true);
+            }}
+          >
+            Jump to latest
+          </button>
+        )}
+      </div>
+      <div
+        className="overflow-hidden border-t shrink-0"
+        style={{ borderColor: 'var(--vscode-editorWidget-border, #555)' }}
+      >
         <Composer
           isRunning={running}
           onStop={() => {
