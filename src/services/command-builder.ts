@@ -19,6 +19,8 @@ export class CommandBuilder {
 			parts.push(`-m "${options.model || options.defaultModel}"`);
 		if (options.workingDirectory)
 			parts.push(this.buildWorkingDirectoryFlag(options.workingDirectory));
+		// Prevent subcommand interpretation (e.g., input 'a' -> 'apply')
+		parts.push("--");
 		parts.push(`"$(cat "${promptFilePath}")"`);
 		return parts.join(" ");
 	}
@@ -111,6 +113,8 @@ export class CommandBuilder {
 			parts.push("-C", this.escapeShellArg(options.workingDirectory));
 		}
 
+		// Prevent subcommand interpretation
+		parts.push("--");
 		// Add the prompt file using command substitution with escaped path
 		parts.push(`"$(cat ${this.escapeShellArg(promptFilePath)})"`);
 

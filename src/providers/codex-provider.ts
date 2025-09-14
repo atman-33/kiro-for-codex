@@ -574,6 +574,7 @@ export class CodexProvider {
 							this.codexConfig.codexPath,
 							modelPart,
 							cdPart,
+							"--",
 							`"${escapedPrompt}"`, // Pass the escaped content as a single quoted argument
 						];
 
