@@ -28,7 +28,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function CodexChatPage() {
+export function CodexChatView() {
   const [state, dispatch] = useReducer(reducer, { messages: [] });
   const [running, setRunning] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export function CodexChatPage() {
 
   const header = useMemo(() => (
     <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--vscode-editorWidget-border, #555)' }}>
-      <strong>Codex Chat (Preview)</strong>
+      <strong>Codex Chat</strong>
     </div>
   ), []);
 
