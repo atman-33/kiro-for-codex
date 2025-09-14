@@ -50,14 +50,14 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
           onKeyDown={onKeyDown}
           placeholder={isRunning ? 'Running…' : 'Type a message. Enter to send, Shift+Enter for newline'}
           disabled={!!isRunning}
-          className="w-full h-full resize-none min-h-24 overflow-hidden px-3 pt-2 pb-8 rounded-2xl border outline-none ring-0 bg-transparent text-[color:var(--vscode-foreground)] placeholder:text-[color:var(--vscode-input-placeholderForeground,#888)] focus:border-[color:var(--vscode-focusBorder,#4c9aff)]"
+          className="w-full resize-none min-h-24 overflow-hidden px-3 pt-2 pb-9 rounded-2xl border outline-none ring-0 bg-transparent text-[color:var(--vscode-foreground)] placeholder:text-[color:var(--vscode-input-placeholderForeground,#888)] focus:border-[color:var(--vscode-focusBorder,#4c9aff)]"
           style={{
             backgroundColor: 'var(--vscode-dropdown-background)',
             borderColor: 'color-mix(in srgb, var(--vscode-foreground) 10%, transparent)'
           }}
         />
       </div>
-      <div className='absolute right-2 bottom-2.5'>
+      <div className='absolute right-2.5 bottom-3'>
         {isRunning ? (
           <button
             onClick={onStop}

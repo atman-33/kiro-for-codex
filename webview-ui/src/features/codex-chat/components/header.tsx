@@ -13,12 +13,6 @@ export function ChatHeader({ running, onClear }: Props) {
     >
       <div className="flex items-center gap-2">
         <strong className="font-semibold">Codex Chat</strong>
-        <span
-          className="text-xs px-1.5 py-0.5 rounded-full border"
-          style={{ borderColor: 'var(--vscode-editorWidget-border, #555)' }}
-        >
-          {running ? 'Running' : 'Idle'}
-        </span>
       </div>
       <div className="flex items-center gap-2">
         <button
