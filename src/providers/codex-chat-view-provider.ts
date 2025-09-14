@@ -139,45 +139,46 @@ export class CodexChatViewProvider implements vscode.WebviewViewProvider {
 }
 
 function getHtml(context: vscode.ExtensionContext, webview: vscode.Webview) {
-	const scriptUri = webview.asWebviewUri(
-		vscode.Uri.joinPath(
-			context.extensionUri,
-			"dist",
-			"webview",
-			"codex-chat",
-			"index.js",
-		),
+	const base = vscode.Uri.joinPath(
+		context.extensionUri,
+		"dist",
+		"webview",
+		"codex-chat",
+	);
+
+	const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(base, "index.js"));
+	const cssUri = webview.asWebviewUri(
+		vscode.Uri.joinPath(base, "assets", "index.css"),
 	);
 
 	const nonce = getNonce();
-
 	const csp = [
 		"default-src 'none'",
 		`img-src ${webview.cspSource} data: blob:`,
 		`style-src 'unsafe-inline' ${webview.cspSource}`,
 		`font-src ${webview.cspSource}`,
-		// Allow extension-bundled script and also require nonce on any inline script (none used)
 		`script-src 'nonce-${nonce}' ${webview.cspSource}`,
 	].join("; ");
 
 	return `<!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="Content-Security-Policy" content="${csp}">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Codex Chat</title>
-        <style>
-          :root { color-scheme: light dark; }
-          html, body, #root { height: 100%; width: 100%; margin: 0; }
-          body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-        </style>
-      </head>
-      <body>
-        <div id="root"></div>
-        <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-      </body>
-    </html>`;
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="Content-Security-Policy" content="${csp}">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Codex Chat</title>
+		<link rel="stylesheet" href="${cssUri}">
+		<style>
+			:root { color-scheme: light dark; }
+			html, body, #root { height: 100%; width: 100%; margin: 0; }
+			body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+		</style>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+	</body>
+</html>`;
 }
 
 function getNonce() {
