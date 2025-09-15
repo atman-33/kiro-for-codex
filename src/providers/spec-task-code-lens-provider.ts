@@ -38,13 +38,13 @@ export class SpecTaskCodeLensProvider implements vscode.CodeLensProvider {
 				const range = new vscode.Range(i, 0, i, line.length);
 				const taskDescription = taskMatch[2];
 
-				// Create CodeLens
-				const codeLens = new vscode.CodeLens(range, {
-					title: "$(play) Start Task",
-					tooltip: "Click to execute this task",
-					command: "kfc.spec.implTask",
-					arguments: [document.uri, i, taskDescription],
-				});
+                // Create CodeLens
+                const codeLens = new vscode.CodeLens(range, {
+                    title: "$(play) Start Task",
+                    tooltip: "Click to execute this task",
+                    command: "kiroCodex.spec.implTask",
+                    arguments: [document.uri, i, taskDescription]
+                });
 
 				codeLenses.push(codeLens);
 			}

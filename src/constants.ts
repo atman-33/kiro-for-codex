@@ -1,8 +1,8 @@
 // VSCode configuration namespace for this extension
-export const VSC_CONFIG_NAMESPACE = "kfc";
+export const VSC_CONFIG_NAMESPACE = 'kiroCodex';
 
 // File names
-export const CONFIG_FILE_NAME = "kfc-settings.json";
+export const CONFIG_FILE_NAME = 'kiroCodex-settings.json';
 
 // Default configuration
 export const DEFAULT_CONFIG = {

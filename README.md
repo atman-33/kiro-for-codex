@@ -129,24 +129,24 @@ The Overview view provides quick access to settings, availability checks, and he
 
 Core commands registered by the extension:
 
-- `kfc.spec.create`: Create a new spec (requirements -> design -> tasks)
-- `kfc.spec.createWithAgents`: Disabled in this build
-- `kfc.spec.navigate.requirements` / `kfc.spec.navigate.design` / `kfc.spec.navigate.tasks`: Open spec documents
-- `kfc.spec.implTask`: Run an individual task from `tasks.md`
-- `kfc.spec.refresh`: Refresh the SPEC explorer
-- `kfc.steering.create`: Create a custom steering document
-- `kfc.steering.generateInitial`: Analyze the project and generate initial steering docs
-- `kfc.steering.refine`: Refine an existing steering document
-- `kfc.steering.delete`: Delete a steering document and update docs
-- `kfc.prompts.create` / `kfc.prompts.run` / `kfc.prompts.refresh`: Manage and run prompts
-- `kfc.settings.open`: Open workspace settings file `.codex/settings/kfc-settings.json`
-- `kfc.menu.open`: Toggle visibility of views (Specs / Steering; others when enabled)
-- `kfc.codex.checkAvailability`: Check Codex CLI availability and version
-- `kfc.checkForUpdates`: Manually trigger the extension update checker
+- `kiroCodex.spec.create`: Create a new spec (requirements -> design -> tasks)
+- `kiroCodex.spec.createWithAgents`: Disabled in this build
+- `kiroCodex.spec.navigate.requirements` / `kiroCodex.spec.navigate.design` / `kiroCodex.spec.navigate.tasks`: Open spec documents
+- `kiroCodex.spec.implTask`: Run an individual task from `tasks.md`
+- `kiroCodex.spec.refresh`: Refresh the SPEC explorer
+- `kiroCodex.steering.create`: Create a custom steering document
+- `kiroCodex.steering.generateInitial`: Analyze the project and generate initial steering docs
+- `kiroCodex.steering.refine`: Refine an existing steering document
+- `kiroCodex.steering.delete`: Delete a steering document and update docs
+- `kiroCodex.prompts.create` / `kiroCodex.prompts.run` / `kiroCodex.prompts.refresh`: Manage and run prompts
+- `kiroCodex.settings.open`: Open workspace settings file `.codex/settings/kiroCodex-settings.json`
+- `kiroCodex.menu.open`: Toggle visibility of views (Specs / Steering; others when enabled)
+- `kiroCodex.codex.checkAvailability`: Check Codex CLI availability and version
+- `kiroCodex.checkForUpdates`: Manually trigger the extension update checker
 
 ## Configuration
 
-Project-local settings are stored in `.codex/settings/kfc-settings.json` and only contain paths. UI visibility and Codex runtime options live in VS Code settings under the `kfc.*` namespace.
+Project-local settings are stored in `.codex/settings/kiroCodex-settings.json` and only contain paths. UI visibility and Codex runtime options live in VS Code settings under the `kiroCodex.*` namespace.
 
 Minimal settings file:
 
@@ -164,7 +164,7 @@ Minimal settings file:
 Notes:
 - Only the `paths.*` values are honored by the extension at runtime.
 - Changing `paths.*` may require a window reload to take effect.
-- The location of `kfc-settings.json` itself is fixed to `.codex/settings/kfc-settings.json` (editing `paths.settings` does not relocate the file).
+- The location of `kiroCodex-settings.json` itself is fixed to `.codex/settings/kiroCodex-settings.json` (editing `paths.settings` does not relocate the file).
 
 ## Workspace Structure
 
@@ -184,7 +184,7 @@ steering/                    # AI guidance documents
   tech.md                    # Technical standards
   structure.md               # Code organization
 settings/
-  kfc-settings.json          # Extension settings
+  kiroCodex-settings.json          # Extension settings
 ```
 
 ## Development

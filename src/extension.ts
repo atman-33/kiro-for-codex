@@ -16,6 +16,7 @@ import { SteeringManager } from "./features/steering/steering-manager";
 import { AgentsExplorerProvider } from "./providers/agents-explorer-provider";
 import { CodexChatViewProvider } from "./providers/codex-chat-view-provider";
 import { CodexProvider } from "./providers/codex-provider";
+import { CreateNewSpecPanelProvider } from "./providers/create-new-spec-panel-provider";
 import { HooksExplorerProvider } from "./providers/hooks-explorer-provider";
 import { MCPExplorerProvider } from "./providers/mcp-explorer-provider";
 import { OverviewProvider } from "./providers/overview-provider";
@@ -23,7 +24,6 @@ import { PromptsExplorerProvider } from "./providers/prompts-explorer-provider";
 import { SpecExplorerProvider } from "./providers/spec-explorer-provider";
 import { SpecTaskCodeLensProvider } from "./providers/spec-task-code-lens-provider";
 import { SteeringExplorerProvider } from "./providers/steering-explorer-provider";
-import { CreateNewSpecPanelProvider } from "./providers/create-new-spec-panel-provider";
 import { PromptLoader } from "./services/prompt-loader";
 import { ConfigManager } from "./utils/config-manager";
 import { UpdateChecker } from "./utils/update-checker";
@@ -103,36 +103,36 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
-			"kfc.views.overview",
+			"kiroCodex.views.overview",
 			overviewProvider,
 		),
 		vscode.window.registerTreeDataProvider(
-			"kfc.views.specExplorer",
+			"kiroCodex.views.specExplorer",
 			specExplorer,
 		),
 		vscode.window.registerTreeDataProvider(
-			"kfc.views.steeringExplorer",
+			"kiroCodex.views.steeringExplorer",
 			steeringExplorer,
 		),
 	);
 	if (ENABLE_AGENTS_UI && agentsExplorer) {
 		context.subscriptions.push(
 			vscode.window.registerTreeDataProvider(
-				"kfc.views.agentsExplorer",
+				"kiroCodex.views.agentsExplorer",
 				agentsExplorer,
 			),
 		);
 	}
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
-			"kfc.views.promptsExplorer",
+			"kiroCodex.views.promptsExplorer",
 			promptsExplorer,
 		),
 	);
 	if (ENABLE_HOOKS_UI && hooksExplorer) {
 		context.subscriptions.push(
 			vscode.window.registerTreeDataProvider(
-				"kfc.views.hooksStatus",
+				"kiroCodex.views.hooksStatus",
 				hooksExplorer,
 			),
 		);
@@ -141,7 +141,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	if (ENABLE_MCP_UI && mcpExplorer) {
 		context.subscriptions.push(
 			vscode.window.registerTreeDataProvider(
-				"kfc.views.mcpServerStatus",
+				"kiroCodex.views.mcpServerStatus",
 				mcpExplorer,
 			),
 		);
@@ -233,7 +233,7 @@ async function initializeDefaultSettings() {
 		// Directory might already exist
 	}
 
-	// Create kfc-settings.json in .codex directory
+	// Create kiroCodex-settings.json in .codex directory
 	const codexSettingsFile = vscode.Uri.joinPath(
 		codexSettingsDir,
 		CONFIG_FILE_NAME,
@@ -351,9 +351,9 @@ function registerCommands(
 	);
 
 	const createSpecCommand = vscode.commands.registerCommand(
-		"kfc.spec.create",
+		"kiroCodex.spec.create",
 		async () => {
-			outputChannel.appendLine("\n=== COMMAND kfc.spec.create TRIGGERED ===");
+			outputChannel.appendLine("\n=== COMMAND kiroCodex.spec.create TRIGGERED ===");
 			outputChannel.appendLine(`Time: ${new Date().toLocaleTimeString()}`);
 			try {
 				createNewSpecPanelProvider.show();
@@ -370,7 +370,7 @@ function registerCommands(
 
 	// Guard: "New Spec with Agents" is disabled for Codex build
 	const createSpecWithAgentsCommand = vscode.commands.registerCommand(
-		"kfc.spec.createWithAgents",
+		"kiroCodex.spec.createWithAgents",
 		async () => {
 			if (!ENABLE_SPEC_AGENTS) {
 				vscode.window.showInformationMessage(
@@ -393,28 +393,28 @@ function registerCommands(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			"kfc.spec.navigate.requirements",
+			"kiroCodex.spec.navigate.requirements",
 			async (specName: string) => {
 				await specManager.navigateToDocument(specName, "requirements");
 			},
 		),
 
 		vscode.commands.registerCommand(
-			"kfc.spec.navigate.design",
+			"kiroCodex.spec.navigate.design",
 			async (specName: string) => {
 				await specManager.navigateToDocument(specName, "design");
 			},
 		),
 
 		vscode.commands.registerCommand(
-			"kfc.spec.navigate.tasks",
+			"kiroCodex.spec.navigate.tasks",
 			async (specName: string) => {
 				await specManager.navigateToDocument(specName, "tasks");
 			},
 		),
 
 		vscode.commands.registerCommand(
-			"kfc.spec.implTask",
+			"kiroCodex.spec.implTask",
 			async (
 				documentUri: vscode.Uri,
 				lineNumber: number,
@@ -442,7 +442,7 @@ function registerCommands(
 				await specManager.implTask(documentUri.fsPath, taskDescription);
 			},
 		),
-		vscode.commands.registerCommand("kfc.spec.refresh", async () => {
+		vscode.commands.registerCommand("kiroCodex.spec.refresh", async () => {
 			outputChannel.appendLine("[Manual Refresh] Refreshing spec explorer...");
 			specExplorer.refresh();
 		}),
@@ -452,19 +452,19 @@ function registerCommands(
 
 	// Steering commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kfc.steering.create", async () => {
+		vscode.commands.registerCommand("kiroCodex.steering.create", async () => {
 			await steeringManager.createCustom();
 		}),
 
 		vscode.commands.registerCommand(
-			"kfc.steering.generateInitial",
+			"kiroCodex.steering.generateInitial",
 			async () => {
 				await steeringManager.init();
 			},
 		),
 
 		vscode.commands.registerCommand(
-			"kfc.steering.refine",
+			"kiroCodex.steering.refine",
 			async (item: any) => {
 				// Item is always from tree view
 				const uri = vscode.Uri.file(item.resourcePath);
@@ -473,7 +473,7 @@ function registerCommands(
 		),
 
 		vscode.commands.registerCommand(
-			"kfc.steering.delete",
+			"kiroCodex.steering.delete",
 			async (item: any) => {
 				outputChannel.appendLine(`[Steering] Deleting: ${item.label}`);
 
@@ -490,18 +490,18 @@ function registerCommands(
 		),
 
 		// Configuration commands
-		vscode.commands.registerCommand("kfc.steering.createUserRule", async () => {
+		vscode.commands.registerCommand("kiroCodex.steering.createUserRule", async () => {
 			await steeringManager.createUserConfiguration();
 		}),
 
 		vscode.commands.registerCommand(
-			"kfc.steering.createProjectRule",
+			"kiroCodex.steering.createProjectRule",
 			async () => {
 				await steeringManager.createProjectDocumentation();
 			},
 		),
 
-		vscode.commands.registerCommand("kfc.steering.refresh", async () => {
+		vscode.commands.registerCommand("kiroCodex.steering.refresh", async () => {
 			outputChannel.appendLine(
 				"[Manual Refresh] Refreshing steering explorer...",
 			);
@@ -511,7 +511,7 @@ function registerCommands(
 		// Agents commands
 		...(ENABLE_AGENTS_UI && agentsExplorer
 			? [
-					vscode.commands.registerCommand("kfc.agents.refresh", async () => {
+					vscode.commands.registerCommand("kiroCodex.agents.refresh", async () => {
 						outputChannel.appendLine(
 							"[Manual Refresh] Refreshing agents explorer...",
 						);
@@ -547,7 +547,7 @@ function registerCommands(
 
 	// Spec delete command
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kfc.spec.delete", async (item: any) => {
+		vscode.commands.registerCommand("kiroCodex.spec.delete", async (item: any) => {
 			await specManager.delete(item.label);
 		}),
 	);
@@ -558,11 +558,11 @@ function registerCommands(
 	// Hooks commands
 	if (ENABLE_HOOKS_UI && hooksExplorer) {
 		context.subscriptions.push(
-			vscode.commands.registerCommand("kfc.hooks.refresh", () => {
+			vscode.commands.registerCommand("kiroCodex.hooks.refresh", () => {
 				hooksExplorer.refresh();
 			}),
 			vscode.commands.registerCommand(
-				"kfc.hooks.copyCommand",
+				"kiroCodex.hooks.copyCommand",
 				async (command: string) => {
 					await vscode.env.clipboard.writeText(command);
 				},
@@ -573,7 +573,7 @@ function registerCommands(
 	// MCP commands (only when enabled)
 	if (ENABLE_MCP_UI && mcpExplorer) {
 		context.subscriptions.push(
-			vscode.commands.registerCommand("kfc.mcp.refresh", () => {
+			vscode.commands.registerCommand("kiroCodex.mcp.refresh", () => {
 				mcpExplorer.refresh();
 			}),
 		);
@@ -581,13 +581,13 @@ function registerCommands(
 
 	// Prompts commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kfc.prompts.refresh", async () => {
+		vscode.commands.registerCommand("kiroCodex.prompts.refresh", async () => {
 			outputChannel.appendLine(
 				"[Manual Refresh] Refreshing prompts explorer...",
 			);
 			promptsExplorer.refresh();
 		}),
-		vscode.commands.registerCommand("kfc.prompts.create", async () => {
+		vscode.commands.registerCommand("kiroCodex.prompts.create", async () => {
 			const ws = vscode.workspace.workspaceFolders?.[0];
 			if (!ws) {
 				vscode.window.showErrorMessage("No workspace folder found");
@@ -616,7 +616,7 @@ function registerCommands(
 			}
 		}),
 		vscode.commands.registerCommand(
-			"kfc.prompts.run",
+			"kiroCodex.prompts.run",
 			async (filePathOrItem?: any) => {
 				try {
 					let target: string | undefined;
@@ -657,13 +657,13 @@ function registerCommands(
 
 	// Group the following commands in a single subscriptions push
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kfc.checkForUpdates", async () => {
+		vscode.commands.registerCommand("kiroCodex.checkForUpdates", async () => {
 			outputChannel.appendLine("Manual update check requested");
 			await updateChecker.checkForUpdates(true); // Force check
 		}),
 
 		// Overview and settings commands
-		vscode.commands.registerCommand("kfc.settings.open", async () => {
+		vscode.commands.registerCommand("kiroCodex.settings.open", async () => {
 			outputChannel.appendLine("Opening Kiro settings...");
 
 			const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -683,7 +683,7 @@ function registerCommands(
 				// Directory might already exist
 			}
 
-			// Create or open kfc-settings.json
+			// Create or open kiroCodex-settings.json
 			const settingsFile = vscode.Uri.joinPath(settingsDir, CONFIG_FILE_NAME);
 
 			try {
@@ -705,19 +705,19 @@ function registerCommands(
 			await vscode.window.showTextDocument(document);
 		}),
 
-		vscode.commands.registerCommand("kfc.help.open", async () => {
+		vscode.commands.registerCommand("kiroCodex.help.open", async () => {
 			outputChannel.appendLine("Opening Kiro help...");
 			const helpUrl = "https://github.com/atman-33/kiro-for-codex#readme";
 			vscode.env.openExternal(vscode.Uri.parse(helpUrl));
 		}),
 
-		vscode.commands.registerCommand("kfc.menu.open", async () => {
+		vscode.commands.registerCommand("kiroCodex.menu.open", async () => {
 			outputChannel.appendLine("Opening Kiro menu...");
 			await toggleViews();
 		}),
 
 		// Codex availability check command
-		vscode.commands.registerCommand("kfc.codex.checkAvailability", async () => {
+		vscode.commands.registerCommand("kiroCodex.codex.checkAvailability", async () => {
 			const availabilityResult =
 				await codexProvider.getCodexAvailabilityStatus();
 
@@ -789,12 +789,12 @@ function setupFileWatchers(
 
 	context.subscriptions.push(codexWatcher);
 
-	// Watch for changes in workspace Codex settings (.codex/settings/kfc-settings.json)
+	// Watch for changes in workspace Codex settings (.codex/settings/kiroCodex-settings.json)
 	const wsFolder = vscode.workspace.workspaceFolders?.[0];
 	if (wsFolder) {
 		const settingsPattern = new vscode.RelativePattern(
 			wsFolder,
-			".codex/settings/kfc-settings.json",
+			".codex/settings/kiroCodex-settings.json",
 		);
 		const codexSettingsWatcher =
 			vscode.workspace.createFileSystemWatcher(settingsPattern);

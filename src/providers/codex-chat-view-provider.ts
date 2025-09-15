@@ -7,10 +7,10 @@ import type {
 import { IPC } from "../types/ipc/codex-chat-events";
 
 /**
- * WebviewView provider to host Codex Chat inside the sidebar (kfc view container).
+ * WebviewView provider to host Codex Chat inside the sidebar (kiroCodex view container).
  */
 export class CodexChatViewProvider implements vscode.WebviewViewProvider {
-	public static readonly viewId = "kfc.views.codexChat";
+	public static readonly viewId = "kiroCodex.views.codexChat";
 
 	private view?: vscode.WebviewView;
 	private currentCancel: (() => void) | undefined;

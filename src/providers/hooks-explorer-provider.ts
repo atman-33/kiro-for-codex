@@ -148,7 +148,7 @@ export class HooksExplorerProvider
 								"hook-command", // Use specific contextValue
 								`${element.id}-command-${index}`,
 								{
-									command: "kfc.hooks.copyCommand",
+									command: "kiroCodex.hooks.copyCommand",
 									title: "Copy Command",
 									arguments: [hook.command],
 								},

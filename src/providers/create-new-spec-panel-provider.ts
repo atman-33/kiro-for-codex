@@ -16,7 +16,7 @@ export class CreateNewSpecPanelProvider {
 		}
 
 		this.panel = vscode.window.createWebviewPanel(
-			"kfc.createNewSpec",
+			"kiroCodex.createNewSpec",
 			"Create New Spec",
 			{ viewColumn: vscode.ViewColumn.Active, preserveFocus: false },
 			{

@@ -2,8 +2,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { CONFIG_FILE_NAME, DEFAULT_PATHS } from "../constants";
 
-// Minimal project-local settings persisted under .codex/settings/kfc-settings.json
-// Only "paths" are honored by the extension. Other runtime configs live in VS Code settings (kfc.*).
+// Minimal project-local settings persisted under .codex/settings/kiroCodex-settings.json
+// Only "paths" are honored by the extension. Other runtime configs live in VS Code settings (kiroCodex.*).
 export interface KfcSettings {
 	paths: {
 		specs: string;

@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.3.0 2025-09-15
+
+### Breaking
+
+- Rename internal namespace from `kfc` to `kiroCodex` to avoid collisions with the original extension and make the identifier explicit.
+  - Commands: `kfc.*` → `kiroCodex.*`
+  - Views and container IDs: `kfc.views.*` → `kiroCodex.views.*`
+  - Settings namespace: `kfc.*` → `kiroCodex.*`
+  - Project settings file: `.codex/settings/kfc-settings.json` → `.codex/settings/kiroCodex-settings.json`
+  - Built-in agents directory: `.codex/agents/kfc` → `.codex/agents/kiroCodex`
+
+### Changed
+
+- Merge pull request #28 from cbruyndoncx/fix-naming-conflict-rename-kfc-to-kiroCodex
+- renamed kfc references in settings to kiroCodex to allow both Kiro Claude and Kiro Codex
+- feature/issue-to-pr
+- Add GitHub workflow for automated issue-to-PR with Codex
+- Refactor AGENTS.md to focus on agent contract and steering docs
+- Merge pull request #20 from atman-33/version-bump/v0.2.0
+
 ## v0.2.0 2025-09-09
 
 ### Changed
@@ -40,8 +60,8 @@ All notable changes to this project will be documented in this file.
 ### 🔧 Improvements
 
 - Refactor configuration handling:
-  - Move runtime settings to VS Code settings under the `kfc.*` namespace.
-  - Simplify project configuration to only manage paths via `.codex/settings/kfc-settings.json`.
+  - Move runtime settings to VS Code settings under the `kiroCodex.*` namespace.
+  - Simplify project configuration to only manage paths via `.codex/settings/kiroCodex-settings.json`.
   - Remove unused configuration interfaces/methods in `src/utils/config-manager.ts` and update related unit tests.
 
 ### 📝 Documentation
@@ -55,25 +75,25 @@ Initial public release.
 ### ✨ New Features
 
 - SPEC management:
-  - Create specs (requirements → design → tasks) via Codex CLI (`kfc.spec.create`).
+  - Create specs (requirements → design → tasks) via Codex CLI (`kiroCodex.spec.create`).
   - Navigate to requirements/design/tasks from the SPEC explorer.
-  - CodeLens for tasks in `tasks.md`: execute a single task via Codex and auto‑check it off (`kfc.spec.implTask`).
+  - CodeLens for tasks in `tasks.md`: execute a single task via Codex and auto‑check it off (`kiroCodex.spec.implTask`).
 - STEERING management:
-  - Generate initial project steering docs (product/tech/structure) (`kfc.steering.generateInitial`).
-  - Create custom steering documents (`kfc.steering.create`).
-  - Refine and delete steering docs with Codex updating related docs (`kfc.steering.refine`, `kfc.steering.delete`).
+  - Generate initial project steering docs (product/tech/structure) (`kiroCodex.steering.generateInitial`).
+  - Create custom steering documents (`kiroCodex.steering.create`).
+  - Refine and delete steering docs with Codex updating related docs (`kiroCodex.steering.refine`, `kiroCodex.steering.delete`).
 - PROMPTS view:
-  - Create Markdown prompts under `.codex/prompts` (`kfc.prompts.create`).
-  - Run prompts in a split terminal with Codex (`kfc.prompts.run`).
-  - Refresh prompts list (`kfc.prompts.refresh`).
+  - Create Markdown prompts under `.codex/prompts` (`kiroCodex.prompts.create`).
+  - Run prompts in a split terminal with Codex (`kiroCodex.prompts.run`).
+  - Refresh prompts list (`kiroCodex.prompts.refresh`).
 - Overview/Settings:
-  - Optional settings view and quick links (`kfc.settings.open`, `kfc.help.open`).
-  - Toggle view visibility from a command (`kfc.menu.open`).
+  - Optional settings view and quick links (`kiroCodex.settings.open`, `kiroCodex.help.open`).
+  - Toggle view visibility from a command (`kiroCodex.menu.open`).
 - Codex integration:
-  - Availability/version check and setup guidance (`kfc.codex.checkAvailability`).
+  - Availability/version check and setup guidance (`kiroCodex.codex.checkAvailability`).
   - Headless execution and split‑terminal invocation with retry/error handling.
 - Update checker:
-  - Manual update check command (`kfc.checkForUpdates`).
+  - Manual update check command (`kiroCodex.checkForUpdates`).
 
 ### 🔧 Improvements
 
