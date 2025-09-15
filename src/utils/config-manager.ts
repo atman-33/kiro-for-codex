@@ -4,7 +4,7 @@ import { CONFIG_FILE_NAME, DEFAULT_PATHS } from "../constants";
 
 // Minimal project-local settings persisted under .codex/settings/kiroCodex-settings.json
 // Only "paths" are honored by the extension. Other runtime configs live in VS Code settings (kiroCodex.*).
-export interface KfcSettings {
+export interface KiroCodexSettings {
 	paths: {
 		specs: string;
 		steering: string;
@@ -15,7 +15,7 @@ export interface KfcSettings {
 
 export class ConfigManager {
 	private static instance: ConfigManager;
-	private settings: KfcSettings | null = null;
+	private settings: KiroCodexSettings | null = null;
 	private workspaceFolder: vscode.WorkspaceFolder | undefined;
 
 	// Internal constants
@@ -32,7 +32,7 @@ export class ConfigManager {
 		return ConfigManager.instance;
 	}
 
-	async loadSettings(): Promise<KfcSettings> {
+	async loadSettings(): Promise<KiroCodexSettings> {
 		if (!this.workspaceFolder) {
 			return this.getDefaultSettings();
 		}
@@ -58,7 +58,7 @@ export class ConfigManager {
 		}
 	}
 
-	getSettings(): KfcSettings {
+	getSettings(): KiroCodexSettings {
 		if (!this.settings) {
 			this.settings = this.getDefaultSettings();
 		}
@@ -81,13 +81,13 @@ export class ConfigManager {
 		return ConfigManager.TERMINAL_VENV_ACTIVATION_DELAY;
 	}
 
-	private getDefaultSettings(): KfcSettings {
+	private getDefaultSettings(): KiroCodexSettings {
 		return {
 			paths: { ...DEFAULT_PATHS },
 		};
 	}
 
-	async saveSettings(settings: KfcSettings): Promise<void> {
+	async saveSettings(settings: KiroCodexSettings): Promise<void> {
 		if (!this.workspaceFolder) {
 			throw new Error("No workspace folder found");
 		}
