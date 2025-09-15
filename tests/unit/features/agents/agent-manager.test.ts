@@ -119,7 +119,7 @@ describe('AgentManager', () => {
     describe('2. Built-in Agents Initialization', () => {
         test('TC-AM-002: Successfully initialize built-in agents', async () => {
             // Arrange
-            const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc');
+            const targetPath = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kiroCodex');
 
             // Mock stat to throw (file doesn't exist)
             (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(new Error('File not found'));
@@ -310,7 +310,7 @@ description: No tools
     describe('4. Agent Path Management', () => {
         test('TC-AM-009: Get agent path', () => {
             // Arrange (normalize path comparison for cross-OS)
-            const expectedNeedle = path.join('.codex', 'agents', 'kfc', 'test-agent.md');
+            const expectedNeedle = path.join('.codex', 'agents', 'kiroCodex', 'test-agent.md');
             (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
                 return path.normalize(p).includes(path.normalize(expectedNeedle));
             });
@@ -319,7 +319,7 @@ description: No tools
             const agentPath = agentManager.getAgentPath('test-agent');
 
             // Assert
-            const expectedFull = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kfc', 'test-agent.md');
+            const expectedFull = path.join(mockWorkspaceRoot, '.codex', 'agents', 'kiroCodex', 'test-agent.md');
             expect(agentPath).toBe(expectedFull);
         });
 
@@ -336,7 +336,7 @@ description: No tools
 
         test('TC-AM-011: Check agent existence', () => {
             // Arrange
-            const expectedExisting = path.join('kfc', 'existing-agent.md');
+            const expectedExisting = path.join('kiroCodex', 'existing-agent.md');
             (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
                 // Only return true for paths that contain 'existing-agent.md' (normalized)
                 return path.normalize(p).includes(path.normalize(expectedExisting));

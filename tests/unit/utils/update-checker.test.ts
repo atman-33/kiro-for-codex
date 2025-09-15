@@ -200,13 +200,13 @@ describe('UpdateChecker', () => {
             // Wait for the promise to resolve
             await new Promise(resolve => setTimeout(resolve, 0));
 
-            expect(mockGlobalState.update).toHaveBeenCalledWith('kfc.skipVersion', '0.1.9');
+            expect(mockGlobalState.update).toHaveBeenCalledWith('kiroCodex.skipVersion', '0.1.9');
         });
 
         it('should not show notification for skipped version', async () => {
             // Set up skipped version
             mockGlobalState.get.mockImplementation((key: string) => {
-                if (key === 'kfc.skipVersion') return '0.1.9';
+                if (key === 'kiroCodex.skipVersion') return '0.1.9';
                 return undefined;
             });
 
@@ -231,7 +231,7 @@ describe('UpdateChecker', () => {
             // Set last check to 1 hour ago
             const oneHourAgo = Date.now() - (60 * 60 * 1000);
             mockGlobalState.get.mockImplementation((key: string) => {
-                if (key === 'kfc.lastUpdateCheck') return oneHourAgo;
+                if (key === 'kiroCodex.lastUpdateCheck') return oneHourAgo;
                 return undefined;
             });
 
@@ -244,7 +244,7 @@ describe('UpdateChecker', () => {
             // Set last check to 1 hour ago
             const oneHourAgo = Date.now() - (60 * 60 * 1000);
             mockGlobalState.get.mockImplementation((key: string) => {
-                if (key === 'kfc.lastUpdateCheck') return oneHourAgo;
+                if (key === 'kiroCodex.lastUpdateCheck') return oneHourAgo;
                 return undefined;
             });
 

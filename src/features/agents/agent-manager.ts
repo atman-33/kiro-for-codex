@@ -67,7 +67,7 @@ export class AgentManager {
             return;
         }
 
-        const targetDir = path.join(this.workspaceRoot, '.codex/agents/kfc');
+        const targetDir = path.join(this.workspaceRoot, '.codex/agents/kiroCodex');
 
         try {
             // Ensure target directory exists
@@ -126,14 +126,14 @@ export class AgentManager {
     async getAgentList(type: 'project' | 'user' | 'all' = 'all'): Promise<AgentInfo[]> {
         const agents: AgentInfo[] = [];
 
-        // Get project agents (excluding kfc built-in agents)
+        // Get project agents (excluding kiroCodex built-in agents)
         if (type === 'project' || type === 'all') {
             if (this.workspaceRoot) {
                 const projectAgentsPath = path.join(this.workspaceRoot, '.codex/agents');
                 const projectAgents = await this.getAgentsFromDirectory(
                     projectAgentsPath,
                     'project',
-                    true  // exclude kfc directory
+                    true  // exclude kiroCodex directory
                 );
                 agents.push(...projectAgents);
             }
@@ -176,9 +176,9 @@ export class AgentManager {
             for (const [fileName, fileType] of entries) {
                 const fullPath = path.join(dirPath, fileName);
 
-                // Skip kfc directory if excludeKfc is true
-                if (excludeKfc && fileName === 'kfc' && fileType === vscode.FileType.Directory) {
-                    this.outputChannel.appendLine(`[AgentManager] Skipping kfc directory (built-in agents)`);
+                // Skip kiroCodex directory if excludeKfc is true
+                if (excludeKfc && fileName === 'kiroCodex' && fileType === vscode.FileType.Directory) {
+                    this.outputChannel.appendLine(`[AgentManager] Skipping kiroCodex directory (built-in agents)`);
                     continue;
                 }
 
@@ -256,7 +256,7 @@ export class AgentManager {
      */
     checkAgentExists(agentName: string, location: 'project' | 'user'): boolean {
         const basePath = location === 'project'
-            ? (this.workspaceRoot ? path.join(this.workspaceRoot, '.codex/agents/kfc') : null)
+            ? (this.workspaceRoot ? path.join(this.workspaceRoot, '.codex/agents/kiroCodex') : null)
             : path.join(os.homedir(), '.codex/agents');
 
         if (!basePath) {
@@ -273,7 +273,7 @@ export class AgentManager {
     getAgentPath(agentName: string): string | null {
         // Check project agents first
         if (this.workspaceRoot) {
-            const projectPath = path.join(this.workspaceRoot, '.codex/agents/kfc', `${agentName}.md`);
+            const projectPath = path.join(this.workspaceRoot, '.codex/agents/kiroCodex', `${agentName}.md`);
             if (fs.existsSync(projectPath)) {
                 return projectPath;
             }
