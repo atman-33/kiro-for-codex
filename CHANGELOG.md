@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## v0.2.0 2025-09-09
+## v0.3.0 2025-09-15
 
 ### Breaking
 
@@ -14,6 +14,17 @@ All notable changes to this project will be documented in this file.
   - Settings namespace: `kfc.*` → `kiroCodex.*`
   - Project settings file: `.codex/settings/kfc-settings.json` → `.codex/settings/kiroCodex-settings.json`
   - Built-in agents directory: `.codex/agents/kfc` → `.codex/agents/kiroCodex`
+
+### Changed
+
+- Merge pull request #28 from cbruyndoncx/fix-naming-conflict-rename-kfc-to-kiroCodex
+- renamed kfc references in settings to kiroCodex to allow both Kiro Claude and Kiro Codex
+- feature/issue-to-pr
+- Add GitHub workflow for automated issue-to-PR with Codex
+- Refactor AGENTS.md to focus on agent contract and steering docs
+- Merge pull request #20 from atman-33/version-bump/v0.2.0
+
+## v0.2.0 2025-09-09
 
 ### Changed
 
