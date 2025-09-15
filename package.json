@@ -23,7 +23,8 @@
   ],
   "main": "dist/extension.js",
   "extensionKind": [
-    "workspace"
+    "workspace",
+    "ui"
   ],
   "scripts": {
     "install:all": "npm install && cd webview-ui && npm install",
@@ -85,6 +86,26 @@
           "type": "boolean",
           "default": true,
           "description": "Show Prompts view in the Kiro activity container"
+        },
+        "kiroCodex.views.chat.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Chat view in the Kiro activity container"
+        },
+        "kiroCodex.views.agents.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Agents view in the Kiro activity container (temporarily disabled)"
+        },
+        "kiroCodex.views.hooks.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Agent Hooks view in the Kiro activity container (temporarily disabled)"
+        },
+        "kiroCodex.views.mcp.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show MCP Servers view in the Kiro activity container (temporarily disabled)"
         },
         "kiroCodex.views.settings.visible": {
           "type": "boolean",
@@ -466,91 +487,6 @@
           "when": "false"
         }
       ]
-    },
-    "configuration": {
-      "title": "Kiro for Codex",
-      "properties": {
-        "kiroCodex.autoRefreshSpecs": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically refresh specs when requirements are saved"
-        },
-        "kiroCodex.showWelcomeMessage": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show welcome message on startup"
-        },
-        "kiroCodex.views.specs.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Specs view"
-        },
-        "kiroCodex.views.prompts.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Prompts view"
-        },
-        "kiroCodex.views.chat.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Chat view"
-        },
-        "kiroCodex.views.agents.visible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show Agents view (temporarily disabled)"
-        },
-        "kiroCodex.views.hooks.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Agent Hooks view"
-        },
-        "kiroCodex.views.steering.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Agent Steering view"
-        },
-        "kiroCodex.views.mcp.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show MCP Servers view"
-        },
-        "kiroCodex.views.settings.visible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show Settings view"
-        },
-        "kiroCodex.codex.path": {
-          "type": "string",
-          "default": "codex",
-          "description": "Path to Codex CLI executable"
-        },
-        "kiroCodex.codex.defaultApprovalMode": {
-          "type": "string",
-          "default": "interactive",
-          "enum": [
-            "interactive",
-            "auto-edit",
-            "full-auto"
-          ],
-          "description": "Default approval mode for Codex operations"
-        },
-        "kiroCodex.codex.defaultModel": {
-          "type": "string",
-          "default": "gpt-5",
-          "description": "Default model to use with Codex CLI"
-        },
-        "kiroCodex.codex.timeout": {
-          "type": "number",
-          "default": 30000,
-          "description": "Timeout for Codex CLI operations in milliseconds"
-        },
-        "kiroCodex.codex.terminalDelay": {
-          "type": "number",
-          "default": 1000,
-          "description": "Delay before sending commands to terminal in milliseconds"
-        }
-      }
     }
   },
   "dependencies": {
