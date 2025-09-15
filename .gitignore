@@ -18,6 +18,7 @@ coverage/
 .nyc_output/
 
 .tmp
+.repomix
 repomix-output*
 
 .serena

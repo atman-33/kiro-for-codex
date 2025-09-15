@@ -28,9 +28,10 @@
   ],
   "scripts": {
     "install:all": "npm install && cd webview-ui && npm install",
-    "build": "npm run build-prompts && vite build && npm run build:webview",
+    "build:ext": "esbuild src/extension.ts --bundle --platform=node --target=node16 --external:vscode --outfile=dist/extension.js",
+    "build": "npm run build-prompts && npm run build:ext && node scripts/copy-resources.js && npm run build:webview",
     "vscode:prepublish": "npm run build",
-    "compile": "npm run build-prompts && tsc -p ./ && npm run package",
+    "compile": "npm run build && npm run package",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
     "package": "vsce package",
     "build-prompts": "node scripts/build-prompts.js",
@@ -495,6 +496,7 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "esbuild": "^0.23.0",
     "@biomejs/biome": "2.2.4",
     "@jest/globals": "^29.7.0",
     "@types/glob": "^8.1.0",

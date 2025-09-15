@@ -36,3 +36,7 @@ webpack.config.js
 **/*.ts
 !**/*.d.ts
 src/**/*.js
+docs/**
+.husky/**
+.serena/**
+.repomix/**
