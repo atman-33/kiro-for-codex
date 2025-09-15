@@ -2,7 +2,7 @@
   "name": "kiro-for-codex",
   "displayName": "Kiro for Codex",
   "description": "Spec-driven development with Codex CLI - inspired by Kiro",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "atman-33",
   "publisher": "atman-dev",
   "icon": "icon.png",
@@ -22,7 +22,9 @@
     "onStartupFinished"
   ],
   "main": "dist/extension.js",
-  "extensionKind": ["workspace"],
+  "extensionKind": [
+    "workspace"
+  ],
   "scripts": {
     "build": "npm run package-web",
     "vscode:prepublish": "npm run package-web",
@@ -88,7 +90,11 @@
         },
         "kiroCodex.codex.defaultApprovalMode": {
           "type": "string",
-          "enum": ["interactive", "auto-edit", "full-auto"],
+          "enum": [
+            "interactive",
+            "auto-edit",
+            "full-auto"
+          ],
           "default": "interactive",
           "description": "Default approval mode when invoking Codex CLI"
         },
