@@ -1,8 +1,8 @@
-import { ArrowUp, SquarePause } from 'lucide-react';
+import { Pen } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import '../../app.css';
 import { vscode } from '../../bridge/vscode';
-import { IconButton } from '../../components/icon-button';
+import { PillButton } from '../../components/pill-button';
 import { TextareaPanel } from '../../components/textarea-panel';
 
 export function CreateNewSpecView() {
@@ -18,13 +18,7 @@ export function CreateNewSpecView() {
     vscode.postMessage({ type: 'spec.create/submit', id, text: payload });
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (running) return;
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      submit();
-    }
-  };
+  // Enter inserts newline; submission only via the Create button.
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -42,31 +36,29 @@ export function CreateNewSpecView() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full w-full" style={{ backgroundColor: 'var(--vscode-editor-background)' }}>
-      <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--vscode-editorWidget-border, #555)' }}>
+    <div className="flex flex-col px-3 py-2 gap-2 h-full w-full" style={{ backgroundColor: 'var(--vscode-editor-background)' }}>
+      <div className="border-b flex items-center justify-between" style={{ borderColor: 'var(--vscode-editorWidget-border, #555)' }}>
         <strong className="font-semibold">Create New Spec</strong>
       </div>
-      <div className="flex-1 min-h-0 p-3">
+      <div className="flex-1 min-h-0">
         <TextareaPanel
           textareaRef={taRef}
           rows={4}
           value={text}
           onChange={(e) => { setText(e.target.value); }}
-          onKeyDown={onKeyDown}
-          placeholder="Outline goals, scope, constraints, and context. Enter to submit, Shift+Enter for newline."
+          placeholder={
+            'Type your idea to generate requirement, design, and task specs. Press Create to submit.'
+          }
           // Expand textarea to fill available height and allow scrolling
           textareaClassName="h-full max-h-full overflow-y-auto"
         >
           <div className='flex items-center justify-end px-2'>
-            {running ? (
-              <IconButton disabled aria-label="Running" className='cursor-not-allowed'>
-                <SquarePause strokeWidth='1' size='18' />
-              </IconButton>
-            ) : (
-              <IconButton onClick={submit} disabled={!text.trim()} aria-label="Run" className='disabled:opacity-60'>
-                <ArrowUp strokeWidth='1' size='18' />
-              </IconButton>
-            )}
+            <PillButton onClick={submit} disabled={!text.trim() || running} aria-label="Create new spec">
+              <Pen size='14' />
+              <span>
+                Create
+              </span>
+            </PillButton>
           </div>
         </TextareaPanel>
       </div>
