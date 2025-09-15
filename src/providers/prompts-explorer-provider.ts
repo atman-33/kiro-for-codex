@@ -135,11 +135,20 @@ class PromptItem extends vscode.TreeItem {
 			this.iconPath = new vscode.ThemeIcon("info");
 			this.tooltip = "Create prompts under .codex/prompts";
 		} else if (contextValue === "prompt") {
-			this.iconPath = new vscode.ThemeIcon("symbol-string");
+			this.iconPath = new vscode.ThemeIcon("terminal");
 			this.tooltip = resourcePath || "";
 			if (resourcePath) {
 				this.resourceUri = vscode.Uri.file(resourcePath);
-				this.description = path.basename(resourcePath);
+				// Show workspace-relative path (e.g. .codex/prompts/xxx.md) instead of absolute
+				try {
+					const rel = vscode.workspace.asRelativePath(
+						vscode.Uri.file(resourcePath),
+						false,
+					);
+					this.description = rel || resourcePath;
+				} catch {
+					this.description = resourcePath;
+				}
 			}
 		}
 	}

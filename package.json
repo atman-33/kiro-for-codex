@@ -171,7 +171,7 @@
         {
           "id": "kiroCodex.views.promptsExplorer",
           "name": "Prompts",
-          "icon": "symbol-string",
+          "icon": "terminal",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.prompts.visible"
         },
         {
