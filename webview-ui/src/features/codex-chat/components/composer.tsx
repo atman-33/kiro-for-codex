@@ -2,6 +2,7 @@ import { ArrowUp, SquarePause } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { vscode } from '../../../bridge/vscode';
 import { TextareaPanel } from '../../../components/textarea-panel';
+import { IconButton } from '../../../components/icon-button';
 
 export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string, id: string) => void; isRunning?: boolean; onStop?: () => void; }) {
   const [text, setText] = useState('');
@@ -60,30 +61,13 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
     >
       <div className='flex items-center justify-end px-2'>
         {isRunning ? (
-          <button
-            onClick={onStop}
-            className='flex items-center justify-center cursor-pointer rounded-full w-6 h-6'
-            disabled={!onStop}
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--vscode-foreground) 50%, transparent)',
-              color: 'var(--vscode-sideBar-background)'
-            }}
-          >
-            <SquarePause strokeWidth='1' size='18' style={{
-            }} />
-          </button>
+          <IconButton onClick={onStop} disabled={!onStop} aria-label='Stop'>
+            <SquarePause strokeWidth='1' size='18' />
+          </IconButton>
         ) : (
-          <button
-            onClick={send}
-            disabled={!!isRunning}
-            className='flex items-center justify-center cursor-pointer rounded-full w-6 h-6'
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--vscode-foreground) 50%, transparent)',
-              color: 'var(--vscode-sideBar-background)'
-            }}
-          >
+          <IconButton onClick={send} disabled={!!isRunning} aria-label='Send'>
             <ArrowUp strokeWidth='1' size='18' />
-          </button>
+          </IconButton>
         )}
       </div>
     </TextareaPanel>
