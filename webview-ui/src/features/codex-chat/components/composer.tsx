@@ -47,7 +47,10 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
   };
 
   return (
-    <div className="flex w-full h-full box-border min-w-0 items-end relative">
+    <div className="flex flex-col gap-2 w-full h-full box-border rounded-2xl pt-4 pb-2 min-w-0 bg-[var(--vscode-dropdown-background)] border"
+      style={{
+        borderColor: 'color-mix(in srgb, var(--vscode-foreground) 10%, transparent)'
+      }}>
       <div className="flex-1 h-full min-w-0">
         <textarea
           ref={taRef}
@@ -57,21 +60,17 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
           onKeyDown={onKeyDown}
           placeholder={isRunning ? 'Running…' : 'Type a message. Enter to send, Shift+Enter for newline'}
           disabled={!!isRunning}
-          className="w-full resize-none min-h-24 max-h-80 overflow-x-hidden px-3 pt-2 pb-9 rounded-2xl border outline-none ring-0 bg-transparent text-[color:var(--vscode-foreground)] placeholder:text-[color:var(--vscode-input-placeholderForeground,#888)] focus:border-[color:var(--vscode-focusBorder,#4c9aff)]"
-          style={{
-            backgroundColor: 'var(--vscode-dropdown-background)',
-            borderColor: 'color-mix(in srgb, var(--vscode-foreground) 10%, transparent)'
-          }}
+          className="w-full min-h-16 max-h-40 px-3 resize-none overflow-x-hidden outline-none ring-0 bg-transparent text-[color:var(--vscode-foreground)] placeholder:text-[color:var(--vscode-input-placeholderForeground,#888)]"
         />
       </div>
-      <div className='absolute right-2.5 bottom-3'>
+      <div className='flex items-center justify-end px-2'>
         {isRunning ? (
           <button
             onClick={onStop}
             className='flex items-center justify-center cursor-pointer rounded-full w-6 h-6'
             disabled={!onStop}
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--vscode-foreground) 50%, transparent',
+              backgroundColor: 'color-mix(in srgb, var(--vscode-foreground) 50%, transparent)',
               color: 'var(--vscode-sideBar-background)'
             }}
           >
@@ -84,7 +83,7 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
             disabled={!!isRunning}
             className='flex items-center justify-center cursor-pointer rounded-full w-6 h-6'
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--vscode-foreground) 50%, transparent',
+              backgroundColor: 'color-mix(in srgb, var(--vscode-foreground) 50%, transparent)',
               color: 'var(--vscode-sideBar-background)'
             }}
           >
