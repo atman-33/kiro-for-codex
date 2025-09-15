@@ -16,6 +16,9 @@ A VS Code extension that brings spec-driven development to Codex CLI. Manage you
 - Spec Workflow: Requirements -> Design -> Tasks with a review at each step
 - CodeLens for Tasks: execute an individual task from `tasks.md` via Codex and auto-check it off
 
+New in this release:
+- Create New Spec UI: starting a spec opens a focused editor (webview) to enter your request before generation
+
 ### 🎯 STEERING Management
 
 - Steering Documents: browse and edit global/project-specific guidelines
@@ -29,6 +32,12 @@ A VS Code extension that brings spec-driven development to Codex CLI. Manage you
 - Organize & Refresh: manage a workspace prompt library with quick refresh
 - Markdown Simplicity: no front-matter required; write plain Markdown instructions
 
+### 💬 CHAT
+
+- Sidebar Chat (webview): start quick conversations with Codex inside VS Code
+- Run once or stream: send a one-off message or stream via a dedicated Codex terminal session
+- Stop anytime: terminate the active session from the Chat view
+
 ### 🚫 Temporarily Disabled Views/Flows
 
 - AGENTS, HOOKS, MCP views: hidden in this build
@@ -38,7 +47,7 @@ A VS Code extension that brings spec-driven development to Codex CLI. Manage you
 
 ![Kiro for Codex Extension](./screenshots/image.png)
 
-The extension provides an organized sidebar for OVERVIEW, SPEC, STEERING, and PROMPTS. Other views are hidden in this build.
+The extension provides an organized sidebar for OVERVIEW, SPEC, STEERING, PROMPTS, and CHAT. Other views are hidden in this build.
 
 ## Installation
 
@@ -86,11 +95,11 @@ Replace `{latest-version}` with the actual version number, e.g., `0.2.4`.
 
 ### Creating a Spec
 
-Traditional method:
+Recommended flow:
 1. Click the Kiro for Codex icon in the activity bar
-2. In the SPEC view, click the `+` button
-3. Enter a feature description
-4. Codex CLI generates the requirements document
+2. In the SPEC view, click `+ Create New Spec`
+3. A webview editor opens; describe your feature/request
+4. The extension generates the requirements document with Codex CLI
 5. Review and approve before proceeding to design
 6. Generate tasks after design is complete
 
@@ -120,6 +129,15 @@ Create and run project prompts:
 3. Write instructions in Markdown (no front-matter required)
 4. Click the prompt item to open the file and review the content
 5. Press the inline ▶ Run button to execute the prompt with Codex CLI (split view)
+
+### Chat
+
+Use the Chat view to quickly iterate with Codex:
+
+1. Open the Chat view under the Kiro activity container
+2. Type a message and choose run mode (send once or stream)
+3. For streaming, the conversation continues in a dedicated Codex terminal session
+4. Use Stop to end the active session
 
 ### Overview
 
@@ -227,6 +245,10 @@ npm run package
 # Output: kiro-for-codex-{latest-version}.vsix
 ```
 
+Build details:
+- Extension bundling: esbuild (outputs `dist/extension.js`)
+- Webview UI: Vite (outputs `dist/webview/app/**`)
+
 ### Project Structure
 
 ```plain
@@ -239,6 +261,8 @@ src/
   utils/                       # Utilities
   prompts/                     # Prompt sources (generated artifacts under prompts/target)
   types/                       # Shared types
+webview-ui/                    # Webview source (React + Vite)
+dist/webview/app               # Built webview assets consumed by providers
 ```
 
 ### Testing
