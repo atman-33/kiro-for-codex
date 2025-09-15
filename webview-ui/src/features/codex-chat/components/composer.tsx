@@ -1,6 +1,7 @@
 import { ArrowUp, SquarePause } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { vscode } from '../../../bridge/vscode';
+import { TextareaPanel } from '../../../components/textarea-panel';
 
 export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string, id: string) => void; isRunning?: boolean; onStop?: () => void; }) {
   const [text, setText] = useState('');
@@ -27,7 +28,7 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
     }
   };
 
-  const MAX_HEIGHT = 320; // px
+  const MAX_HEIGHT = 160; // px
   const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
     // Auto-grow textarea height
@@ -47,22 +48,16 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full h-full box-border rounded-2xl pt-4 pb-2 min-w-0 bg-[var(--vscode-dropdown-background)] border"
-      style={{
-        borderColor: 'color-mix(in srgb, var(--vscode-foreground) 10%, transparent)'
-      }}>
-      <div className="flex-1 h-full min-w-0">
-        <textarea
-          ref={taRef}
-          rows={1}
-          value={text}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          placeholder={isRunning ? 'Running…' : 'Type a message. Enter to send, Shift+Enter for newline'}
-          disabled={!!isRunning}
-          className="w-full min-h-16 max-h-40 px-3 resize-none overflow-x-hidden outline-none ring-0 bg-transparent text-[color:var(--vscode-foreground)] placeholder:text-[color:var(--vscode-input-placeholderForeground,#888)]"
-        />
-      </div>
+    <TextareaPanel
+      textareaRef={taRef}
+      rows={1}
+      value={text}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      placeholder={isRunning ? 'Running…' : 'Type a message. Enter to send, Shift+Enter for newline'}
+      disabled={!!isRunning}
+      textareaClassName='min-h-16 max-h-40'
+    >
       <div className='flex items-center justify-end px-2'>
         {isRunning ? (
           <button
@@ -91,6 +86,6 @@ export function Composer({ onSend, isRunning, onStop }: { onSend?: (text: string
           </button>
         )}
       </div>
-    </div>
+    </TextareaPanel>
   );
 }
