@@ -4,6 +4,80 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.4.0 2025-09-15
+
+### Added
+
+- add new purple Kiro SVG and update icon assets
+- update prompts explorer icon and path display
+- adjust padding-top in chat view layout
+- update dependencies and vscodeignore patterns
+
+### Changed
+
+- Merge pull request #31 from atman-33/feature/misc-updates
+- update GitHub Actions and Husky pre-commit hook
+- enhance documentation with new features and updates for Create New Spec and Chat UI
+- Refactor build process and update ignore files
+- Remove GEMINI.md and update .gitignore to exclude it
+- Refactor background styling to use global CSS variables
+- Rename KFC references to KiroCodex across codebase
+- Refactor agent manager with consistent formatting and naming
+- Bump version to 0.3.0 and add UI extension support
+- Merge branch 'main' into develop
+- feature/webview
+- Update vscode mocks in codex-provider tests for better coverage
+- Add lucide-react dependency for icon support
+- Optimize GitHub workflows with Node.js caching and webview-ui support
+- Refactor create spec UI with improved submission flow
+- Add reusable PillButton component and update chat header
+- Add IconButton component and refactor action buttons
+- Refactor composer to use reusable TextareaPanel component
+- Refactor chat composer styling and layout
+- Add .serena to gitignore
+- Add Create New Spec UI panel and streamline spec creation flow
+- Add `--` separator to prevent subcommand interpretation
+- Improve terminal placement logic in CodexProvider
+- Adjust chat UI styling and remove status indicator
+- Refactor chat composer and add header component
+- Refactor codex-chat to features directory and rename components
+- Add terminal session management for Codex chat interactions
+- Remove Codex Chat panel preview feature
+- Add Tailwind CSS support and optimize webview resource loading
+- Refactor layout styles and add CSS file
+- Remove repomix-output.xml and update gitignore
+- Add chat view provider and webview UI components for Codex chat
+- Refactor file structure and rename components for codex-chat feature
+- Implement streaming execution for chat responses
+- Refactor codebase and update Biome configuration
+- Implement chat manager for Codex Chat with runOnce functionality
+- Implement basic chat IPC with echo functionality
+- Add webview UI and update dependencies for extension
+- feature/update-docs
+- Update build system from Webpack to Vite and document changes
+- feature/refactor-config
+- Update Vite config to improve build output cleanliness
+- Merge pull request #23 from atman-33/feature/biome
+- Merge branch 'develop' into feature/biome
+- Merge pull request #24 from atman-33/21-migrate-build-and-test-stack-webpack-jest-vite-vitest
+- Refactor test imports and mock types for consistency
+- Remove Vite/Vitest migration docs and update test files
+- 'compat' to Vite build config for CJS output
+- Update documentation and scripts for Vite/Vitest migration
+- Remove legacy Webpack and Jest configurations
+- Update CI workflows and build config for Vite/Vitest migration
+- Refactor build scripts to use Vite exclusively
+- Mark task 6 as complete in Vite-Vitest migration checklist
+- Update test README to reflect Vitest snapshot usage
+- Update test suites to use Vitest instead of Jest
+- Add Husky pre-commit hook with Biome linting
+- Add Biome.js configuration and update to v0.2.0
+- add scripts and migrate test files
+- Implement initial Vite/Vitest setup and configuration
+- Add Vite config for SSR build and mark task complete
+- Add Vite and Vitest dependencies for migration
+- Add Vite/Vitest migration design and spec documents
+
 ## v0.3.0 2025-09-15
 
 ### Breaking
