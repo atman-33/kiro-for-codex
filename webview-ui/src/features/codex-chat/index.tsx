@@ -81,8 +81,7 @@ export function CodexChatView() {
 
   return (
     <div
-      className="flex gap-x-3 gap-y-2 px-3 pt-0.5 pb-2 flex-col h-full w-full min-w-0 min-h-0 shrink-0"
-      style={{ backgroundColor: 'var(--vscode-sideBar-background)' }}>
+      className="flex gap-x-3 gap-y-2 px-3 pt-0.5 pb-2 flex-col h-full w-full min-w-0 min-h-0 shrink-0">
       <div>
         <ChatHeader running={running} onClear={() => dispatch({ type: 'clear' })} />
       </div>

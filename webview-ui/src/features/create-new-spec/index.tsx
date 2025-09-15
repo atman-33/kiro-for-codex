@@ -36,7 +36,7 @@ export function CreateNewSpecView() {
   }, []);
 
   return (
-    <div className="flex flex-col px-3 py-2 gap-2 h-full w-full" style={{ backgroundColor: 'var(--vscode-editor-background)' }}>
+    <div className="flex flex-col px-3 py-2 gap-2 h-full w-full">
       <div className="border-b flex items-center justify-between" style={{ borderColor: 'var(--vscode-editorWidget-border, #555)' }}>
         <strong className="font-semibold">Create New Spec</strong>
       </div>
