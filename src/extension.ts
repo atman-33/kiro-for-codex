@@ -353,7 +353,9 @@ function registerCommands(
 	const createSpecCommand = vscode.commands.registerCommand(
 		"kiroCodex.spec.create",
 		async () => {
-			outputChannel.appendLine("\n=== COMMAND kiroCodex.spec.create TRIGGERED ===");
+			outputChannel.appendLine(
+				"\n=== COMMAND kiroCodex.spec.create TRIGGERED ===",
+			);
 			outputChannel.appendLine(`Time: ${new Date().toLocaleTimeString()}`);
 			try {
 				createNewSpecPanelProvider.show();
@@ -490,9 +492,12 @@ function registerCommands(
 		),
 
 		// Configuration commands
-		vscode.commands.registerCommand("kiroCodex.steering.createUserRule", async () => {
-			await steeringManager.createUserConfiguration();
-		}),
+		vscode.commands.registerCommand(
+			"kiroCodex.steering.createUserRule",
+			async () => {
+				await steeringManager.createUserConfiguration();
+			},
+		),
 
 		vscode.commands.registerCommand(
 			"kiroCodex.steering.createProjectRule",
@@ -511,12 +516,15 @@ function registerCommands(
 		// Agents commands
 		...(ENABLE_AGENTS_UI && agentsExplorer
 			? [
-					vscode.commands.registerCommand("kiroCodex.agents.refresh", async () => {
-						outputChannel.appendLine(
-							"[Manual Refresh] Refreshing agents explorer...",
-						);
-						agentsExplorer.refresh();
-					}),
+					vscode.commands.registerCommand(
+						"kiroCodex.agents.refresh",
+						async () => {
+							outputChannel.appendLine(
+								"[Manual Refresh] Refreshing agents explorer...",
+							);
+							agentsExplorer.refresh();
+						},
+					),
 				]
 			: []),
 	);
@@ -547,9 +555,12 @@ function registerCommands(
 
 	// Spec delete command
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kiroCodex.spec.delete", async (item: any) => {
-			await specManager.delete(item.label);
-		}),
+		vscode.commands.registerCommand(
+			"kiroCodex.spec.delete",
+			async (item: any) => {
+				await specManager.delete(item.label);
+			},
+		),
 	);
 
 	// Codex integration commands
@@ -717,39 +728,45 @@ function registerCommands(
 		}),
 
 		// Codex availability check command
-		vscode.commands.registerCommand("kiroCodex.codex.checkAvailability", async () => {
-			const availabilityResult =
-				await codexProvider.getCodexAvailabilityStatus();
+		vscode.commands.registerCommand(
+			"kiroCodex.codex.checkAvailability",
+			async () => {
+				const availabilityResult =
+					await codexProvider.getCodexAvailabilityStatus();
 
-			const statusMessage = availabilityResult.isAvailable
-				? `✅ Codex CLI v${availabilityResult.version} is available and ready`
-				: `❌ Codex CLI is not available: ${availabilityResult.errorMessage}`;
+				const statusMessage = availabilityResult.isAvailable
+					? `✅ Codex CLI v${availabilityResult.version} is available and ready`
+					: `❌ Codex CLI is not available: ${availabilityResult.errorMessage}`;
 
-			vscode.window.showInformationMessage(statusMessage);
+				vscode.window.showInformationMessage(statusMessage);
 
-			outputChannel.appendLine(
-				`[Codex Check] Available: ${availabilityResult.isAvailable}`,
-			);
-			outputChannel.appendLine(
-				`[Codex Check] Installed: ${availabilityResult.isInstalled}`,
-			);
-			outputChannel.appendLine(
-				`[Codex Check] Version: ${availabilityResult.version || "Unknown"}`,
-			);
-			outputChannel.appendLine(
-				`[Codex Check] Compatible: ${availabilityResult.isCompatible}`,
-			);
-
-			if (availabilityResult.errorMessage) {
 				outputChannel.appendLine(
-					`[Codex Check] Error: ${availabilityResult.errorMessage}`,
+					`[Codex Check] Available: ${availabilityResult.isAvailable}`,
 				);
-			}
+				outputChannel.appendLine(
+					`[Codex Check] Installed: ${availabilityResult.isInstalled}`,
+				);
+				outputChannel.appendLine(
+					`[Codex Check] Version: ${availabilityResult.version || "Unknown"}`,
+				);
+				outputChannel.appendLine(
+					`[Codex Check] Compatible: ${availabilityResult.isCompatible}`,
+				);
 
-			if (!availabilityResult.isAvailable && availabilityResult.setupGuidance) {
-				await codexProvider.showSetupGuidance(availabilityResult);
-			}
-		}),
+				if (availabilityResult.errorMessage) {
+					outputChannel.appendLine(
+						`[Codex Check] Error: ${availabilityResult.errorMessage}`,
+					);
+				}
+
+				if (
+					!availabilityResult.isAvailable &&
+					availabilityResult.setupGuidance
+				) {
+					await codexProvider.showSetupGuidance(availabilityResult);
+				}
+			},
+		),
 	);
 }
 

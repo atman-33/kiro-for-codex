@@ -20,7 +20,7 @@ Follow this organization and naming to keep the codebase consistent.
   - `specs/<spec>/requirements.md|design.md|tasks.md`
   - `steering/product.md|tech.md|structure.md`
   - `prompts/<name>.md`
-  - `settings/kfc-settings.json`
+  - `settings/kiroCodex-settings.json`
 
 ## Naming Patterns
 - Providers: `*-provider.ts` exporting a class named `PascalCase...Provider`.

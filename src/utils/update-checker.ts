@@ -2,9 +2,9 @@ import * as vscode from "vscode";
 import { NotificationUtils } from "./notification-utils";
 
 export class UpdateChecker {
-    private static readonly SKIP_VERSION_KEY = 'kiroCodex.skipVersion';
-    private static readonly LAST_CHECK_KEY = 'kiroCodex.lastUpdateCheck';
-    private static readonly CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+	private static readonly SKIP_VERSION_KEY = "kiroCodex.skipVersion";
+	private static readonly LAST_CHECK_KEY = "kiroCodex.lastUpdateCheck";
+	private static readonly CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 	constructor(
 		private context: vscode.ExtensionContext,
