@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ## v0.3.0 2025-09-15
 
+### Breaking
+
+- Rename internal namespace from `kfc` to `kiroCodex` to avoid collisions with the original extension and make the identifier explicit.
+  - Commands: `kfc.*` → `kiroCodex.*`
+  - Views and container IDs: `kfc.views.*` → `kiroCodex.views.*`
+  - Settings namespace: `kfc.*` → `kiroCodex.*`
+  - Project settings file: `.codex/settings/kfc-settings.json` → `.codex/settings/kiroCodex-settings.json`
+  - Built-in agents directory: `.codex/agents/kfc` → `.codex/agents/kiroCodex`
+
 ### Changed
 
 - Merge pull request #28 from cbruyndoncx/fix-naming-conflict-rename-kfc-to-kiroCodex
@@ -16,15 +25,6 @@ All notable changes to this project will be documented in this file.
 - Merge pull request #20 from atman-33/version-bump/v0.2.0
 
 ## v0.2.0 2025-09-09
-
-### Breaking
-
-- Rename internal namespace from `kfc` to `kiroCodex` to avoid collisions with the original extension and make the identifier explicit.
-  - Commands: `kfc.*` → `kiroCodex.*`
-  - Views and container IDs: `kfc.views.*` → `kiroCodex.views.*`
-  - Settings namespace: `kfc.*` → `kiroCodex.*`
-  - Project settings file: `.codex/settings/kfc-settings.json` → `.codex/settings/kiroCodex-settings.json`
-  - Built-in agents directory: `.codex/agents/kfc` → `.codex/agents/kiroCodex`
 
 ### Changed
 
