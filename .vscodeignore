@@ -37,6 +37,9 @@ webpack.config.js
 !**/*.d.ts
 src/**/*.js
 docs/**
+GEMINI.md
+.tmp/**
 .husky/**
 .serena/**
 .repomix/**
+repomix-output*
