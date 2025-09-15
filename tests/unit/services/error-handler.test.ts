@@ -1,28 +1,45 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, Mocked } from 'vitest';
 import * as vscode from 'vscode';
 import { CodexErrorHandler, ErrorSeverity, ErrorType } from '../../../src/services/error-handler';
 
+vi.mock('vscode', () => ({
+  window: {
+    showErrorMessage: vi.fn(),
+    showWarningMessage: vi.fn(),
+    showInformationMessage: vi.fn(),
+    showTextDocument: vi.fn(),
+  },
+  workspace: {
+    openTextDocument: vi.fn(),
+  },
+  env: {
+    clipboard: {
+      writeText: vi.fn(),
+    },
+  },
+}));
+
 describe('CodexErrorHandler', () => {
   let errorHandler: CodexErrorHandler;
-  let mockOutputChannel: jest.Mocked<vscode.OutputChannel>;
+  let mockOutputChannel: Mocked<vscode.OutputChannel>;
 
   beforeEach(() => {
     mockOutputChannel = {
       name: 'Test Channel',
-      appendLine: jest.fn(),
-      append: jest.fn(),
-      replace: jest.fn(),
-      clear: jest.fn(),
-      show: jest.fn(),
-      hide: jest.fn(),
-      dispose: jest.fn(),
-    } as jest.Mocked<vscode.OutputChannel>;
+      appendLine: vi.fn(),
+      append: vi.fn(),
+      replace: vi.fn(),
+      clear: vi.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
+      dispose: vi.fn(),
+    } as Mocked<vscode.OutputChannel>;
 
     errorHandler = new CodexErrorHandler(mockOutputChannel);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Error Analysis', () => {
@@ -190,7 +207,7 @@ describe('CodexErrorHandler', () => {
     });
 
     it('should handle action button clicks', async () => {
-      const mockAction = jest.fn() as jest.MockedFunction<() => Promise<void>>;
+      const mockAction = vi.fn() as Mocked<() => Promise<void>>;
       const codexError = {
         type: ErrorType.CLI_NOT_INSTALLED,
         severity: ErrorSeverity.CRITICAL,
@@ -260,13 +277,13 @@ describe('CodexErrorHandler', () => {
   describe('Retry Logic', () => {
     it('should execute operation with retry on retryable errors', async () => {
       let attemptCount = 0;
-      const operation = jest.fn().mockImplementation(async () => {
+      const operation = vi.fn().mockImplementation(async () => {
         attemptCount++;
         if (attemptCount < 3) {
           throw new Error('Operation timed out');
         }
         return 'success';
-      }) as jest.MockedFunction<() => Promise<string>>;
+      }) as Mocked<() => Promise<string>>;
 
       const result = await errorHandler.executeWithRetry(
         operation,
@@ -283,9 +300,9 @@ describe('CodexErrorHandler', () => {
     });
 
     it('should not retry non-retryable errors', async () => {
-      const operation = jest.fn().mockImplementation(async () => {
+      const operation = vi.fn().mockImplementation(async () => {
         throw new Error('command not found: codex');
-      }) as jest.MockedFunction<() => Promise<string>>;
+      }) as Mocked<() => Promise<string>>;
 
       await expect(
         errorHandler.executeWithRetry(operation, 'Test Operation', {
@@ -299,9 +316,9 @@ describe('CodexErrorHandler', () => {
     });
 
     it('should respect maximum attempts', async () => {
-      const operation = jest.fn().mockImplementation(async () => {
+      const operation = vi.fn().mockImplementation(async () => {
         throw new Error('Operation timed out');
-      }) as jest.MockedFunction<() => Promise<string>>;
+      }) as Mocked<() => Promise<string>>;
 
       await expect(
         errorHandler.executeWithRetry(operation, 'Test Operation', {
@@ -315,9 +332,9 @@ describe('CodexErrorHandler', () => {
     });
 
     it('should apply exponential backoff delay', async () => {
-      const operation = jest.fn().mockImplementation(async () => {
+      const operation = vi.fn().mockImplementation(async () => {
         throw new Error('Operation timed out');
-      }) as jest.MockedFunction<() => Promise<string>>;
+      }) as Mocked<() => Promise<string>>;
 
       const startTime = Date.now();
 
@@ -349,9 +366,9 @@ describe('CodexErrorHandler', () => {
     });
 
     it('should log retry attempts', async () => {
-      const operation = jest.fn().mockImplementation(async () => {
+      const operation = vi.fn().mockImplementation(async () => {
         throw new Error('Operation timed out');
-      }) as jest.MockedFunction<() => Promise<string>>;
+      }) as Mocked<() => Promise<string>>;
 
       await expect(
         errorHandler.executeWithRetry(operation, 'Test Operation', {
@@ -368,13 +385,13 @@ describe('CodexErrorHandler', () => {
 
     it('should log successful retry', async () => {
       let attemptCount = 0;
-      const operation = jest.fn().mockImplementation(async () => {
+      const operation = vi.fn().mockImplementation(async () => {
         attemptCount++;
         if (attemptCount < 2) {
           throw new Error('Operation timed out');
         }
         return 'success';
-      }) as jest.MockedFunction<() => Promise<string>>;
+      }) as Mocked<() => Promise<string>>;
 
       await errorHandler.executeWithRetry(operation, 'Test Operation', {
         maxAttempts: 3,

@@ -23,21 +23,31 @@
   ],
   "main": "dist/extension.js",
   "extensionKind": [
-    "workspace"
+    "workspace",
+    "ui"
   ],
   "scripts": {
-    "build": "npm run package-web",
-    "vscode:prepublish": "npm run package-web",
-    "compile": "npm run build-prompts && tsc -p ./ && npm run package",
+    "install:all": "npm install && cd webview-ui && npm install",
+    "build:ext": "esbuild src/extension.ts --bundle --platform=node --target=node16 --external:vscode --outfile=dist/extension.js",
+    "build": "npm run build-prompts && npm run build:ext && node scripts/copy-resources.js && npm run build:webview",
+    "vscode:prepublish": "npm run build",
+    "compile": "npm run build && npm run package",
     "watch": "concurrently \"tsc -watch -p ./\" \"node scripts/watch-prompts.js\"",
     "package": "vsce package",
     "build-prompts": "node scripts/build-prompts.js",
     "compile-web": "webpack --mode development",
     "watch-web": "webpack --mode development --watch",
     "package-web": "npm run build-prompts && webpack --mode production --devtool hidden-source-map",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format --write src/",
+    "check": "biome check --write src/",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "prepare": "husky",
+    "--- WEBVIEW ---": "--- --- --- --- ---",
+    "build:webview": "npm --prefix webview-ui run build"
   },
   "contributes": {
     "configuration": {
@@ -77,6 +87,26 @@
           "type": "boolean",
           "default": true,
           "description": "Show Prompts view in the Kiro activity container"
+        },
+        "kiroCodex.views.chat.visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Chat view in the Kiro activity container"
+        },
+        "kiroCodex.views.agents.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Agents view in the Kiro activity container (temporarily disabled)"
+        },
+        "kiroCodex.views.hooks.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Agent Hooks view in the Kiro activity container (temporarily disabled)"
+        },
+        "kiroCodex.views.mcp.visible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show MCP Servers view in the Kiro activity container (temporarily disabled)"
         },
         "kiroCodex.views.settings.visible": {
           "type": "boolean",
@@ -141,8 +171,15 @@
         {
           "id": "kiroCodex.views.promptsExplorer",
           "name": "Prompts",
-          "icon": "symbol-string",
+          "icon": "terminal",
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.prompts.visible"
+        },
+        {
+          "id": "kiroCodex.views.codexChat",
+          "name": "Chat",
+          "icon": "comment-discussion",
+          "type": "webview",
+          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.chat.visible"
         },
         {
           "id": "kiroCodex.views.hooksStatus",
@@ -459,21 +496,23 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.4",
     "@jest/globals": "^29.7.0",
     "@types/glob": "^8.1.0",
     "@types/handlebars": "^4.0.40",
-    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.x",
     "@types/vscode": "^1.84.0",
+    "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.0",
     "copy-webpack-plugin": "^13.0.0",
+    "esbuild": "^0.23.0",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.3.0",
-    "vsce": "^2.15.0",
-    "webpack": "^5.100.2",
-    "webpack-cli": "^6.0.1"
+    "vitest": "^3.2.4",
+    "vsce": "^2.15.0"
   }
 }

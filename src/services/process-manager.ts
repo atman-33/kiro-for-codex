@@ -1,338 +1,465 @@
-import { ChildProcess, spawn } from 'child_process';
-import * as vscode from 'vscode';
+import { type ChildProcess, spawn } from "child_process";
+import * as vscode from "vscode";
 
 export interface ProcessResult {
-    exitCode: number;
-    output?: string;
-    error?: string;
+	exitCode: number;
+	output?: string;
+	error?: string;
+}
+
+export interface StreamHandlers {
+	onStdout?: (chunk: string) => void;
+	onStderr?: (chunk: string) => void;
+	onClose?: (exitCode: number) => void;
 }
 
 export interface TerminalOptions {
-    name: string;
-    cwd?: string;
-    location?: vscode.TerminalLocation | { viewColumn: vscode.ViewColumn; };
-    hideFromUser?: boolean;
+	name: string;
+	cwd?: string;
+	location?: vscode.TerminalLocation | { viewColumn: vscode.ViewColumn };
+	hideFromUser?: boolean;
+	// shellPath?: string;
+	// shellArgs?: string[];
 }
 
 export class ProcessManager {
-    private outputChannel: vscode.OutputChannel;
-    private activeProcesses: Map<string, ChildProcess> = new Map();
+	private outputChannel: vscode.OutputChannel;
+	private activeProcesses: Map<string, ChildProcess> = new Map();
 
-    constructor(outputChannel: vscode.OutputChannel) {
-        this.outputChannel = outputChannel;
-    }
+	constructor(outputChannel: vscode.OutputChannel) {
+		this.outputChannel = outputChannel;
+	}
 
-    /**
-     * Execute a command and return the result
-     */
-    async executeCommand(command: string, cwd?: string, timeoutMs?: number): Promise<ProcessResult> {
-        return new Promise((resolve, reject) => {
-            this.outputChannel.appendLine(`[ProcessManager] Executing: ${command}`);
-            this.outputChannel.appendLine(`[ProcessManager] Working directory: ${cwd || 'default'}`);
+	/**
+	 * Execute a command and return the result
+	 */
+	async executeCommand(
+		command: string,
+		cwd?: string,
+		timeoutMs?: number,
+	): Promise<ProcessResult> {
+		return new Promise((resolve, reject) => {
+			const processId = `cmd_${Date.now()}`;
+			let output = "";
+			let error = "";
+			let finished = false;
+			let timeoutId: NodeJS.Timeout | undefined;
 
-            const processId = `cmd_${Date.now()}`;
-            let output = '';
-            let error = '';
+			const log = (msg: string) =>
+				this.outputChannel.appendLine(`[ProcessManager] ${msg}`);
 
-            // On Windows, force UTF-8 code page to avoid mojibake and use cmd for shell parsing
-            let childProcess: ChildProcess;
-            if (process.platform === 'win32') {
-                const prefixed = `chcp 65001>nul & ${command}`; // ensure UTF-8 for this invocation
-                childProcess = spawn('cmd.exe', ['/d', '/s', '/c', prefixed], {
-                    cwd,
-                    stdio: ['pipe', 'pipe', 'pipe']
-                });
-            } else {
-                // Split command into executable and arguments for non-Windows
-                const parts = this.parseCommand(command);
-                const executable = parts[0];
-                const args = parts.slice(1);
-                childProcess = spawn(executable, args, {
-                    cwd,
-                    shell: true,
-                    stdio: ['pipe', 'pipe', 'pipe']
-                });
-            }
+			log(`Executing: ${command}`);
+			log(`Working directory: ${cwd || "default"}`);
 
-            this.activeProcesses.set(processId, childProcess);
+			// On Windows, force UTF-8 code page and use cmd for shell parsing
+			let childProcess: ChildProcess;
+			if (process.platform === "win32") {
+				const prefixed = `chcp 65001>nul & ${command}`;
+				childProcess = spawn("cmd.exe", ["/d", "/s", "/c", prefixed], {
+					cwd,
+					stdio: ["pipe", "pipe", "pipe"],
+				});
+			} else {
+				// Use shell for consistent parsing across platforms
+				childProcess = spawn(command, {
+					cwd,
+					shell: true,
+					stdio: ["pipe", "pipe", "pipe"],
+				});
+			}
 
-            // Collect stdout
-            childProcess.stdout?.on('data', (data) => {
-                const chunk = data.toString();
-                output += chunk;
-                this.outputChannel.appendLine(`[ProcessManager] stdout: ${chunk.trim()}`);
-            });
+			this.activeProcesses.set(processId, childProcess);
 
-            // Collect stderr
-            childProcess.stderr?.on('data', (data) => {
-                const chunk = data.toString();
-                error += chunk;
-                this.outputChannel.appendLine(`[ProcessManager] stderr: ${chunk.trim()}`);
-            });
+			childProcess.stdout?.on("data", (data) => {
+				const chunk = data.toString();
+				output += chunk;
+				log(`stdout: ${chunk.trim()}`);
+			});
 
-            // Handle process completion
-            childProcess.on('close', (code) => {
-                this.activeProcesses.delete(processId);
-                this.outputChannel.appendLine(`[ProcessManager] Process completed with exit code: ${code}`);
+			childProcess.stderr?.on("data", (data) => {
+				const chunk = data.toString();
+				error += chunk;
+				log(`stderr: ${chunk.trim()}`);
+			});
 
-                resolve({
-                    exitCode: (code === 0) ? 0 : (code ?? -1),
-                    output: output.trim(),
-                    error: error.trim()
-                });
-            });
+			const finalize = (ok: boolean, code: number, errMsg?: string) => {
+				if (finished) return;
+				finished = true;
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+					timeoutId = undefined;
+				}
+				this.activeProcesses.delete(processId);
+				log(`Process completed with exit code: ${code}`);
+				if (ok) {
+					resolve({
+						exitCode: code === 0 ? 0 : (code ?? -1),
+						output: output.trim(),
+						error: error.trim(),
+					});
+				} else {
+					reject(new Error(errMsg ?? "Process failed"));
+				}
+			};
 
-            // Handle process errors
-            childProcess.on('error', (err) => {
-                this.activeProcesses.delete(processId);
-                this.outputChannel.appendLine(`[ProcessManager] Process error: ${err.message}`);
-                reject(new Error(`Failed to execute command: ${err.message}`));
-            });
+			childProcess.on("close", (code) => {
+				finalize(true, code ?? -1);
+			});
 
-            // Optional timeout (honor caller-provided value)
-            if (typeof timeoutMs === 'number' && timeoutMs > 0) {
-                setTimeout(() => {
-                    if (this.activeProcesses.has(processId)) {
-                        this.outputChannel.appendLine(`[ProcessManager] Process timeout (${timeoutMs}ms), killing process`);
-                        this.killProcess(processId);
-                        reject(new Error('Command execution timeout'));
-                    }
-                }, timeoutMs);
-            }
-        });
-    }
+			childProcess.on("error", (err) => {
+				log(`Process error: ${err.message}`);
+				finalize(false, -1, `Failed to execute command: ${err.message}`);
+			});
 
-    /**
-     * Execute a command with explicit executable/args (no shell), optional stdin input
-     */
-    async executeCommandArgs(
-        executable: string,
-        args: string[],
-        options?: { cwd?: string; timeoutMs?: number; input?: string; }
-    ): Promise<ProcessResult> {
-        return new Promise((resolve, reject) => {
-            this.outputChannel.appendLine(`[ProcessManager] Executing: ${executable} ${args.join(' ')}`);
-            this.outputChannel.appendLine(`[ProcessManager] Working directory: ${options?.cwd || 'default'}`);
+			if (typeof timeoutMs === "number" && timeoutMs > 0) {
+				timeoutId = setTimeout(() => {
+					if (finished) return;
+					if (this.activeProcesses.has(processId)) {
+						log(`Process timeout (${timeoutMs}ms), killing process`);
+						this.killProcess(processId);
+					}
+					finalize(false, -1, "Command execution timeout");
+				}, timeoutMs);
+			}
+		});
+	}
 
-            const processId = `cmd_${Date.now()}`;
-            let output = '';
-            let error = '';
+	/**
+	 * Execute a command with explicit executable/args (no shell), optional stdin input
+	 */
+	async executeCommandArgs(
+		executable: string,
+		args: string[],
+		options?: { cwd?: string; timeoutMs?: number; input?: string },
+	): Promise<ProcessResult> {
+		return new Promise((resolve, reject) => {
+			const processId = `cmd_${Date.now()}`;
+			let output = "";
+			let error = "";
+			let finished = false;
+			let timeoutId: NodeJS.Timeout | undefined;
 
-            const childProcess = spawn(executable, args, {
-                cwd: options?.cwd,
-                shell: false,
-                stdio: ['pipe', 'pipe', 'pipe']
-            });
+			const log = (msg: string) =>
+				this.outputChannel.appendLine(`[ProcessManager] ${msg}`);
 
-            this.activeProcesses.set(processId, childProcess);
+			log(`Executing: ${executable} ${args.join(" ")}`);
+			log(`Working directory: ${options?.cwd || "default"}`);
 
-            if (options?.input) {
-                childProcess.stdin?.write(options.input);
-                childProcess.stdin?.end();
-            }
+			const childProcess = spawn(executable, args, {
+				cwd: options?.cwd,
+				shell: false,
+				stdio: ["pipe", "pipe", "pipe"],
+			});
 
-            childProcess.stdout?.on('data', (data) => {
-                const chunk = data.toString();
-                output += chunk;
-                this.outputChannel.appendLine(`[ProcessManager] stdout: ${chunk.trim()}`);
-            });
+			this.activeProcesses.set(processId, childProcess);
 
-            childProcess.stderr?.on('data', (data) => {
-                const chunk = data.toString();
-                error += chunk;
-                this.outputChannel.appendLine(`[ProcessManager] stderr: ${chunk.trim()}`);
-            });
+			if (options?.input) {
+				childProcess.stdin?.write(options.input);
+				childProcess.stdin?.end();
+			}
 
-            childProcess.on('close', (code) => {
-                this.activeProcesses.delete(processId);
-                this.outputChannel.appendLine(`[ProcessManager] Process completed with exit code: ${code}`);
+			childProcess.stdout?.on("data", (data) => {
+				const chunk = data.toString();
+				output += chunk;
+				log(`stdout: ${chunk.trim()}`);
+			});
 
-                resolve({
-                    exitCode: (code === 0) ? 0 : (code ?? -1),
-                    output: output.trim(),
-                    error: error.trim()
-                });
-            });
+			childProcess.stderr?.on("data", (data) => {
+				const chunk = data.toString();
+				error += chunk;
+				log(`stderr: ${chunk.trim()}`);
+			});
 
-            childProcess.on('error', (err) => {
-                this.activeProcesses.delete(processId);
-                this.outputChannel.appendLine(`[ProcessManager] Process error: ${err.message}`);
-                reject(new Error(`Failed to execute command: ${err.message}`));
-            });
+			const finalize = (ok: boolean, code: number, errMsg?: string) => {
+				if (finished) return;
+				finished = true;
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+					timeoutId = undefined;
+				}
+				this.activeProcesses.delete(processId);
+				log(`Process completed with exit code: ${code}`);
+				if (ok) {
+					resolve({
+						exitCode: code === 0 ? 0 : (code ?? -1),
+						output: output.trim(),
+						error: error.trim(),
+					});
+				} else {
+					reject(new Error(errMsg ?? "Process failed"));
+				}
+			};
 
-            if (typeof options?.timeoutMs === 'number' && options.timeoutMs > 0) {
-                setTimeout(() => {
-                    if (this.activeProcesses.has(processId)) {
-                        this.outputChannel.appendLine(`[ProcessManager] Process timeout (${options.timeoutMs}ms), killing process`);
-                        this.killProcess(processId);
-                        reject(new Error('Command execution timeout'));
-                    }
-                }, options.timeoutMs);
-            }
-        });
-    }
+			childProcess.on("close", (code) => {
+				finalize(true, code ?? -1);
+			});
 
-    /**
-     * Create a terminal with the specified command and options
-     */
-    createTerminal(command: string, options: TerminalOptions): vscode.Terminal {
-        this.outputChannel.appendLine(`[ProcessManager] Creating terminal: ${options.name}`);
-        this.outputChannel.appendLine(`[ProcessManager] Command: ${command}`);
+			childProcess.on("error", (err) => {
+				log(`Process error: ${err.message}`);
+				finalize(false, -1, `Failed to execute command: ${err.message}`);
+			});
 
-        // Allow specifying shell when needed (e.g., ensure PowerShell on Windows)
-        const terminal = vscode.window.createTerminal({
-            name: options.name,
-            cwd: options.cwd,
-            location: options.location,
-            hideFromUser: options.hideFromUser,
-            // @ts-ignore: shellPath/shellArgs are supported by VS Code API but not declared in our local type
-            shellPath: (options as any).shellPath,
-            // @ts-ignore
-            shellArgs: (options as any).shellArgs
-        } as any);
+			if (typeof options?.timeoutMs === "number" && options.timeoutMs > 0) {
+				timeoutId = setTimeout(() => {
+					if (finished) return;
+					if (this.activeProcesses.has(processId)) {
+						log(`Process timeout (${options.timeoutMs}ms), killing process`);
+						this.killProcess(processId);
+					}
+					finalize(false, -1, "Command execution timeout");
+				}, options.timeoutMs);
+			}
+		});
+	}
 
-        // Show the terminal unless it's hidden
-        if (!options.hideFromUser) {
-            terminal.show();
-        }
+	/**
+	 * Execute a command (argv) and stream stdout/stderr via callbacks.
+	 * Returns a controller with processId and cancel() to terminate the process.
+	 */
+	executeCommandArgsStream(
+		executable: string,
+		args: string[],
+		options: { cwd?: string; input?: string } | undefined,
+		handlers: StreamHandlers,
+	): { processId: string; cancel: () => void } {
+		this.outputChannel.appendLine(
+			`[ProcessManager] (stream) Executing: ${executable} ${args.join(" ")}`,
+		);
+		this.outputChannel.appendLine(
+			`[ProcessManager] (stream) Working directory: ${options?.cwd || "default"}`,
+		);
 
-        // Send the command with a delay to allow terminal initialization
-        setTimeout(() => {
-            terminal.sendText(command, true);
-        }, 1000);
+		const processId = `cmd_${Date.now()}`;
+		const childProcess = spawn(executable, args, {
+			cwd: options?.cwd,
+			shell: false,
+			stdio: ["pipe", "pipe", "pipe"],
+		});
 
-        return terminal;
-    }
+		this.activeProcesses.set(processId, childProcess);
 
-    /**
-     * Create a hidden terminal for background execution with shell integration
-     */
-    async executeCommandWithShellIntegration(
-        command: string,
-        cwd?: string,
-        timeout: number = 30000
-    ): Promise<ProcessResult> {
-        return new Promise((resolve, reject) => {
-            const terminal = vscode.window.createTerminal({
-                name: 'Background Execution',
-                cwd,
-                hideFromUser: true
-            });
+		if (options?.input) {
+			childProcess.stdin?.write(options.input);
+			childProcess.stdin?.end();
+		}
 
-            let shellIntegrationChecks = 0;
-            const timeoutId = setTimeout(() => {
-                terminal.dispose();
-                reject(new Error('Command execution timeout'));
-            }, timeout);
+		childProcess.stdout?.on("data", (data) => {
+			const chunk = data.toString();
+			handlers.onStdout?.(chunk);
+		});
 
-            // Wait for shell integration to be available
-            const checkShellIntegration = setInterval(() => {
-                shellIntegrationChecks++;
+		childProcess.stderr?.on("data", (data) => {
+			const chunk = data.toString();
+			handlers.onStderr?.(chunk);
+		});
 
-                if (terminal.shellIntegration) {
-                    clearInterval(checkShellIntegration);
-                    clearTimeout(timeoutId);
+		childProcess.on("close", (code) => {
+			this.activeProcesses.delete(processId);
+			this.outputChannel.appendLine(
+				`[ProcessManager] (stream) Process completed with exit code: ${code}`,
+			);
+			handlers.onClose?.(code ?? -1);
+		});
 
-                    // Execute command with shell integration
-                    const execution = terminal.shellIntegration.executeCommand(command);
+		childProcess.on("error", (err) => {
+			this.activeProcesses.delete(processId);
+			this.outputChannel.appendLine(
+				`[ProcessManager] (stream) Process error: ${err.message}`,
+			);
+			handlers.onStderr?.(err.message);
+			handlers.onClose?.(-1);
+		});
 
-                    // Listen for command completion
-                    const disposable = vscode.window.onDidEndTerminalShellExecution(event => {
-                        if (event.terminal === terminal && event.execution === execution) {
-                            disposable.dispose();
-                            terminal.dispose();
+		return {
+			processId,
+			cancel: () => this.killProcess(processId),
+		};
+	}
 
-                            resolve({
-                                exitCode: event.exitCode || 0,
-                                output: undefined, // Shell integration doesn't provide output
-                                error: event.exitCode !== 0 ? `Command failed with exit code: ${event.exitCode}` : undefined
-                            });
-                        }
-                    });
-                } else if (shellIntegrationChecks > 50) { // After 5 seconds
-                    // Fallback: use regular execution
-                    clearInterval(checkShellIntegration);
-                    clearTimeout(timeoutId);
-                    terminal.dispose();
+	/**
+	 * Create a terminal with the specified command and options
+	 */
+	createTerminal(command: string, options: TerminalOptions): vscode.Terminal {
+		this.outputChannel.appendLine(
+			`[ProcessManager] Creating terminal: ${options.name}`,
+		);
+		this.outputChannel.appendLine(`[ProcessManager] Command: ${command}`);
 
-                    this.outputChannel.appendLine(`[ProcessManager] Shell integration not available, using fallback`);
-                    this.executeCommand(command, cwd).then(resolve).catch(reject);
-                }
-            }, 100);
-        });
-    }
+		const terminal = vscode.window.createTerminal({
+			name: options.name,
+			cwd: options.cwd,
+			location: options.location,
+			hideFromUser: options.hideFromUser,
+			shellPath: (options as any).shellPath,
+			shellArgs: (options as any).shellArgs,
+		} as any);
 
-    /**
-     * Kill a process by ID
-     */
-    killProcess(processId: string): void {
-        const process = this.activeProcesses.get(processId);
-        if (process) {
-            this.outputChannel.appendLine(`[ProcessManager] Killing process: ${processId}`);
-            process.kill('SIGTERM');
-            this.activeProcesses.delete(processId);
-        }
-    }
+		if (!options.hideFromUser) {
+			terminal.show();
+		}
 
-    /**
-     * Kill all active processes
-     */
-    killAllProcesses(): void {
-        this.outputChannel.appendLine(`[ProcessManager] Killing all active processes`);
-        this.activeProcesses.forEach((process, id) => {
-            process.kill('SIGTERM');
-        });
-        this.activeProcesses.clear();
-    }
+		setTimeout(() => {
+			terminal.sendText(command, true);
+		}, 300);
 
-    /**
-     * Get the number of active processes
-     */
-    getActiveProcessCount(): number {
-        return this.activeProcesses.size;
-    }
+		return terminal;
+	}
 
-    /**
-     * Parse command string into executable and arguments
-     * This is a simple parser - for complex commands, consider using a proper shell parser
-     */
-    private parseCommand(command: string): string[] {
-        // Simple parsing - split by spaces but respect quoted strings
-        const parts: string[] = [];
-        let current = '';
-        let inQuotes = false;
-        let quoteChar = '';
+	/**
+	 * Create a hidden terminal for background execution with shell integration
+	 */
+	async executeCommandWithShellIntegration(
+		command: string,
+		cwd?: string,
+		timeout: number = 30000,
+	): Promise<ProcessResult> {
+		return new Promise((resolve, reject) => {
+			const terminal = vscode.window.createTerminal({
+				name: "Background Execution",
+				cwd,
+				hideFromUser: true,
+			});
 
-        for (let i = 0; i < command.length; i++) {
-            const char = command[i];
+			let checks = 0;
+			const timeoutId = setTimeout(() => {
+				terminal.dispose();
+				reject(new Error("Command execution timeout"));
+			}, timeout);
 
-            if ((char === '"' || char === "'") && !inQuotes) {
-                inQuotes = true;
-                quoteChar = char;
-            } else if (char === quoteChar && inQuotes) {
-                inQuotes = false;
-                quoteChar = '';
-            } else if (char === ' ' && !inQuotes) {
-                if (current.trim()) {
-                    parts.push(current.trim());
-                    current = '';
-                }
-            } else {
-                current += char;
-            }
-        }
+			const tryShell = setInterval(() => {
+				checks++;
 
-        if (current.trim()) {
-            parts.push(current.trim());
-        }
+				const si = (terminal as any).shellIntegration;
+				if (si && typeof si.executeCommand === "function") {
+					clearInterval(tryShell);
+					clearTimeout(timeoutId);
 
-        return parts;
-    }
+					const execution = si.executeCommand(command);
 
-    /**
-     * Dispose of all resources
-     */
-    dispose(): void {
-        this.killAllProcesses();
-    }
+					const disposable = (
+						vscode.window as any
+					).onDidEndTerminalShellExecution?.((event: any) => {
+						if (event.terminal === terminal && event.execution === execution) {
+							disposable?.dispose?.();
+							terminal.dispose();
+
+							resolve({
+								exitCode: event.exitCode ?? 0,
+								output: undefined, // Shell integration doesn’t provide output
+								error:
+									event.exitCode && event.exitCode !== 0
+										? `Command failed with exit code: ${event.exitCode}`
+										: undefined,
+							});
+						}
+					});
+
+					setTimeout(
+						() => {
+							disposable?.dispose?.();
+							terminal.dispose();
+							resolve({ exitCode: 0 });
+						},
+						Math.max(1000, timeout - 2000),
+					);
+				} else if (checks > 50) {
+					clearInterval(tryShell);
+					clearTimeout(timeoutId);
+					terminal.dispose();
+
+					this.outputChannel.appendLine(
+						`[ProcessManager] Shell integration not available, using fallback`,
+					);
+					this.executeCommand(command, cwd).then(resolve).catch(reject);
+				}
+			}, 100);
+		});
+	}
+
+	/**
+	 * Kill a process by ID
+	 */
+	killProcess(processId: string): void {
+		const proc = this.activeProcesses.get(processId);
+		if (proc) {
+			this.outputChannel.appendLine(
+				`[ProcessManager] Killing process: ${processId}`,
+			);
+			try {
+				proc.kill("SIGTERM");
+			} catch (e: any) {
+				this.outputChannel.appendLine(
+					`[ProcessManager] Kill error: ${e?.message ?? String(e)}`,
+				);
+			}
+			this.activeProcesses.delete(processId);
+		}
+	}
+
+	/**
+	 * Kill all active processes
+	 */
+	killAllProcesses(): void {
+		this.outputChannel.appendLine(
+			`[ProcessManager] Killing all active processes`,
+		);
+		for (const [id, proc] of this.activeProcesses.entries()) {
+			try {
+				proc.kill("SIGTERM");
+			} catch {
+				// ignore
+			}
+		}
+		this.activeProcesses.clear();
+	}
+
+	/**
+	 * Get the number of active processes
+	 */
+	getActiveProcessCount(): number {
+		return this.activeProcesses.size;
+	}
+
+	/**
+	 * Parse command string into executable and arguments
+	 * This is a simple parser - for complex commands, consider using a proper shell parser
+	 */
+	private parseCommand(command: string): string[] {
+		const parts: string[] = [];
+		let current = "";
+		let inQuotes = false;
+		let quoteChar = "";
+
+		for (let i = 0; i < command.length; i++) {
+			const char = command[i];
+
+			if ((char === '"' || char === "'") && !inQuotes) {
+				inQuotes = true;
+				quoteChar = char;
+			} else if (char === quoteChar && inQuotes) {
+				inQuotes = false;
+				quoteChar = "";
+			} else if (char === " " && !inQuotes) {
+				if (current.trim()) {
+					parts.push(current.trim());
+					current = "";
+				}
+			} else {
+				current += char;
+			}
+		}
+
+		if (current.trim()) {
+			parts.push(current.trim());
+		}
+
+		return parts;
+	}
+
+	/**
+	 * Dispose of all resources
+	 */
+	dispose(): void {
+		this.killAllProcesses();
+	}
 }

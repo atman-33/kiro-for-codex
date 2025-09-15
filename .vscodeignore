@@ -23,6 +23,7 @@ AGENTS.md
 .tmp/**
 scripts/**
 tests/**
+webview-ui/**
 *.test.ts
 *.test.js
 jest.config.js
@@ -35,3 +36,10 @@ webpack.config.js
 **/*.ts
 !**/*.d.ts
 src/**/*.js
+docs/**
+GEMINI.md
+.tmp/**
+.husky/**
+.serena/**
+.repomix/**
+repomix-output*

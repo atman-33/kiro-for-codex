@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import * as fs from 'fs';
 
 describe('package.json menus', () => {

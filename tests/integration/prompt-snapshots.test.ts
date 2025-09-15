@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from '@jest/globals';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { PromptLoader } from '../../src/services/prompt-loader';
 
 describe('Prompt Snapshot Tests', () => {
@@ -9,7 +9,7 @@ describe('Prompt Snapshot Tests', () => {
     promptLoader.initialize();
   });
 
-  test('INT-15: create spec prompt snapshot', () => {
+  test('create spec prompt snapshot', () => {
     const result = promptLoader.renderPrompt('create-spec', {
       description: 'User authentication with JWT',
       workspacePath: '/snapshot/test',
@@ -19,7 +19,7 @@ describe('Prompt Snapshot Tests', () => {
     expect(result).toMatchSnapshot();
   });
 
-  test('INT-16: init steering prompt snapshot', () => {
+  test('init steering prompt snapshot', () => {
     const result = promptLoader.renderPrompt('init-steering', {
       steeringPath: '/snapshot/test/.codex/steering'
     });
@@ -27,7 +27,7 @@ describe('Prompt Snapshot Tests', () => {
     expect(result).toMatchSnapshot();
   });
 
-  test('INT-17: create custom steering prompt basic content', () => {
+  test('create custom steering prompt basic content', () => {
     const result = promptLoader.renderPrompt('create-custom-steering', {
       description: 'API design patterns and best practices',
       steeringPath: '/snapshot/test/.codex/steering'
@@ -38,7 +38,7 @@ describe('Prompt Snapshot Tests', () => {
     expect(result).toContain('/snapshot/test/.codex/steering');
   });
 
-  test('INT-18: refine steering prompt snapshot', () => {
+  test('refine steering prompt snapshot', () => {
     const result = promptLoader.renderPrompt('refine-steering', {
       filePath: '/snapshot/test/.codex/steering/api-guidelines.md'
     });
@@ -46,7 +46,7 @@ describe('Prompt Snapshot Tests', () => {
     expect(result).toMatchSnapshot();
   });
 
-  test('INT-19: delete steering prompt snapshot', () => {
+  test('delete steering prompt snapshot', () => {
     const result = promptLoader.renderPrompt('delete-steering', {
       documentName: 'deprecated-guidelines.md',
       steeringPath: '/snapshot/test/.codex/steering'

@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 // Mock for VSCode API
 export enum FileType {
   Unknown = 0,
@@ -31,25 +33,25 @@ export class Uri {
 }
 
 export const window = {
-  showInformationMessage: jest.fn(),
-  showErrorMessage: jest.fn(),
-  showWarningMessage: jest.fn(),
-  showInputBox: jest.fn(),
-  showQuickPick: jest.fn(),
-  showTextDocument: jest.fn(),
-  createOutputChannel: jest.fn(() => ({
-    appendLine: jest.fn(),
-    append: jest.fn(),
-    clear: jest.fn(),
-    show: jest.fn(),
-    hide: jest.fn(),
-    dispose: jest.fn()
+  showInformationMessage: vi.fn(),
+  showErrorMessage: vi.fn(),
+  showWarningMessage: vi.fn(),
+  showInputBox: vi.fn(),
+  showQuickPick: vi.fn(),
+  showTextDocument: vi.fn(),
+  createOutputChannel: vi.fn(() => ({
+    appendLine: vi.fn(),
+    append: vi.fn(),
+    clear: vi.fn(),
+    show: vi.fn(),
+    hide: vi.fn(),
+    dispose: vi.fn()
   })),
-  createTerminal: jest.fn(),
-  setStatusBarMessage: jest.fn(),
-  onDidEndTerminalShellExecution: jest.fn(),
+  createTerminal: vi.fn(),
+  setStatusBarMessage: vi.fn(),
+  onDidEndTerminalShellExecution: vi.fn(),
   terminals: [],
-  withProgress: jest.fn((options, task) => {
+  withProgress: vi.fn((options, task) => {
     // Simply execute the task immediately
     return task();
   })
@@ -57,29 +59,29 @@ export const window = {
 
 export const workspace = {
   fs: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    stat: jest.fn(),
-    readDirectory: jest.fn(),
-    createDirectory: jest.fn(),
-    delete: jest.fn()
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    stat: vi.fn(),
+    readDirectory: vi.fn(),
+    createDirectory: vi.fn(),
+    delete: vi.fn()
   },
   workspaceFolders: [{
     uri: Uri.file('/mock/workspace'),
     name: 'mock-workspace',
     index: 0
   }],
-  openTextDocument: jest.fn(),
-  createFileSystemWatcher: jest.fn(),
+  openTextDocument: vi.fn(),
+  createFileSystemWatcher: vi.fn(),
   textDocuments: [],
-  getConfiguration: jest.fn(() => ({
-    get: jest.fn((key: string, defaultValue: any) => defaultValue),
-    update: jest.fn(),
-    has: jest.fn(() => true),
-    inspect: jest.fn()
+  getConfiguration: vi.fn(() => ({
+    get: vi.fn((key: string, defaultValue: any) => defaultValue),
+    update: vi.fn(),
+    has: vi.fn(() => true),
+    inspect: vi.fn()
   })),
-  onDidChangeConfiguration: jest.fn(() => ({
-    dispose: jest.fn()
+  onDidChangeConfiguration: vi.fn(() => ({
+    dispose: vi.fn()
   }))
 };
 
@@ -103,19 +105,19 @@ export enum ViewColumn {
 
 // Export other commonly used APIs
 export const commands = {
-  registerCommand: jest.fn(),
-  executeCommand: jest.fn().mockResolvedValue({})
+  registerCommand: vi.fn(),
+  executeCommand: vi.fn().mockResolvedValue({})
 };
 
 export const extensions = {
-  getExtension: jest.fn()
+  getExtension: vi.fn()
 };
 
 export const env = {
   clipboard: {
-    writeText: jest.fn(),
+    writeText: vi.fn(),
   },
-  openExternal: jest.fn(),
+  openExternal: vi.fn(),
 };
 
 // Mock EventEmitter
@@ -167,7 +169,7 @@ export enum TreeItemCollapsibleState {
 
 // Mock ThemeIcon
 export class ThemeIcon {
-  constructor(public id: string) {}
+  constructor(public id: string) { }
 }
 
 // Mock Terminal

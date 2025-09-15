@@ -1,112 +1,114 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
-import { CONFIG_FILE_NAME, DEFAULT_PATHS } from '../constants';
+import * as path from "path";
+import * as vscode from "vscode";
+import { CONFIG_FILE_NAME, DEFAULT_PATHS } from "../constants";
 
 // Minimal project-local settings persisted under .codex/settings/kiroCodex-settings.json
 // Only "paths" are honored by the extension. Other runtime configs live in VS Code settings (kiroCodex.*).
-export interface KfcSettings {
-    paths: {
-        specs: string;
-        steering: string;
-        settings: string;
-        prompts: string;
-    };
+export interface KiroCodexSettings {
+	paths: {
+		specs: string;
+		steering: string;
+		settings: string;
+		prompts: string;
+	};
 }
 
 export class ConfigManager {
-    private static instance: ConfigManager;
-    private settings: KfcSettings | null = null;
-    private workspaceFolder: vscode.WorkspaceFolder | undefined;
+	private static instance: ConfigManager;
+	private settings: KiroCodexSettings | null = null;
+	private workspaceFolder: vscode.WorkspaceFolder | undefined;
 
-    // Internal constants
-    private static readonly TERMINAL_VENV_ACTIVATION_DELAY = 800; // ms
+	// Internal constants
+	private static readonly TERMINAL_VENV_ACTIVATION_DELAY = 800; // ms
 
-    private constructor() {
-        this.workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    }
+	private constructor() {
+		this.workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+	}
 
-    static getInstance(): ConfigManager {
-        if (!ConfigManager.instance) {
-            ConfigManager.instance = new ConfigManager();
-        }
-        return ConfigManager.instance;
-    }
+	static getInstance(): ConfigManager {
+		if (!ConfigManager.instance) {
+			ConfigManager.instance = new ConfigManager();
+		}
+		return ConfigManager.instance;
+	}
 
-    async loadSettings(): Promise<KfcSettings> {
-        if (!this.workspaceFolder) {
-            return this.getDefaultSettings();
-        }
+	async loadSettings(): Promise<KiroCodexSettings> {
+		if (!this.workspaceFolder) {
+			return this.getDefaultSettings();
+		}
 
-        const settingsPath = path.join(
-            this.workspaceFolder.uri.fsPath,
-            DEFAULT_PATHS.settings,
-            CONFIG_FILE_NAME
-        );
+		const settingsPath = path.join(
+			this.workspaceFolder.uri.fsPath,
+			DEFAULT_PATHS.settings,
+			CONFIG_FILE_NAME,
+		);
 
-        try {
-            const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(settingsPath));
-            const settings = JSON.parse(Buffer.from(fileContent).toString());
-            const mergedSettings = { ...this.getDefaultSettings(), ...settings };
-            this.settings = mergedSettings;
-            return this.settings!;
-        } catch (error) {
-            // Return default settings if file doesn't exist
-            this.settings = this.getDefaultSettings();
-            return this.settings!;
-        }
-    }
+		try {
+			const fileContent = await vscode.workspace.fs.readFile(
+				vscode.Uri.file(settingsPath),
+			);
+			const settings = JSON.parse(Buffer.from(fileContent).toString());
+			const mergedSettings = { ...this.getDefaultSettings(), ...settings };
+			this.settings = mergedSettings;
+			return this.settings!;
+		} catch (error) {
+			// Return default settings if file doesn't exist
+			this.settings = this.getDefaultSettings();
+			return this.settings!;
+		}
+	}
 
-    getSettings(): KfcSettings {
-        if (!this.settings) {
-            this.settings = this.getDefaultSettings();
-        }
-        return this.settings;
-    }
+	getSettings(): KiroCodexSettings {
+		if (!this.settings) {
+			this.settings = this.getDefaultSettings();
+		}
+		return this.settings;
+	}
 
-    getPath(type: keyof typeof DEFAULT_PATHS): string {
-        const settings = this.getSettings();
-        return settings.paths[type] || DEFAULT_PATHS[type];
-    }
+	getPath(type: keyof typeof DEFAULT_PATHS): string {
+		const settings = this.getSettings();
+		return settings.paths[type] || DEFAULT_PATHS[type];
+	}
 
-    getAbsolutePath(type: keyof typeof DEFAULT_PATHS): string {
-        if (!this.workspaceFolder) {
-            throw new Error('No workspace folder found');
-        }
-        return path.join(this.workspaceFolder.uri.fsPath, this.getPath(type));
-    }
+	getAbsolutePath(type: keyof typeof DEFAULT_PATHS): string {
+		if (!this.workspaceFolder) {
+			throw new Error("No workspace folder found");
+		}
+		return path.join(this.workspaceFolder.uri.fsPath, this.getPath(type));
+	}
 
-    getTerminalDelay(): number {
-        return ConfigManager.TERMINAL_VENV_ACTIVATION_DELAY;
-    }
+	getTerminalDelay(): number {
+		return ConfigManager.TERMINAL_VENV_ACTIVATION_DELAY;
+	}
 
-    private getDefaultSettings(): KfcSettings {
-        return {
-            paths: { ...DEFAULT_PATHS }
-        };
-    }
+	private getDefaultSettings(): KiroCodexSettings {
+		return {
+			paths: { ...DEFAULT_PATHS },
+		};
+	}
 
-    async saveSettings(settings: KfcSettings): Promise<void> {
-        if (!this.workspaceFolder) {
-            throw new Error('No workspace folder found');
-        }
+	async saveSettings(settings: KiroCodexSettings): Promise<void> {
+		if (!this.workspaceFolder) {
+			throw new Error("No workspace folder found");
+		}
 
-        const settingsDir = path.join(
-            this.workspaceFolder.uri.fsPath,
-            DEFAULT_PATHS.settings
-        );
-        const settingsPath = path.join(settingsDir, CONFIG_FILE_NAME);
+		const settingsDir = path.join(
+			this.workspaceFolder.uri.fsPath,
+			DEFAULT_PATHS.settings,
+		);
+		const settingsPath = path.join(settingsDir, CONFIG_FILE_NAME);
 
-        // Ensure directory exists
-        await vscode.workspace.fs.createDirectory(vscode.Uri.file(settingsDir));
+		// Ensure directory exists
+		await vscode.workspace.fs.createDirectory(vscode.Uri.file(settingsDir));
 
-        // Save settings
-        await vscode.workspace.fs.writeFile(
-            vscode.Uri.file(settingsPath),
-            Buffer.from(JSON.stringify(settings, null, 2))
-        );
+		// Save settings
+		await vscode.workspace.fs.writeFile(
+			vscode.Uri.file(settingsPath),
+			Buffer.from(JSON.stringify(settings, null, 2)),
+		);
 
-        this.settings = settings;
-    }
+		this.settings = settings;
+	}
 
-    // (Intentionally minimal) — legacy config sections (views/codex/migration) have been removed.
+	// (Intentionally minimal) — legacy config sections (views/codex/migration) have been removed.
 }

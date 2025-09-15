@@ -1,238 +1,285 @@
-import * as path from 'path';
-import * as os from 'os';
-import * as vscode from 'vscode';
-import { CodexProvider } from '../../providers/codex-provider';
-import { PromptLoader } from '../../services/prompt-loader';
-import { ConfigManager } from '../../utils/config-manager';
-import { NotificationUtils } from '../../utils/notification-utils';
+import * as os from "os";
+import * as path from "path";
+import * as vscode from "vscode";
+import type { CodexProvider } from "../../providers/codex-provider";
+import { PromptLoader } from "../../services/prompt-loader";
+import { ConfigManager } from "../../utils/config-manager";
+import { NotificationUtils } from "../../utils/notification-utils";
 
 export class SteeringManager {
-    private configManager: ConfigManager;
-    private promptLoader: PromptLoader;
+	private configManager: ConfigManager;
+	private promptLoader: PromptLoader;
 
-    constructor(
-        private codexProvider: CodexProvider,
-        private outputChannel: vscode.OutputChannel
-    ) {
-        this.configManager = ConfigManager.getInstance();
-        this.configManager.loadSettings();
-        this.promptLoader = PromptLoader.getInstance();
-    }
+	constructor(
+		private codexProvider: CodexProvider,
+		private outputChannel: vscode.OutputChannel,
+	) {
+		this.configManager = ConfigManager.getInstance();
+		this.configManager.loadSettings();
+		this.promptLoader = PromptLoader.getInstance();
+	}
 
-    public getSteeringBasePath(): string {
-        return this.configManager.getPath('steering');
-    }
+	public getSteeringBasePath(): string {
+		return this.configManager.getPath("steering");
+	}
 
-    async createCustom() {
-        // Get project context and guidance needs
-        const description = await vscode.window.showInputBox({
-            title: '📝 Create Steering Document 📝',
-            prompt: 'Describe what guidance you need for your project',
-            placeHolder: 'e.g., API design patterns for REST endpoints, testing strategy for React components',
-            ignoreFocusOut: false
-        });
+	async createCustom() {
+		// Get project context and guidance needs
+		const description = await vscode.window.showInputBox({
+			title: "📝 Create Steering Document 📝",
+			prompt: "Describe what guidance you need for your project",
+			placeHolder:
+				"e.g., API design patterns for REST endpoints, testing strategy for React components",
+			ignoreFocusOut: false,
+		});
 
-        if (!description) {
-            return;
-        }
+		if (!description) {
+			return;
+		}
 
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            vscode.window.showErrorMessage('No workspace folder open');
-            return;
-        }
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+		if (!workspaceFolder) {
+			vscode.window.showErrorMessage("No workspace folder open");
+			return;
+		}
 
-        // Create steering directory if it doesn't exist
-        const steeringPath = path.join(workspaceFolder.uri.fsPath, this.getSteeringBasePath());
+		// Create steering directory if it doesn't exist
+		const steeringPath = path.join(
+			workspaceFolder.uri.fsPath,
+			this.getSteeringBasePath(),
+		);
 
-        try {
-            // Ensure directory exists
-            await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
+		try {
+			// Ensure directory exists
+			await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
 
-            // Use mapping to resolve optimized template at runtime
-            const prompt = this.promptLoader.renderPrompt('create-custom-steering', {
-                description,
-                steeringPath: this.getSteeringBasePath(),
-                approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
-            });
+			// Use mapping to resolve optimized template at runtime
+			const prompt = this.promptLoader.renderPrompt("create-custom-steering", {
+				description,
+				steeringPath: this.getSteeringBasePath(),
+				approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
+			});
 
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Create Steering');
+			await this.codexProvider.invokeCodexSplitView(
+				prompt,
+				"Codex -Create Steering",
+			);
 
-            // Show auto-dismiss notification
-            await NotificationUtils.showAutoDismissNotification('Codex is creating a steering document based on your needs. Check the terminal for progress.');
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to create steering document: ${error}`);
-        }
-    }
+			// Show auto-dismiss notification
+			await NotificationUtils.showAutoDismissNotification(
+				"Codex is creating a steering document based on your needs. Check the terminal for progress.",
+			);
+		} catch (error) {
+			vscode.window.showErrorMessage(
+				`Failed to create steering document: ${error}`,
+			);
+		}
+	}
 
-    /**
-     * Delete a steering document and update project documentation
-     */
-    async delete(documentName: string, documentPath: string): Promise<{ success: boolean; error?: string; }> {
-        try {
-            // First delete the file
-            await vscode.workspace.fs.delete(vscode.Uri.file(documentPath));
+	/**
+	 * Delete a steering document and update project documentation
+	 */
+	async delete(
+		documentName: string,
+		documentPath: string,
+	): Promise<{ success: boolean; error?: string }> {
+		try {
+			// First delete the file
+			await vscode.workspace.fs.delete(vscode.Uri.file(documentPath));
 
-            // Load and render the delete prompt
-            const prompt = this.promptLoader.renderPrompt('delete-steering', {
-                documentName: documentName,
-                steeringPath: this.getSteeringBasePath()
-            });
+			// Load and render the delete prompt
+			const prompt = this.promptLoader.renderPrompt("delete-steering", {
+				documentName: documentName,
+				steeringPath: this.getSteeringBasePath(),
+			});
 
-            // Show progress notification
-            await NotificationUtils.showAutoDismissNotification(`Deleting "${documentName}" and updating project documentation...`);
+			// Show progress notification
+			await NotificationUtils.showAutoDismissNotification(
+				`Deleting "${documentName}" and updating project documentation...`,
+			);
 
-            // Execute Codex command to update project documentation
-            const result = await this.codexProvider.invokeCodexHeadless(prompt);
+			// Execute Codex command to update project documentation
+			const result = await this.codexProvider.invokeCodexHeadless(prompt);
 
-            if (result.exitCode === 0) {
-                await NotificationUtils.showAutoDismissNotification(`Steering document "${documentName}" deleted and project documentation updated successfully.`);
-                return { success: true };
-            } else if (result.exitCode !== undefined) {
-                const error = `Failed to update project documentation. Exit code: ${result.exitCode}`;
-                this.outputChannel.appendLine(`[Steering] ${error}`);
-                return { success: false, error };
-            } else {
-                return { success: true }; // Assume success if no exit code
-            }
-        } catch (error) {
-            const errorMsg = `Failed to delete steering document: ${error}`;
-            this.outputChannel.appendLine(`[Steering] ${errorMsg}`);
-            return { success: false, error: errorMsg };
-        }
-    }
+			if (result.exitCode === 0) {
+				await NotificationUtils.showAutoDismissNotification(
+					`Steering document "${documentName}" deleted and project documentation updated successfully.`,
+				);
+				return { success: true };
+			} else if (result.exitCode !== undefined) {
+				const error = `Failed to update project documentation. Exit code: ${result.exitCode}`;
+				this.outputChannel.appendLine(`[Steering] ${error}`);
+				return { success: false, error };
+			} else {
+				return { success: true }; // Assume success if no exit code
+			}
+		} catch (error) {
+			const errorMsg = `Failed to delete steering document: ${error}`;
+			this.outputChannel.appendLine(`[Steering] ${errorMsg}`);
+			return { success: false, error: errorMsg };
+		}
+	}
 
-    /**
-    * Generate initial steering documents by analyzing the project
-    */
-    async init() {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            vscode.window.showErrorMessage('No workspace folder open');
-            return;
-        }
+	/**
+	 * Generate initial steering documents by analyzing the project
+	 */
+	async init() {
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+		if (!workspaceFolder) {
+			vscode.window.showErrorMessage("No workspace folder open");
+			return;
+		}
 
-        // Check if steering documents already exist
-        const existingDocs = await this.getSteeringDocuments();
-        if (existingDocs.length > 0) {
-            const existingNames = existingDocs.map(doc => doc.name).join(', ');
-            const confirm = await vscode.window.showWarningMessage(
-                `Steering documents already exist (${existingNames}). Init steering will analyze the project again but won't overwrite existing files.`,
-                'Continue',
-                'Cancel'
-            );
-            if (confirm !== 'Continue') {
-                return;
-            }
-        }
+		// Check if steering documents already exist
+		const existingDocs = await this.getSteeringDocuments();
+		if (existingDocs.length > 0) {
+			const existingNames = existingDocs.map((doc) => doc.name).join(", ");
+			const confirm = await vscode.window.showWarningMessage(
+				`Steering documents already exist (${existingNames}). Init steering will analyze the project again but won't overwrite existing files.`,
+				"Continue",
+				"Cancel",
+			);
+			if (confirm !== "Continue") {
+				return;
+			}
+		}
 
-        // Create steering directory if it doesn't exist
-        const steeringPath = path.join(workspaceFolder.uri.fsPath, this.getSteeringBasePath());
-        await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
+		// Create steering directory if it doesn't exist
+		const steeringPath = path.join(
+			workspaceFolder.uri.fsPath,
+			this.getSteeringBasePath(),
+		);
+		await vscode.workspace.fs.createDirectory(vscode.Uri.file(steeringPath));
 
-        // Generate steering documents using Codex
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'Analyzing project and generating steering documents...',
-            cancellable: false
-        }, async () => {
-            const prompt = this.promptLoader.renderPrompt('init-steering', {
-                steeringPath: this.getSteeringBasePath(),
-                approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode
-            });
+		// Generate steering documents using Codex
+		await vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: "Analyzing project and generating steering documents...",
+				cancellable: false,
+			},
+			async () => {
+				const prompt = this.promptLoader.renderPrompt("init-steering", {
+					steeringPath: this.getSteeringBasePath(),
+					approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
+				});
 
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Init Steering');
+				await this.codexProvider.invokeCodexSplitView(
+					prompt,
+					"Codex -Init Steering",
+				);
 
-            // Auto-dismiss notification after 3 seconds
-            await NotificationUtils.showAutoDismissNotification('Steering documents generation started. Check the terminal for progress.');
-        });
-    }
+				// Auto-dismiss notification after 3 seconds
+				await NotificationUtils.showAutoDismissNotification(
+					"Steering documents generation started. Check the terminal for progress.",
+				);
+			},
+		);
+	}
 
-    async refine(uri: vscode.Uri) {
-        // Load and render the refine prompt
-        const prompt = this.promptLoader.renderPrompt('refine-steering', {
-            filePath: uri.fsPath
-        });
+	async refine(uri: vscode.Uri) {
+		// Load and render the refine prompt
+		const prompt = this.promptLoader.renderPrompt("refine-steering", {
+			filePath: uri.fsPath,
+		});
 
-        // Send to Codex
-        await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Refine Steering');
+		// Send to Codex
+		await this.codexProvider.invokeCodexSplitView(
+			prompt,
+			"Codex -Refine Steering",
+		);
 
-        // Show auto-dismiss notification
-        await NotificationUtils.showAutoDismissNotification('Codex is refining the steering document. Check the terminal for progress.');
-    }
+		// Show auto-dismiss notification
+		await NotificationUtils.showAutoDismissNotification(
+			"Codex is refining the steering document. Check the terminal for progress.",
+		);
+	}
 
-    async getSteeringDocuments(): Promise<Array<{ name: string, path: string; }>> {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            return [];
-        }
+	async getSteeringDocuments(): Promise<Array<{ name: string; path: string }>> {
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+		if (!workspaceFolder) {
+			return [];
+		}
 
-        const steeringPath = path.join(workspaceFolder.uri.fsPath, this.getSteeringBasePath());
+		const steeringPath = path.join(
+			workspaceFolder.uri.fsPath,
+			this.getSteeringBasePath(),
+		);
 
-        try {
-            const entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(steeringPath));
-            return entries
-                .filter(([name, type]) => type === vscode.FileType.File && name.endsWith('.md'))
-                .map(([name]) => ({
-                    name: name.replace('.md', ''),
-                    path: path.join(steeringPath, name)
-                }));
-        } catch (error) {
-            // Directory doesn't exist yet
-            return [];
-        }
-    }
+		try {
+			const entries = await vscode.workspace.fs.readDirectory(
+				vscode.Uri.file(steeringPath),
+			);
+			return entries
+				.filter(
+					([name, type]) =>
+						type === vscode.FileType.File && name.endsWith(".md"),
+				)
+				.map(([name]) => ({
+					name: name.replace(".md", ""),
+					path: path.join(steeringPath, name),
+				}));
+		} catch (error) {
+			// Directory doesn't exist yet
+			return [];
+		}
+	}
 
-    /**
-     * Create project-level AGENTS.md file using Codex CLI
-     */
-    async createProjectDocumentation() {
-        try {
-            const prompt = this.promptLoader.renderPrompt('create-agents-md', {
-                steeringPath: this.getSteeringBasePath(),
-                constantsPath: 'src/constants.ts'
-            });
+	/**
+	 * Create project-level AGENTS.md file using Codex CLI
+	 */
+	async createProjectDocumentation() {
+		try {
+			const prompt = this.promptLoader.renderPrompt("create-agents-md", {
+				steeringPath: this.getSteeringBasePath(),
+				constantsPath: "src/constants.ts",
+			});
 
-            await this.codexProvider.invokeCodexSplitView(prompt, 'Codex -Create AGENTS.md');
+			await this.codexProvider.invokeCodexSplitView(
+				prompt,
+				"Codex -Create AGENTS.md",
+			);
 
-            await NotificationUtils.showAutoDismissNotification('Codex is creating AGENTS.md configuration. Check the terminal for progress.');
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to create AGENTS.md: ${error}`);
-        }
-    }
+			await NotificationUtils.showAutoDismissNotification(
+				"Codex is creating AGENTS.md configuration. Check the terminal for progress.",
+			);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to create AGENTS.md: ${error}`);
+		}
+	}
 
-    /**
-     * Create global Codex configuration file (~/.codex/config.toml)
-     */
-    async createUserConfiguration() {
-        const homeDir = os.homedir() || process.env.USERPROFILE || '';
-        const codexDir = path.join(homeDir, '.codex');
-        const filePath = path.join(codexDir, 'config.toml');
+	/**
+	 * Create global Codex configuration file (~/.codex/config.toml)
+	 */
+	async createUserConfiguration() {
+		const homeDir = os.homedir() || process.env.USERPROFILE || "";
+		const codexDir = path.join(homeDir, ".codex");
+		const filePath = path.join(codexDir, "config.toml");
 
-        // Ensure directory exists
-        try {
-            await vscode.workspace.fs.createDirectory(vscode.Uri.file(codexDir));
-        } catch (error) {
-            // Directory might already exist
-        }
+		// Ensure directory exists
+		try {
+			await vscode.workspace.fs.createDirectory(vscode.Uri.file(codexDir));
+		} catch (error) {
+			// Directory might already exist
+		}
 
-        // Check if file already exists
-        try {
-            await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
-            const overwrite = await vscode.window.showWarningMessage(
-                'Global configuration file (~/.codex/config.toml) already exists. Overwrite?',
-                'Overwrite',
-                'Cancel'
-            );
-            if (overwrite !== 'Overwrite') {
-                return;
-            }
-        } catch {
-            // File doesn't exist, continue
-        }
+		// Check if file already exists
+		try {
+			await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
+			const overwrite = await vscode.window.showWarningMessage(
+				"Global configuration file (~/.codex/config.toml) already exists. Overwrite?",
+				"Overwrite",
+				"Cancel",
+			);
+			if (overwrite !== "Overwrite") {
+				return;
+			}
+		} catch {
+			// File doesn't exist, continue
+		}
 
-        // Create initial TOML content for Codex CLI
-        const initialContent = `# Codex Global Configuration (TOML)
+		// Create initial TOML content for Codex CLI
+		const initialContent = `# Codex Global Configuration (TOML)
 # This file controls default behavior for Codex CLI across all projects.
 
 [cli]
@@ -253,16 +300,18 @@ documentation_style = "concise"
 # - Document complex logic and decisions
 `;
 
-        await vscode.workspace.fs.writeFile(
-            vscode.Uri.file(filePath),
-            Buffer.from(initialContent)
-        );
+		await vscode.workspace.fs.writeFile(
+			vscode.Uri.file(filePath),
+			Buffer.from(initialContent),
+		);
 
-        // Open the file
-        const document = await vscode.workspace.openTextDocument(filePath);
-        await vscode.window.showTextDocument(document);
+		// Open the file
+		const document = await vscode.workspace.openTextDocument(filePath);
+		await vscode.window.showTextDocument(document);
 
-        // Auto-dismiss notification
-        await NotificationUtils.showAutoDismissNotification('Created ~/.codex/config.toml');
-    }
+		// Auto-dismiss notification
+		await NotificationUtils.showAutoDismissNotification(
+			"Created ~/.codex/config.toml",
+		);
+	}
 }

@@ -1,94 +1,104 @@
-import * as vscode from 'vscode';
-import { CodexAvailabilityResult } from '../providers/codex-provider';
+import * as vscode from "vscode";
+import type { CodexAvailabilityResult } from "../providers/codex-provider";
 
 /**
  * Service for managing Codex CLI setup and installation guidance
  */
 export class CodexSetupService {
-  private static instance: CodexSetupService;
-  private outputChannel: vscode.OutputChannel;
+	private static instance: CodexSetupService;
+	private outputChannel: vscode.OutputChannel;
 
-  private constructor(outputChannel: vscode.OutputChannel) {
-    this.outputChannel = outputChannel;
-  }
+	private constructor(outputChannel: vscode.OutputChannel) {
+		this.outputChannel = outputChannel;
+	}
 
-  public static getInstance(outputChannel?: vscode.OutputChannel): CodexSetupService {
-    if (!CodexSetupService.instance) {
-      if (!outputChannel) {
-        throw new Error('OutputChannel is required for first initialization');
-      }
-      CodexSetupService.instance = new CodexSetupService(outputChannel);
-    }
-    return CodexSetupService.instance;
-  }
+	public static getInstance(
+		outputChannel?: vscode.OutputChannel,
+	): CodexSetupService {
+		if (!CodexSetupService.instance) {
+			if (!outputChannel) {
+				throw new Error("OutputChannel is required for first initialization");
+			}
+			CodexSetupService.instance = new CodexSetupService(outputChannel);
+		}
+		return CodexSetupService.instance;
+	}
 
-  /**
-   * Show comprehensive setup guidance based on availability result
-   */
-  async showSetupGuidance(availabilityResult: CodexAvailabilityResult): Promise<void> {
-    if (availabilityResult.isAvailable) {
-      return; // No guidance needed if Codex is available
-    }
+	/**
+	 * Show comprehensive setup guidance based on availability result
+	 */
+	async showSetupGuidance(
+		availabilityResult: CodexAvailabilityResult,
+	): Promise<void> {
+		if (availabilityResult.isAvailable) {
+			return; // No guidance needed if Codex is available
+		}
 
-    const message = availabilityResult.errorMessage || 'Codex CLI is not available';
-    const guidance = availabilityResult.setupGuidance || this.getInstallationGuidance();
+		const message =
+			availabilityResult.errorMessage || "Codex CLI is not available";
+		const guidance =
+			availabilityResult.setupGuidance || this.getInstallationGuidance();
 
-    this.outputChannel.appendLine(`[CodexSetupService] Showing setup guidance: ${message}`);
+		this.outputChannel.appendLine(
+			`[CodexSetupService] Showing setup guidance: ${message}`,
+		);
 
-    // Show error message with action buttons
-    const action = await vscode.window.showErrorMessage(
-      message,
-      'Show Setup Instructions',
-      'Open Documentation',
-      'Check System Requirements',
-      'Retry Check'
-    );
+		// Show error message with action buttons
+		const action = await vscode.window.showErrorMessage(
+			message,
+			"Show Setup Instructions",
+			"Open Documentation",
+			"Check System Requirements",
+			"Retry Check",
+		);
 
-    switch (action) {
-      case 'Show Setup Instructions':
-        await this.showSetupInstructions(guidance);
-        break;
-      case 'Open Documentation':
-        await vscode.env.openExternal(vscode.Uri.parse('https://docs.openai.com/codex-cli'));
-        break;
-      case 'Check System Requirements':
-        await this.showSystemRequirements();
-        break;
-      case 'Retry Check':
-        // This will be handled by the caller
-        vscode.commands.executeCommand('kiro.checkCodexAvailability');
-        break;
-    }
-  }
+		switch (action) {
+			case "Show Setup Instructions":
+				await this.showSetupInstructions(guidance);
+				break;
+			case "Open Documentation":
+				await vscode.env.openExternal(
+					vscode.Uri.parse("https://docs.openai.com/codex-cli"),
+				);
+				break;
+			case "Check System Requirements":
+				await this.showSystemRequirements();
+				break;
+			case "Retry Check":
+				// This will be handled by the caller
+				vscode.commands.executeCommand("kiro.checkCodexAvailability");
+				break;
+		}
+	}
 
-  /**
-   * Show detailed setup instructions in a new document
-   */
-  private async showSetupInstructions(guidance: string): Promise<void> {
-    const doc = await vscode.workspace.openTextDocument({
-      content: guidance,
-      language: 'markdown'
-    });
-    await vscode.window.showTextDocument(doc, { preview: false });
-  }
+	/**
+	 * Show detailed setup instructions in a new document
+	 */
+	private async showSetupInstructions(guidance: string): Promise<void> {
+		const doc = await vscode.workspace.openTextDocument({
+			content: guidance,
+			language: "markdown",
+		});
+		await vscode.window.showTextDocument(doc, { preview: false });
+	}
 
-  /**
-   * Show system requirements information
-   */
-  private async showSystemRequirements(): Promise<void> {
-    const requirements = this.getSystemRequirements();
-    const doc = await vscode.workspace.openTextDocument({
-      content: requirements,
-      language: 'markdown'
-    });
-    await vscode.window.showTextDocument(doc, { preview: false });
-  }
+	/**
+	 * Show system requirements information
+	 */
+	private async showSystemRequirements(): Promise<void> {
+		const requirements = this.getSystemRequirements();
+		const doc = await vscode.workspace.openTextDocument({
+			content: requirements,
+			language: "markdown",
+		});
+		await vscode.window.showTextDocument(doc, { preview: false });
+	}
 
-  /**
-   * Get installation guidance for Codex CLI
-   */
-  getInstallationGuidance(): string {
-    return `# Codex CLI Installation Guide
+	/**
+	 * Get installation guidance for Codex CLI
+	 */
+	getInstallationGuidance(): string {
+		return `# Codex CLI Installation Guide
 
 ## Quick Installation
 
@@ -146,13 +156,13 @@ If you encounter issues, try:
 4. **Logs**: Check the Kiro output channel for detailed error messages
 
 For more help, visit: https://docs.openai.com/codex-cli/installation`;
-  }
+	}
 
-  /**
-   * Get system requirements information
-   */
-  private getSystemRequirements(): string {
-    return `# Codex CLI System Requirements
+	/**
+	 * Get system requirements information
+	 */
+	private getSystemRequirements(): string {
+		return `# Codex CLI System Requirements
 
 ## Minimum Requirements
 
@@ -229,13 +239,16 @@ If your system doesn't meet these requirements:
 3. **Contact support**: Visit the Codex CLI documentation for help
 
 For detailed installation guides, visit: https://docs.openai.com/codex-cli/system-requirements`;
-  }
+	}
 
-  /**
-   * Get version upgrade guidance
-   */
-  getVersionUpgradeGuidance(currentVersion: string, requiredVersion: string): string {
-    return `# Codex CLI Version Update Required
+	/**
+	 * Get version upgrade guidance
+	 */
+	getVersionUpgradeGuidance(
+		currentVersion: string,
+		requiredVersion: string,
+	): string {
+		return `# Codex CLI Version Update Required
 
 Your current Codex CLI version (${currentVersion}) is outdated. 
 Please upgrade to version ${requiredVersion} or later.
@@ -269,13 +282,13 @@ The output should show version ${requiredVersion} or later.
 Check the [changelog](https://github.com/openai/codex-cli/releases) to see what improvements and bug fixes are included in the latest version.
 
 For more information, visit: https://docs.openai.com/codex-cli/updating`;
-  }
+	}
 
-  /**
-   * Get permission guidance for Codex CLI
-   */
-  getPermissionGuidance(): string {
-    return `# Codex CLI Permission Issues
+	/**
+	 * Get permission guidance for Codex CLI
+	 */
+	getPermissionGuidance(): string {
+		return `# Codex CLI Permission Issues
 
 Permission denied when executing Codex CLI. Here's how to fix it:
 
@@ -335,13 +348,13 @@ If codex is not in PATH, add the installation directory to your PATH environment
 3. **Contact your system administrator**: If on a managed system, you may need admin help
 
 For more help, visit: https://docs.openai.com/codex-cli/troubleshooting#permissions`;
-  }
+	}
 
-  /**
-   * Get general troubleshooting guidance
-   */
-  getTroubleshootingGuidance(): string {
-    return `# Codex CLI Troubleshooting Guide
+	/**
+	 * Get general troubleshooting guidance
+	 */
+	getTroubleshootingGuidance(): string {
+		return `# Codex CLI Troubleshooting Guide
 
 ## Common Issues and Solutions
 
@@ -428,5 +441,5 @@ When reporting issues, please include:
 5. **Diagnostic Output**: Results of diagnostic commands above
 
 This information helps maintainers quickly identify and resolve issues.`;
-  }
+	}
 }
