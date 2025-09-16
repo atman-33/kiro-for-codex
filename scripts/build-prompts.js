@@ -89,10 +89,8 @@ function generateIndex(outputDir) {
   const files = walk(outputDir);
 
   // Create export lines with stable camelCase aliases
-  const toCamel = (name) => name
-    .replace(/\.ts$/, '')
-    .split('/')
-    .pop()
+  const toCamel = (filePath) => path
+    .basename(filePath, '.ts')
     .split('-')
     .map((seg, i) => (i === 0 ? seg : seg.charAt(0).toUpperCase() + seg.slice(1)))
     .join('');
