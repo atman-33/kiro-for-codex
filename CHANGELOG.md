@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.5.0 2025-09-17
+
+### Added
+
+- add Windows shell path configuration for Codex commands
+- simplify filename to camelCase conversion
+- add .gitattributes and bump version to 0.4.0
+
+### Changed
+
+- feature/update-readme
+- add Windows shell path override configuration
+- feature/improve-github-workflows
+- update version bump workflow and release docs
+- feature/select-terminal
+- feature/improve-build-prompts
+
 ## v0.4.0 2025-09-15
 
 ### Added
