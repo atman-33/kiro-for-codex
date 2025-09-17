@@ -30,6 +30,7 @@ export const DEFAULT_CONFIG = {
 		defaultModel: "gpt-5",
 		timeout: 30000,
 		terminalDelay: 1000,
+		windowsShellPath: "",
 	},
 	migration: {
 		backupOriginalFiles: true,

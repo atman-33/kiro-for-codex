@@ -142,6 +142,11 @@
           "type": "number",
           "default": 1000,
           "description": "Delay in milliseconds before writing to terminal to improve UX"
+        },
+        "kiroCodex.codex.windowsShellPath": {
+          "type": "string",
+          "default": "",
+          "description": "Windows only: shell executable to launch when running Codex commands. Leave empty to inherit the VS Code default terminal."
         }
       }
     },
