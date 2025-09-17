@@ -27,7 +27,9 @@ jobs:
 
       - name: Read package.json version
         id: pkg
-        run: echo "PKG_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "PKG_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Validate input version matches package.json
         run: |
@@ -47,15 +49,18 @@ jobs:
       # NOTE: This workflow does not modify CHANGELOG.md.
       # If no section exists for the version, the Release job will inject a placeholder.
 
-      - name: Ensure tag does not already exist on origin
+      - name: Check if tag exists on origin
+        id: tag_check
         run: |
           VERSION="${{ inputs.version }}"
           if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
-            echo "::error::Tag v$VERSION already exists on origin. Choose a different version or delete the existing tag."
-            exit 1
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create and push tag
+        if: steps.tag_check.outputs.exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -63,7 +68,26 @@ jobs:
           git tag -a "v$VERSION" -m "chore(release): v$VERSION"
           git push origin "refs/tags/v$VERSION"
 
+      - name: Trigger release workflow
+        if: steps.tag_check.outputs.exists == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release.yml',
+              ref: context.ref,
+              inputs: {
+                version: '${{ inputs.version }}'
+              }
+            });
+
       - name: Summary
         run: |
-          echo "Tagged commit $(git rev-parse --short HEAD) as v${{ inputs.version }}."
-          echo "This will trigger .github/workflows/release.yml (push: tags: v*)."
+          if [ "${{ steps.tag_check.outputs.exists }}" = "true" ]; then
+            echo "Tag v${{ inputs.version }} already existed. Triggered release.yml via workflow_dispatch instead of creating a new tag."
+          else
+            echo "Tagged commit $(git rev-parse --short HEAD) as v${{ inputs.version }}."
+            echo "This push triggers .github/workflows/release.yml (push: tags: v*)."
+          fi

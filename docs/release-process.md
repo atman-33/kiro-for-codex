@@ -4,11 +4,11 @@ This document describes how to cut a release and publish the extension to both t
 
 ## Overview
 
-- Trigger model: pushing a `v*` tag starts the unified pipeline in `.github/workflows/release.yml` that builds, creates a GitHub Release (attaching the VSIX and changelog), and publishes to both stores.
+- Trigger model: pushing a `v*` tag (or manually dispatching `.github/workflows/release.yml` with a version input) starts the unified pipeline that builds, creates a GitHub Release (attaching the VSIX and changelog), and publishes to both stores.
 - Two entry points to create that tag:
   1) Version bump with computed next version: `.github/workflows/version-bump.yml` (manual dispatch with `release_type`).
   2) Release without bump (tag only): `.github/workflows/release-only.yml` (manual dispatch with `version`).
-- Manual reruns or republish attempts should be performed by re-running the relevant job inside `release.yml`; there is no separate fallback workflow.
+- Manual reruns or republish attempts should be performed by re-running `release.yml` (either via the Actions “Re-run” button or by dispatching it with the `version` input); there is no separate fallback workflow.
 
 ## Prerequisites
 
@@ -48,18 +48,20 @@ Use this when the version is already set in `package.json`.
 2) Manually run Actions → “Release Only (Tag and Trigger)” (`.github/workflows/release-only.yml`).
    - Input `version`: `X.Y.Z`.
    - The workflow validates that the input matches `package.json`.
-3) The workflow creates and pushes tag `vX.Y.Z`, which triggers `release.yml` for build, GitHub Release creation, and publishing (same as above).
+3) The workflow either:
+   - Creates and pushes tag `vX.Y.Z` (if it does not already exist), triggering `release.yml` via tag push, **or**
+   - Detects that tag `vX.Y.Z` already exists and dispatches `release.yml` with the same version so the release can be rerun without recreating the tag.
 
 ## Manual Re-run / Republish
 
-If publishing fails or assets need to be regenerated, re-run the failed job (or the entire workflow) inside `release.yml` from the Actions tab. The workflow is idempotent thanks to `skipDuplicate: true` on both registries.
+If publishing fails or assets need to be regenerated, either re-run the failed job inside `release.yml` from the Actions tab or dispatch `release.yml` manually with the `version` input. The workflow is idempotent thanks to `skipDuplicate: true` on both registries.
 
 ## Failure Modes and Troubleshooting
 
 - No notable commits detected for changelog:
   - Ensure commits follow Conventional Commits (e.g., `feat:`, `fix:`). The generator will still create a placeholder if nothing is found.
-- Tag already exists when bumping or releasing only:
-  - Use a new version or delete the remote tag if appropriate: `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z` (be cautious if already published).
+- Tag already exists when running “Release Only”:
+  - The workflow automatically dispatches `release.yml` with the given version instead of failing. Use a new version only if you intend to create a fresh tag.
 - Marketplace/Open VSX publish fails:
   - Confirm `VSCE_PAT` / `OPEN_VSX_TOKEN` are set and valid.
   - Re-run the `release.yml` workflow; publishing is idempotent with `skipDuplicate: true`.
@@ -76,5 +78,5 @@ If publishing fails or assets need to be regenerated, re-run the failed job (or 
 ## Files Involved
 
 - `.github/workflows/version-bump.yml` – Bumps version, updates `CHANGELOG.md`, pushes a release branch/PR, and tags `vX.Y.Z`.
-- `.github/workflows/release.yml` – Builds, creates GitHub Release with changelog, and publishes to both stores on `v*` tag.
-- `.github/workflows/release-only.yml` – Validates input against `package.json` and triggers the release pipeline by tagging without touching `CHANGELOG.md`.
+- `.github/workflows/release.yml` – Builds, creates GitHub Release with changelog, and publishes to both stores on `v*` tag or manual dispatch (`version` input).
+- `.github/workflows/release-only.yml` – Validates input against `package.json`, creates the tag if needed, or dispatches `release.yml` when the tag already exists (no `CHANGELOG.md` edits).
