@@ -3,9 +3,15 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { MIN_CODEX_CLI_VERSION, VSC_CONFIG_NAMESPACE } from "../constants";
 import { CodexSetupService } from "../services/codex-setup-service";
-import { CommandBuilder } from "../services/command-builder";
+import {
+	CommandBuilder,
+	type CommandOptions,
+} from "../services/command-builder";
 import { CodexErrorHandler, ErrorType } from "../services/error-handler";
-import { ProcessManager } from "../services/process-manager";
+import {
+	ProcessManager,
+	type TerminalOptions,
+} from "../services/process-manager";
 import { RetryService } from "../services/retry-service";
 import { ConfigManager } from "../utils/config-manager";
 
@@ -35,6 +41,7 @@ export interface CodexConfig {
 	defaultModel?: string;
 	timeout: number;
 	terminalDelay: number;
+	windowsShellPath?: string;
 }
 
 export interface CodexAvailabilityResult {
@@ -79,6 +86,7 @@ export class CodexProvider {
 			defaultModel: "gpt-5",
 			timeout: 30000,
 			terminalDelay: 1000,
+			windowsShellPath: undefined,
 		};
 
 		this.configManager.loadSettings();
@@ -109,6 +117,9 @@ export class CodexProvider {
 			defaultModel: config.get("codex.defaultModel", "gpt-5"),
 			timeout: config.get("codex.timeout", 30000),
 			terminalDelay: config.get("codex.terminalDelay", 1000),
+			windowsShellPath: this.normalizeWindowsShellPath(
+				config.get<string | undefined>("codex.windowsShellPath", ""),
+			),
 		};
 	}
 
@@ -551,40 +562,60 @@ export class CodexProvider {
 
 					// Build command with OS-aware content loading
 					let command: string;
+					const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+					const commandBuilderOptions: CommandOptions = {
+						...this.codexConfig,
+						...(cwd ? { workingDirectory: cwd } : {}),
+					};
+
 					if (process.platform === "win32") {
-						// Windows: Read file content in Node and pass as a (potentially large) string argument.
-						// This is simpler but may hit command-line length limits.
-						const promptContent = await fs.promises.readFile(
-							promptFilePath,
-							"utf8",
-						);
+						const configuredShellPath = this.codexConfig.windowsShellPath;
+						const resolvedShellPath =
+							configuredShellPath ||
+							(typeof vscode.env.shell === "string"
+								? vscode.env.shell
+								: undefined);
+						const isPowerShell = this.isPowerShellExecutable(resolvedShellPath);
 
-						// For PowerShell, escape backticks and double-quotes within the string.
-						const escapedPrompt = promptContent
-							.replace(/`/g, "``")
-							.replace(/"/g, "``");
+						if (isPowerShell) {
+							// Windows: Read file content in Node and pass as a (potentially large) string argument.
+							// This is simpler but may hit command-line length limits.
+							const promptContent = await fs.promises.readFile(
+								promptFilePath,
+								"utf8",
+							);
 
-						const modelPart = this.codexConfig.defaultModel
-							? `-m "${this.codexConfig.defaultModel}"`
-							: "";
-						const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-						const cdPart = cwd ? `-C "${cwd}"` : "";
+							// For PowerShell, escape backticks and double-quotes within the string.
+							const escapedPrompt = promptContent
+								.replace(/`/g, "``")
+								.replace(/"/g, "``");
 
-						const commandParts = [
-							this.codexConfig.codexPath,
-							modelPart,
-							cdPart,
-							"--",
-							`"${escapedPrompt}"`, // Pass the escaped content as a single quoted argument
-						];
+							const modelPart = this.codexConfig.defaultModel
+								? `-m "${this.codexConfig.defaultModel}"`
+								: "";
+							const cdPart = cwd ? `-C "${cwd}"` : "";
 
-						// Encoding setup is still good practice for the terminal environment itself.
-						command = `$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ${commandParts.filter((p) => p).join(" ")}`;
+							const commandParts = [
+								this.codexConfig.codexPath,
+								modelPart,
+								cdPart,
+								"--",
+								`"${escapedPrompt}"`, // Pass the escaped content as a single quoted argument
+							];
+
+							// Encoding setup is still good practice for the terminal environment itself.
+							command = `$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ${commandParts.filter((p) => p).join(" ")}`;
+						} else {
+							command = this.commandBuilder.buildCommand(
+								promptFilePath,
+								commandBuilderOptions,
+							);
+						}
 					} else {
 						// POSIX: legacy $(cat) is more robust for large prompts.
 						command = this.commandBuilder.buildCommand(
 							promptFilePath,
-							this.codexConfig,
+							commandBuilderOptions,
 						);
 					}
 
@@ -597,17 +628,28 @@ export class CodexProvider {
 						? { viewColumn: vscode.ViewColumn.Two }
 						: { viewColumn: vscode.ViewColumn.Active };
 
-					const terminal = this.processManager.createTerminal(command, {
+					const terminalOptions: TerminalOptions = {
 						name: title,
-						cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+						cwd,
 						location: locationOption,
-						...(process.platform === "win32"
-							? {
-									shellPath: "powershell.exe",
-									shellArgs: ["-NoLogo", "-NoProfile"],
-								}
-							: {}),
-					} as any);
+					};
+
+					if (
+						process.platform === "win32" &&
+						this.codexConfig.windowsShellPath
+					) {
+						terminalOptions.shellPath = this.codexConfig.windowsShellPath;
+						if (
+							this.isPowerShellExecutable(this.codexConfig.windowsShellPath)
+						) {
+							terminalOptions.shellArgs = ["-NoLogo", "-NoProfile"];
+						}
+					}
+
+					const terminal = this.processManager.createTerminal(
+						command,
+						terminalOptions,
+					);
 
 					// Schedule cleanup of temp file
 					if (promptFilePath) {
@@ -862,6 +904,27 @@ export class CodexProvider {
 		});
 
 		return modifiedFiles;
+	}
+
+	private normalizeWindowsShellPath(
+		value: string | undefined,
+	): string | undefined {
+		if (!value) return undefined;
+		const trimmed = value.trim();
+		if (!trimmed || trimmed.toLowerCase() === "inherit") {
+			return undefined;
+		}
+		return trimmed;
+	}
+
+	private isPowerShellExecutable(executable?: string): boolean {
+		if (!executable) return false;
+		const normalized = executable.trim().toLowerCase();
+		return (
+			normalized.includes("powershell") ||
+			normalized.endsWith("pwsh") ||
+			normalized.endsWith("pwsh.exe")
+		);
 	}
 
 	/**

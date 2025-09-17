@@ -18,8 +18,8 @@ export interface TerminalOptions {
 	cwd?: string;
 	location?: vscode.TerminalLocation | { viewColumn: vscode.ViewColumn };
 	hideFromUser?: boolean;
-	// shellPath?: string;
-	// shellArgs?: string[];
+	shellPath?: string;
+	shellArgs?: string[];
 }
 
 export class ProcessManager {
@@ -290,9 +290,9 @@ export class ProcessManager {
 			cwd: options.cwd,
 			location: options.location,
 			hideFromUser: options.hideFromUser,
-			shellPath: (options as any).shellPath,
-			shellArgs: (options as any).shellArgs,
-		} as any);
+			shellPath: options.shellPath,
+			shellArgs: options.shellArgs,
+		});
 
 		if (!options.hideFromUser) {
 			terminal.show();
