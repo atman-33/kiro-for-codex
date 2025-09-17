@@ -7,6 +7,9 @@
 
 A VS Code extension that brings spec-driven development to Codex CLI. Manage your specs, steering documents, and custom prompts visually while leveraging Codex CLI's powerful AI capabilities.
 
+💡New in this release:
+- Windows shell override: set `kiroCodex.codex.windowsShellPath` to run Codex CLI through a custom Windows shell when needed
+
 ## Features
 
 ### 📝 SPEC Management
@@ -15,9 +18,6 @@ A VS Code extension that brings spec-driven development to Codex CLI. Manage you
 - Visual Explorer: browse and manage specs in the sidebar
 - Spec Workflow: Requirements -> Design -> Tasks with a review at each step
 - CodeLens for Tasks: execute an individual task from `tasks.md` via Codex and auto-check it off
-
-New in this release:
-- Create New Spec UI: starting a spec opens a focused editor (webview) to enter your request before generation
 
 ### 🎯 STEERING Management
 
@@ -183,6 +183,7 @@ Notes:
 - Only the `paths.*` values are honored by the extension at runtime.
 - Changing `paths.*` may require a window reload to take effect.
 - The location of `kiroCodex-settings.json` itself is fixed to `.codex/settings/kiroCodex-settings.json` (editing `paths.settings` does not relocate the file).
+- On Windows, override the terminal used for Codex runs by setting `kiroCodex.codex.windowsShellPath` in VS Code settings (leave blank to inherit the default).
 
 ## Workspace Structure
 
@@ -275,6 +276,7 @@ dist/webview/app               # Built webview assets consumed by providers
 
 - PowerShell is recommended on Windows (direct Codex CLI support)
 - WSL is supported with conditional path conversion
+- Need a different Windows terminal? Set `kiroCodex.codex.windowsShellPath` to the shell executable you prefer (leave empty to inherit VS Code's default).
 
 ## License
 
