@@ -6,9 +6,9 @@ This document describes how to cut a release and publish the extension to both t
 
 - Trigger model: pushing a `v*` tag starts the unified pipeline in `.github/workflows/release.yml` that builds, creates a GitHub Release (attaching the VSIX and changelog), and publishes to both stores.
 - Two entry points to create that tag:
-  1) Version bump with computed next version: `.github/workflows/version-bump.yml` (manual dispatch with `release_type`)
-  2) Release without bump (tag only): `.github/workflows/release-only.yml` (manual dispatch with `version`)
-- A manual fallback publisher exists: `.github/workflows/multi-platform-release.yml` (workflow_dispatch only).
+  1) Version bump with computed next version: `.github/workflows/version-bump.yml` (manual dispatch with `release_type`).
+  2) Release without bump (tag only): `.github/workflows/release-only.yml` (manual dispatch with `version`).
+- Manual reruns or republish attempts should be performed by re-running the relevant job inside `release.yml`; there is no separate fallback workflow.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ This document describes how to cut a release and publish the extension to both t
 
 ## Changelog Policy
 
-- Do not pre‑write the next release section in `CHANGELOG.md`.
+- Do not pre-write the next release section in `CHANGELOG.md`.
 - The changelog is updated automatically by the Version Bump workflow via `taj54/universal-version-bump`.
 - “Release Only” does not modify `CHANGELOG.md`. If a section for the version is missing, the GitHub Release will include a placeholder body.
 - GitHub Releases also enable `generate_release_notes: true` for extra context.
@@ -30,7 +30,7 @@ This document describes how to cut a release and publish the extension to both t
 1) Prepare changes on a branch, open a PR, and merge to `main`.
 2) Manually run the workflow: Actions → “Version Bump” (`.github/workflows/version-bump.yml`).
    - Input `release_type`: `patch`, `minor`, or `major`.
-3) The workflow bumps the version (and updates `CHANGELOG.md`) and then creates/pushes tag `vX.Y.Z`.
+3) The workflow bumps the version (and updates `CHANGELOG.md`), pushes a release branch, opens a PR, and creates/pushes tag `vX.Y.Z` on the bump commit.
 4) Tag push triggers `release.yml`, which:
    - Checks out and builds (`npm ci`, `npm run build`).
    - Packages the extension (`vsce package`) and attaches `*.vsix` to a GitHub Release named `Release vX.Y.Z` with changelog content.
@@ -38,6 +38,7 @@ This document describes how to cut a release and publish the extension to both t
 5) Verify:
    - GitHub Releases page shows “Release vX.Y.Z” with assets.
    - Extension listing updates on VS Code Marketplace and Open VSX.
+6) Merge the auto-created release PR so that `main` reflects the version bump and changelog updates.
 
 ## Release Only (no version bump)
 
@@ -49,12 +50,9 @@ Use this when the version is already set in `package.json`.
    - The workflow validates that the input matches `package.json`.
 3) The workflow creates and pushes tag `vX.Y.Z`, which triggers `release.yml` for build, GitHub Release creation, and publishing (same as above).
 
-## Fallback Publisher (manual)
+## Manual Re-run / Republish
 
-If you need to re‑publish manually without tagging:
-
-- Run Actions → “Extension Release” (`.github/workflows/multi-platform-release.yml`).
-- Note: This is a manual backup only; the primary path is via `release.yml` on tag push.
+If publishing fails or assets need to be regenerated, re-run the failed job (or the entire workflow) inside `release.yml` from the Actions tab. The workflow is idempotent thanks to `skipDuplicate: true` on both registries.
 
 ## Failure Modes and Troubleshooting
 
@@ -64,18 +62,19 @@ If you need to re‑publish manually without tagging:
   - Use a new version or delete the remote tag if appropriate: `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z` (be cautious if already published).
 - Marketplace/Open VSX publish fails:
   - Confirm `VSCE_PAT` / `OPEN_VSX_TOKEN` are set and valid.
-  - Re‑run the `release.yml` workflow; publishing is idempotent with `skipDuplicate: true`.
+  - Re-run the `release.yml` workflow; publishing is idempotent with `skipDuplicate: true`.
 - Changelog content truncated on GitHub Release:
   - Ensure a newline at end of file and add a subsequent heading (e.g., `## [Unreleased]`) so the extractor block has a proper terminator.
+- Release pipeline triggered before PR merge:
+  - This is expected when using Version Bump. Wait for `release.yml` to finish, review artifacts, then merge the release PR.
 
 ## Policy Notes
 
-- Versions follow plain `X.Y.Z` semantic versioning in automation paths. Pre‑releases (e.g., `1.2.3-beta.1`) are not currently supported by the pre‑validation step.
+- Versions follow plain `X.Y.Z` semantic versioning in automation paths. Pre-releases (e.g., `1.2.3-beta.1`) are not currently supported by the pre-validation step.
 - Do not edit generated assets under `dist/`; always release from a clean build on CI.
 
 ## Files Involved
 
-- `.github/workflows/version-bump.yml` – Bumps version, auto‑generates and commits `CHANGELOG.md`, then pushes tag.
+- `.github/workflows/version-bump.yml` – Bumps version, updates `CHANGELOG.md`, pushes a release branch/PR, and tags `vX.Y.Z`.
 - `.github/workflows/release.yml` – Builds, creates GitHub Release with changelog, and publishes to both stores on `v*` tag.
-- `.github/workflows/release-only.yml` – Validates input, auto‑generates/commits `CHANGELOG.md`, and triggers the release pipeline by tagging.
-- `.github/workflows/multi-platform-release.yml` – Manual fallback publisher.
+- `.github/workflows/release-only.yml` – Validates input against `package.json` and triggers the release pipeline by tagging without touching `CHANGELOG.md`.
