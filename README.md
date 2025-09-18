@@ -181,6 +181,7 @@ Minimal settings file:
 
 Notes:
 - Only the `paths.*` values are honored by the extension at runtime.
+- These path values are no longer exposed in VS Code's Settings UI; update `.codex/settings/kiroCodex-settings.json` directly if you need to customize them.
 - Changing `paths.*` may require a window reload to take effect.
 - The location of `kiroCodex-settings.json` itself is fixed to `.codex/settings/kiroCodex-settings.json` (editing `paths.settings` does not relocate the file).
 - On Windows, override the terminal used for Codex runs by setting `kiroCodex.codex.windowsShellPath` in VS Code settings (leave blank to inherit the default).
