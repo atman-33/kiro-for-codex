@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { CONFIG_FILE_NAME, DEFAULT_PATHS } from "../constants";
+import { CONFIG_FILE_NAME, DEFAULT_PATHS, SETTINGS_DIR } from "../constants";
 
 // Minimal project-local settings persisted under .codex/settings/kiroCodex-settings.json
 // Only "paths" are honored by the extension. Other runtime configs live in VS Code settings (kiroCodex.*).
@@ -8,7 +8,6 @@ export interface KiroCodexSettings {
 	paths: {
 		specs: string;
 		steering: string;
-		settings: string;
 		prompts: string;
 	};
 }
@@ -39,7 +38,7 @@ export class ConfigManager {
 
 		const settingsPath = path.join(
 			this.workspaceFolder.uri.fsPath,
-			DEFAULT_PATHS.settings,
+			SETTINGS_DIR,
 			CONFIG_FILE_NAME,
 		);
 
@@ -94,7 +93,7 @@ export class ConfigManager {
 
 		const settingsDir = path.join(
 			this.workspaceFolder.uri.fsPath,
-			DEFAULT_PATHS.settings,
+			SETTINGS_DIR,
 		);
 		const settingsPath = path.join(settingsDir, CONFIG_FILE_NAME);
 

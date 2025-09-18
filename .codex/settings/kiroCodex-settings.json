@@ -2,7 +2,6 @@
   "paths": {
     "specs": ".codex/specs",
     "steering": ".codex/steering",
-    "settings": ".codex/settings",
     "prompts": ".codex/prompts"
   }
 }
