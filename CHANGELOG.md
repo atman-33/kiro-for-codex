@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.5.1 2025-09-18
+
+### Added
+
+- update AGENTS.md contract with clearer guidance
+
+### Changed
+
+- feature/improve-create-agent-config
+- bug-fix/release-only-workflow
+- bug-fix/release-only-workflow
+- feature/fix-workflows
+- improve release workflow with tag existence check and dispatch
+- Merge pull request #38 from atman-33/version-bump/v0.5.0
+
+### Fixed
+
+- add tag_name to GitHub release workflow
+- add actions write permission to release workflow
+
 ## v0.5.0 2025-09-17
 
 ### Added
