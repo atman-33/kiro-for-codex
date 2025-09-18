@@ -35,15 +35,15 @@ STYLE:
 - Avoid generic best practices unless needed to glue rules together.
 </system>
 
-# AGENTS.md — Kiro for Codex
+# AGENTS.md Contract
 
 This file defines the agent contract and serves as the index to project guidance. It applies repo-wide unless overridden by a nested AGENTS.md.
 
 ## Steering Documents
 - Purpose: Treat Steering as the first-party source for product, technical, and structural guidance.
 - Location: "{{steeringPath}}/product.md", "{{steeringPath}}/tech.md", "{{steeringPath}}/structure.md".
-- Access: Resolve paths via ConfigManager (e.g., `ConfigManager.getPath('steering')`). Never hardcode absolute paths.
-- Mutations: Treat Steering as read-only; update via feature flows (Init/Refine/Delete) rather than ad-hoc edits.
+- Access: Use repository-provided helpers to resolve paths; avoid hardcoded absolutes.
+- Mutations: Treat Steering as read-only; follow the established change-management flow instead of ad-hoc edits.
 - Usage: Summarize applicable Steering points in outputs; cite the specific file/section without restating details.
 
 ## Decision Precedence
@@ -53,33 +53,33 @@ This file defines the agent contract and serves as the index to project guidance
 4) Generic assumptions (avoid unless explicitly allowed).
 
 ## Agent Behavior Contract
-- Prefer CodexProvider for CLI operations; use ProcessManager/CommandBuilder; never spawn child processes directly.
-- Respect feature flags in "{{constantsPath}}" and any `package.json` `contributes.*` gating.
-- Logging: Use the shared OutputChannel; log key lifecycle and error paths; avoid noisy logs.
-- Error handling: Use centralized services (ErrorHandler/RetryService); avoid ad-hoc try/catch loops.
-- Performance/UX: Do not block the extension host; long tasks use split terminals and VS Code progress notifications.
+- Prefer project-provided abstractions for CLI operations; avoid ad-hoc process spawning when wrappers exist.
+- Respect feature flags in "{{constantsPath}}" and any configuration-driven gating.
+- Logging: Use the shared logging utilities; record key lifecycle and error paths without excess noise.
+- Error handling: Route failures through centralized services/utilities rather than ad-hoc try/catch loops.
+- Performance/UX: Honor project guidelines for long-running work so the host environment remains responsive.
 - Reference Steering for specifics (naming, boundaries, directory layout) rather than restating them here.
 
 ## Paths & I/O
-- Workspace I/O: Prefer VS Code FS APIs (`vscode.workspace.fs`) for read/write/create.
-- Path resolution: Use ConfigManager for all `.codex/*` paths; avoid absolute paths.
-- Write boundaries: Only write within `.codex/**`, the workspace, or VS Code storage as allowed by project rules.
-- Steering: Do not overwrite files under `{{steeringPath}}` directly; use feature flows.
+- Workspace I/O: Prefer project-sanctioned file system helpers for read/write/create operations.
+- Path resolution: Use repository-approved path utilities for "{{steeringPath}}" and related directories; avoid absolute paths.
+- Write boundaries: Only modify files within approved workspace areas defined by project rules.
+- Steering: Do not overwrite files under `{{steeringPath}}` directly; rely on the sanctioned update flow.
 
 ## CLI Integration
-- Build CLI arguments with CommandBuilder; execute via ProcessManager.
+- Build CLI commands through officially supported builders/wrappers before execution.
 - Approval modes and model flags: Reference their definition sites/tests without duplicating values.
-- Verify Codex availability before invocation; surface setup guidance if unavailable.
+- Verify required tooling availability before invocation; surface setup guidance if unavailable.
 
 ## Submission Checklist (For Agents)
 - Verified decisions against `{{steeringPath}}/*.md`; cited files/sections without duplication.
-- Resolved steering path via ConfigManager; avoided absolute paths.
+- Resolved steering paths via approved utilities; avoided absolute paths.
 - Respected feature flags and constraints in `{{constantsPath}}`.
-- Used CodexProvider/CommandBuilder/ProcessManager for CLI interactions.
+- Used project-sanctioned wrappers for CLI interactions.
 - Avoided restating Steering or code constants; kept AGENTS.md concise and index-like.
 
 ## Non‑Goals / Anti‑Patterns
-- Do not bypass CodexProvider/ProcessManager for CLI calls.
+- Do not bypass official wrappers/utilities for CLI calls when they exist.
 - Do not store state in globals beyond established singletons.
 - Do not write outside approved directories or overwrite Steering directly.
 - Do not re-enable disabled features unless explicitly requested.
@@ -87,4 +87,3 @@ This file defines the agent contract and serves as the index to project guidance
 ## Instructions to Apply
 - Write or update `AGENTS.md` at the repository root with the structure above.
 - If an AGENTS.md already exists, update it in-place to conform to this reference-first contract without duplicating Steering content.
-
