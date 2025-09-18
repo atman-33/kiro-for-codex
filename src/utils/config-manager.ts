@@ -8,7 +8,6 @@ export interface KiroCodexSettings {
 	paths: {
 		specs: string;
 		steering: string;
-		prompts: string;
 	};
 }
 
@@ -46,8 +45,8 @@ export class ConfigManager {
 			const fileContent = await vscode.workspace.fs.readFile(
 				vscode.Uri.file(settingsPath),
 			);
-			const settings = JSON.parse(Buffer.from(fileContent).toString());
-			const mergedSettings = { ...this.getDefaultSettings(), ...settings };
+			const parsed = JSON.parse(Buffer.from(fileContent).toString());
+			const mergedSettings = this.mergeWithDefaults(parsed);
 			this.settings = mergedSettings;
 			return this.settings!;
 		} catch (error) {
@@ -82,7 +81,21 @@ export class ConfigManager {
 
 	private getDefaultSettings(): KiroCodexSettings {
 		return {
-			paths: { ...DEFAULT_PATHS },
+			paths: {
+				specs: DEFAULT_PATHS.specs,
+				steering: DEFAULT_PATHS.steering,
+			},
+		};
+	}
+
+	private mergeWithDefaults(settings: any): KiroCodexSettings {
+		const defaults = this.getDefaultSettings();
+		const incomingPaths = settings?.paths ?? {};
+		return {
+			paths: {
+				specs: incomingPaths.specs || defaults.paths.specs,
+				steering: incomingPaths.steering || defaults.paths.steering,
+			},
 		};
 	}
 
@@ -101,12 +114,14 @@ export class ConfigManager {
 		await vscode.workspace.fs.createDirectory(vscode.Uri.file(settingsDir));
 
 		// Save settings
+		const sanitized = this.mergeWithDefaults(settings);
+
 		await vscode.workspace.fs.writeFile(
 			vscode.Uri.file(settingsPath),
-			Buffer.from(JSON.stringify(settings, null, 2)),
+			Buffer.from(JSON.stringify(sanitized, null, 2)),
 		);
 
-		this.settings = settings;
+		this.settings = sanitized;
 	}
 
 	// (Intentionally minimal) — legacy config sections (views/codex/migration) have been removed.

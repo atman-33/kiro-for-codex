@@ -9,8 +9,6 @@ export const DEFAULT_CONFIG = {
 	paths: {
 		specs: ".codex/specs",
 		steering: ".codex/steering",
-		// New: prompts base path
-		prompts: ".codex/prompts",
 	},
 	views: {
 		specs: true,
@@ -43,6 +41,9 @@ export const DEFAULT_VIEW_VISIBILITY = DEFAULT_CONFIG.views;
 
 // Settings directory is fixed and not user configurable
 export const SETTINGS_DIR = ".codex/settings" as const;
+
+// Prompts directory is fixed and not user configurable
+export const PROMPTS_DIR = ".codex/prompts" as const;
 
 // Feature flag to fully disable MCP UI and background loading
 export const ENABLE_MCP_UI = false as const;

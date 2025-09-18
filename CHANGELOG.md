@@ -188,7 +188,7 @@ Initial public release.
 
 ### 🔧 Improvements
 
-- Default settings include prompts path (`paths.prompts`) and visibility (`views.prompts`).
+- Prompts directory fixed at `.codex/prompts`; runtime only exposes visibility (`views.prompts`).
 - File system watchers auto‑refresh SPEC/STEERING/PROMPTS on `.codex/` changes.
 - Windows enhancements: WSL path conversion when detected; PowerShell recommended.
 

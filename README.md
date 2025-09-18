@@ -172,8 +172,7 @@ Minimal settings file:
 {
   "paths": {
     "specs": ".codex/specs",
-    "steering": ".codex/steering",
-    "prompts": ".codex/prompts"
+    "steering": ".codex/steering"
   }
 }
 ```
@@ -183,6 +182,7 @@ Notes:
 - These path values are no longer exposed in VS Code's Settings UI; update `.codex/settings/kiroCodex-settings.json` directly if you need to customize them.
 - Changing `paths.*` may require a window reload to take effect.
 - The settings file itself always lives at `.codex/settings/kiroCodex-settings.json`; the directory cannot be relocated.
+- Prompts are always stored under `.codex/prompts`; this location is not configurable.
 - On Windows, override the terminal used for Codex runs by setting `kiroCodex.codex.windowsShellPath` in VS Code settings (leave blank to inherit the default).
 
 ## Workspace Structure
