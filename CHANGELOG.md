@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.6.0 2025-09-18
+
+### Added
+
+- make prompts directory non-configurable and fixed at .codex/prompts
+- make settings directory path non-configurable
+- remove constantsPath dependency from agent prompts
+
+### Changed
+
+- feature/improve-settings
+- remove path values from VS Code Settings UI
+- Merge pull request #43 from atman-33/version-bump/v0.5.1
+
 ## v0.5.1 2025-09-18
 
 ### Added

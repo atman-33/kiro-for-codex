@@ -2,7 +2,7 @@
   "name": "kiro-for-codex",
   "displayName": "Kiro for Codex",
   "description": "Spec-driven development with Codex CLI - inspired by Kiro",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "author": "atman-33",
   "publisher": "atman-dev",
   "icon": "icon.png",
