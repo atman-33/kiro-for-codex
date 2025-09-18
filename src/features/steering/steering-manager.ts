@@ -232,7 +232,6 @@ export class SteeringManager {
 		try {
 			const prompt = this.promptLoader.renderPrompt("create-agents-md", {
 				steeringPath: this.getSteeringBasePath(),
-				constantsPath: "src/constants.ts",
 			});
 
 			await this.codexProvider.invokeCodexSplitView(
