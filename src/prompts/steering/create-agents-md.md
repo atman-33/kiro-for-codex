@@ -8,10 +8,6 @@ variables:
     type: string
     required: true
     description: Path (relative to workspace) where steering documents are stored
-  constantsPath:
-    type: string
-    required: true
-    description: Relative path to the code-level constants file (e.g., src/constants.ts)
 ---
 
 <system>
@@ -24,10 +20,9 @@ CRITICAL CONSTRAINTS (do not violate):
 - Treat Steering docs as authoritative for product/tech/structure decisions. AGENTS.md is an index and contract, not a duplicate.
 
 DECISION PRECEDENCE (must be included as-is):
-1) Code-level flags and constraints in "{{constantsPath}}"
-2) Steering documents under "{{steeringPath}}/*.md"
-3) This AGENTS.md contract (general repository conventions)
-4) Generic assumptions (avoid unless explicitly allowed)
+1) Steering documents under "{{steeringPath}}/*.md"
+2) This AGENTS.md contract (general repository conventions)
+3) Generic assumptions (avoid unless explicitly allowed)
 
 STYLE:
 - Use imperative bullets ("Use X", "Avoid Y").
@@ -47,14 +42,13 @@ This file defines the agent contract and serves as the index to project guidance
 - Usage: Summarize applicable Steering points in outputs; cite the specific file/section without restating details.
 
 ## Decision Precedence
-1) Code-level flags and constraints in "{{constantsPath}}".
-2) Steering documents under "{{steeringPath}}/*.md".
-3) This AGENTS.md contract (general repository conventions).
-4) Generic assumptions (avoid unless explicitly allowed).
+1) Steering documents under "{{steeringPath}}/*.md".
+2) This AGENTS.md contract (general repository conventions).
+3) Generic assumptions (avoid unless explicitly allowed).
 
 ## Agent Behavior Contract
 - Prefer project-provided abstractions for CLI operations; avoid ad-hoc process spawning when wrappers exist.
-- Respect feature flags in "{{constantsPath}}" and any configuration-driven gating.
+- Respect feature flags and configuration gating documented in Steering or related code references.
 - Logging: Use the shared logging utilities; record key lifecycle and error paths without excess noise.
 - Error handling: Route failures through centralized services/utilities rather than ad-hoc try/catch loops.
 - Performance/UX: Honor project guidelines for long-running work so the host environment remains responsive.
@@ -74,7 +68,7 @@ This file defines the agent contract and serves as the index to project guidance
 ## Submission Checklist (For Agents)
 - Verified decisions against `{{steeringPath}}/*.md`; cited files/sections without duplication.
 - Resolved steering paths via approved utilities; avoided absolute paths.
-- Respected feature flags and constraints in `{{constantsPath}}`.
+- Respected feature flags and constraints documented by the project.
 - Used project-sanctioned wrappers for CLI interactions.
 - Avoided restating Steering or code constants; kept AGENTS.md concise and index-like.
 

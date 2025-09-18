@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { ConfigManager } from "../utils/config-manager";
+import { PROMPTS_DIR } from "../constants";
 import type { CodexProvider } from "./codex-provider";
 
 export class PromptsExplorerProvider
@@ -13,16 +13,13 @@ export class PromptsExplorerProvider
 		PromptItem | undefined | null | void
 	> = this._onDidChangeTreeData.event;
 
-	private configManager: ConfigManager;
 	private codexProvider: CodexProvider;
 	private isLoading = false;
 
 	constructor(
-		private context: vscode.ExtensionContext,
+		private readonly _context: vscode.ExtensionContext,
 		codexProvider: CodexProvider,
 	) {
-		this.configManager = ConfigManager.getInstance();
-		this.configManager.loadSettings();
 		this.codexProvider = codexProvider;
 	}
 
@@ -57,7 +54,7 @@ export class PromptsExplorerProvider
 			}
 
 			const ws = vscode.workspace.workspaceFolders[0].uri.fsPath;
-			const promptsBase = path.join(ws, this.configManager.getPath("prompts"));
+			const promptsBase = path.join(ws, PROMPTS_DIR);
 
 			let files: string[] = [];
 			try {

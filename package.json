@@ -53,26 +53,6 @@
     "configuration": {
       "title": "Kiro for Codex",
       "properties": {
-        "kiroCodex.paths.specs": {
-          "type": "string",
-          "default": ".codex/specs",
-          "description": "Relative path to specs directory"
-        },
-        "kiroCodex.paths.steering": {
-          "type": "string",
-          "default": ".codex/steering",
-          "description": "Relative path to steering directory"
-        },
-        "kiroCodex.paths.settings": {
-          "type": "string",
-          "default": ".codex/settings",
-          "description": "Relative path to settings directory (folder containing kiroCodex-settings.json)"
-        },
-        "kiroCodex.paths.prompts": {
-          "type": "string",
-          "default": ".codex/prompts",
-          "description": "Relative path to prompts directory"
-        },
         "kiroCodex.views.specs.visible": {
           "type": "boolean",
           "default": true,

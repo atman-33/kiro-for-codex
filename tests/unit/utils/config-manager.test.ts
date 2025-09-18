@@ -42,8 +42,6 @@ describe("ConfigManager (paths-only settings)", () => {
 		expect(settings.paths).toEqual({
 			specs: ".codex/specs",
 			steering: ".codex/steering",
-			settings: ".codex/settings",
-			prompts: ".codex/prompts",
 		});
 	});
 
@@ -52,8 +50,6 @@ describe("ConfigManager (paths-only settings)", () => {
 			paths: {
 				specs: "custom/specs",
 				steering: ".codex/steering",
-				settings: ".codex/settings",
-				prompts: ".codex/prompts",
 			},
 		};
 		(workspace.fs.readFile as Mock).mockResolvedValueOnce(
@@ -62,8 +58,6 @@ describe("ConfigManager (paths-only settings)", () => {
 
 		const settings = await configManager.loadSettings();
 		expect(settings.paths.specs).toBe("custom/specs");
-		// Unchanged keys fallback to defaults via merge
-		expect(settings.paths.prompts).toBe(".codex/prompts");
 	});
 
 	test("getPath returns overridden or default value", async () => {
@@ -72,9 +66,9 @@ describe("ConfigManager (paths-only settings)", () => {
 		await configManager.loadSettings();
 
 		const specs = configManager.getPath("specs");
-		const prompts = configManager.getPath("prompts");
+		const steering = configManager.getPath("steering");
 		expect(specs).toBe(".codex/specs");
-		expect(prompts).toBe(".codex/prompts");
+		expect(steering).toBe(".codex/steering");
 	});
 
 	test("saveSettings writes only paths object", async () => {
@@ -82,8 +76,6 @@ describe("ConfigManager (paths-only settings)", () => {
 			paths: {
 				specs: "s",
 				steering: "t",
-				settings: "u",
-				prompts: "v",
 			},
 		};
 
@@ -101,7 +93,7 @@ describe("ConfigManager (paths-only settings)", () => {
 		(workspace.fs.readFile as Mock).mockResolvedValueOnce(Buffer.from("{}"));
 		await configManager.loadSettings();
 
-		const abs = configManager.getAbsolutePath("prompts");
-		expect(abs).toBe("/test/workspace/.codex/prompts");
+		const abs = configManager.getAbsolutePath("specs");
+		expect(abs).toBe("/test/workspace/.codex/specs");
 	});
 });
