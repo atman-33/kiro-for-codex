@@ -24,7 +24,7 @@ export const DEFAULT_CONFIG = {
 	codex: {
 		path: "codex",
 		defaultApprovalMode: "interactive",
-		defaultModel: "gpt-5",
+		defaultModel: "gpt-5-codex",
 		timeout: 30000,
 		terminalDelay: 1000,
 		windowsShellPath: "",
@@ -58,4 +58,4 @@ export const ENABLE_AGENTS_UI = true as const;
 export const ENABLE_SPEC_AGENTS = false as const;
 
 // Minimum supported Codex CLI version (hardcoded requirement)
-export const MIN_CODEX_CLI_VERSION = "0.28.0" as const;
+export const MIN_CODEX_CLI_VERSION = "0.38.0" as const;
