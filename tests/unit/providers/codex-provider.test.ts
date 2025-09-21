@@ -88,6 +88,9 @@ vi.mock("vscode", () => ({
 	ProgressLocation: {
 		Notification: 15,
 	},
+	env: {
+		shell: undefined,
+	},
 }));
 
 describe("CodexProvider", () => {
@@ -128,15 +131,19 @@ describe("CodexProvider", () => {
 		// Create proper mocked instances
 		mockCommandBuilder = {
 			buildCommand: vi.fn(),
+			buildArgs: vi.fn(),
 			buildVersionCommand: vi.fn(),
 			buildApprovalModeFlag: vi.fn(),
 			buildWorkingDirectoryFlag: vi.fn(),
 			buildHelpCommand: vi.fn(),
 			buildSecureCommand: vi.fn(),
 		} as unknown as Mocked<CommandBuilder>;
+		mockCommandBuilder.buildArgs.mockReturnValue(["-a", "on-request"]);
 
 		mockProcessManager = {
 			executeCommand: vi.fn(),
+			executeCommandArgs: vi.fn(),
+			executeCommandArgsStream: vi.fn(),
 			createTerminal: vi.fn(),
 			executeCommandWithShellIntegration: vi.fn(),
 			killProcess: vi.fn(),
@@ -349,35 +356,44 @@ describe("CodexProvider", () => {
 					return await operation();
 				},
 			);
+
+			mockCommandBuilder.buildArgs.mockReturnValue([
+				"-a",
+				"on-request",
+				"--full-auto",
+				"-m",
+				"gpt-5",
+				"-C",
+				"/workspace",
+				"--flag",
+			]);
 		});
 
 		it("should execute Codex with prompt successfully", async () => {
 			const mockPrompt = "Create a hello world function";
 
-			mockCommandBuilder.buildCommand.mockReturnValue(
-				'codex "Create a hello world function"',
-			);
-			mockProcessManager.executeCommand.mockResolvedValue({
+			mockProcessManager.executeCommandArgs.mockResolvedValue({
 				exitCode: 0,
 				output: "Modified: hello.js\nFunction created successfully",
 				error: "",
 			});
-
-			// Mock file operations
-			(fs.promises.writeFile as Mock).mockResolvedValue(undefined);
-			(fs.promises.unlink as Mock).mockResolvedValue(undefined);
 
 			const result = await codexProvider.executeCodex(mockPrompt);
 
 			expect(result.exitCode).toBe(0);
 			expect(result.output).toContain("Function created successfully");
 			expect(result.filesModified).toContain("hello.js");
+			expect(mockProcessManager.executeCommandArgs).toHaveBeenCalledWith(
+				"codex",
+				expect.arrayContaining(["exec", "--flag", "-"]),
+				expect.objectContaining({ input: mockPrompt }),
+			);
 		});
 
 		it("should handle execution failure", async () => {
 			const mockPrompt = "Invalid prompt";
 
-			mockProcessManager.executeCommand.mockResolvedValue({
+			mockProcessManager.executeCommandArgs.mockResolvedValue({
 				exitCode: 1,
 				output: "",
 				error: "Syntax error in prompt",
@@ -400,7 +416,7 @@ describe("CodexProvider", () => {
 		it("should handle timeout errors", async () => {
 			const mockPrompt = "Long running operation";
 
-			mockProcessManager.executeCommand.mockImplementation(() => {
+			mockProcessManager.executeCommandArgs.mockImplementation(() => {
 				return new Promise((_, reject) => {
 					setTimeout(
 						() => reject(new Error("Operation timed out after 30000ms")),
@@ -434,22 +450,23 @@ describe("CodexProvider", () => {
 				timeout: 60000,
 			};
 
-			mockCommandBuilder.buildCommand.mockReturnValue(
-				"codex --approval-mode auto-edit",
-			);
-			mockProcessManager.executeCommand.mockResolvedValue({
+			mockCommandBuilder.buildArgs.mockReturnValue([
+				"-a",
+				"on-request",
+				"-m",
+				"gpt-5",
+				"-C",
+				"/custom/path",
+			]);
+			mockProcessManager.executeCommandArgs.mockResolvedValue({
 				exitCode: 0,
 				output: "Success",
 				error: "",
 			});
 
-			(fs.promises.writeFile as Mock).mockResolvedValue(undefined);
-			(fs.promises.unlink as Mock).mockResolvedValue(undefined);
-
 			await codexProvider.executeCodex(mockPrompt, options);
 
-			expect(mockCommandBuilder.buildCommand).toHaveBeenCalledWith(
-				expect.any(String),
+			expect(mockCommandBuilder.buildArgs).toHaveBeenCalledWith(
 				expect.objectContaining({
 					approvalMode: ApprovalMode.AutoEdit,
 					workingDirectory: "/custom/path",
@@ -457,6 +474,7 @@ describe("CodexProvider", () => {
 					timeout: 60000,
 				}),
 			);
+			expect(mockProcessManager.executeCommandArgs).toHaveBeenCalled();
 		});
 	});
 
@@ -486,7 +504,7 @@ describe("CodexProvider", () => {
 			);
 		});
 
-		it("should create terminal in split view", async () => {
+		it("should create terminal in split view (POSIX)", async () => {
 			const mockPrompt = "Create a new component";
 			const mockTerminal = {
 				show: vi.fn(),
@@ -494,12 +512,19 @@ describe("CodexProvider", () => {
 				dispose: vi.fn(),
 			} as any;
 
-			mockCommandBuilder.buildCommand.mockReturnValue(
-				'codex "Create a new component"',
-			);
+			mockCommandBuilder.buildArgs.mockReturnValue([
+				"-a",
+				"on-request",
+				"-m",
+				"gpt-5",
+			]);
 			mockProcessManager.createTerminal.mockReturnValue(mockTerminal);
 
 			(fs.promises.writeFile as Mock).mockResolvedValue(undefined);
+
+			const platformSpy = vi
+				.spyOn(process, "platform", "get")
+				.mockReturnValue("linux");
 
 			const result = await codexProvider.invokeCodexSplitView(
 				mockPrompt,
@@ -507,19 +532,59 @@ describe("CodexProvider", () => {
 			);
 
 			expect(result).toBe(mockTerminal);
-			// Be OS-agnostic: command differs on Windows (stdin pipe) vs POSIX (direct command)
 			expect(mockProcessManager.createTerminal).toHaveBeenCalled();
 			const [calledCommand, calledOptions] = (
 				mockProcessManager.createTerminal as Mock
 			).mock.calls[0];
 			expect(typeof calledCommand).toBe("string");
+			expect(calledCommand).toContain("cat");
 			expect(calledCommand).toContain("codex");
+			expect(calledCommand).toContain("exec");
 			expect(calledOptions).toEqual(
 				expect.objectContaining({
 					name: "Test Terminal",
 					location: { viewColumn: vscode.ViewColumn.Two },
 				}),
 			);
+
+			platformSpy.mockRestore();
+		});
+
+		it("should build PowerShell pipeline on Windows", async () => {
+			const mockPrompt = "Create a new component";
+			const mockTerminal = {
+				show: vi.fn(),
+				sendText: vi.fn(),
+				dispose: vi.fn(),
+			} as any;
+
+			mockCommandBuilder.buildArgs.mockReturnValue([
+				"-a",
+				"on-request",
+				"-m",
+				"gpt-5",
+			]);
+			mockProcessManager.createTerminal.mockReturnValue(mockTerminal);
+
+			(fs.promises.writeFile as Mock).mockResolvedValue(undefined);
+
+			const platformSpy = vi
+				.spyOn(process, "platform", "get")
+				.mockReturnValue("win32");
+
+			const result = await codexProvider.invokeCodexSplitView(
+				mockPrompt,
+				"Test Terminal",
+			);
+
+			expect(result).toBe(mockTerminal);
+			const [calledCommand] = (
+				mockProcessManager.createTerminal as Mock
+			).mock.calls.pop()!;
+			expect(calledCommand).toContain("Get-Content -Raw -Encoding UTF8");
+			expect(calledCommand).toMatch(/''codex''\s+''exec''/);
+
+			platformSpy.mockRestore();
 		});
 
 		it("should execute Codex in headless mode", async () => {
@@ -544,6 +609,51 @@ describe("CodexProvider", () => {
 			expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
 				expect.stringContaining("Invoking Codex in headless mode"),
 			);
+		});
+
+		describe("executePlan", () => {
+			it("should delegate split view plan", async () => {
+				const spy = vi
+					.spyOn(codexProvider, "invokeCodexSplitView")
+					.mockResolvedValue({} as vscode.Terminal);
+
+				await codexProvider.executePlan({
+					mode: "splitView",
+					prompt: "prompt",
+					title: "title",
+				});
+
+				expect(spy).toHaveBeenCalledWith("prompt", "title", undefined);
+			});
+
+			it("should delegate headless plan", async () => {
+				const spy = vi
+					.spyOn(codexProvider, "invokeCodexHeadless")
+					.mockResolvedValue({ exitCode: 0 });
+
+				await codexProvider.executePlan({
+					mode: "headless",
+					prompt: "prompt",
+					options: { timeout: 10 },
+				});
+
+				expect(spy).toHaveBeenCalledWith("prompt", { timeout: 10 });
+			});
+
+			it("should delegate stream plan", async () => {
+				const spy = vi
+					.spyOn(codexProvider, "executeCodexStream")
+					.mockResolvedValue({ cancel: vi.fn() });
+
+				await codexProvider.executePlan({
+					mode: "stream",
+					prompt: "prompt",
+					options: undefined,
+					handlers: {},
+				});
+
+				expect(spy).toHaveBeenCalled();
+			});
 		});
 	});
 
@@ -664,7 +774,7 @@ describe("CodexProvider", () => {
 				setupGuidance: null,
 			});
 
-			mockProcessManager.executeCommand.mockResolvedValue({
+			mockProcessManager.executeCommandArgs.mockResolvedValue({
 				exitCode: 0,
 				output: mockOutput,
 				error: "",
@@ -682,9 +792,6 @@ describe("CodexProvider", () => {
 					return (operation as () => any)();
 				},
 			);
-
-			(fs.promises.writeFile as Mock).mockResolvedValue(undefined);
-			(fs.promises.unlink as Mock).mockResolvedValue(undefined);
 
 			const result = await codexProvider.executeCodex("test prompt");
 
