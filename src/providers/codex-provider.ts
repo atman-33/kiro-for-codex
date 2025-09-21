@@ -476,19 +476,7 @@ export class CodexProvider {
 			...this.codexConfig,
 			...options,
 		} as CommandOptions);
-		const filtered: string[] = [];
-		for (let i = 0; i < args.length; i++) {
-			const arg = args[i];
-			if (arg === "-a") {
-				i++;
-				continue;
-			}
-			if (arg === "--full-auto") {
-				continue;
-			}
-			filtered.push(arg);
-		}
-		return ["exec", ...this.getExecutionFlags(), ...filtered, "-"];
+		return [...args, "exec", "-"];
 	}
 
 	private buildPosixTerminalCommand(
@@ -499,10 +487,10 @@ export class CodexProvider {
 		const args = execArgs.map((arg) => this.quotePosix(arg)).join(" ");
 		const promptPath = this.quotePosix(promptFilePath);
 		const execCommand = `cat ${promptPath} | ${codexPath} ${args}`;
-		const resumeArgs = ["resume", ...this.getExecutionFlags(), "--last"];
+		const resumeArgs = execArgs.slice(0, -2);
 		const resumeCommand = `${codexPath} ${resumeArgs
 			.map((arg) => this.quotePosix(arg))
-			.join(" ")}`;
+			.join(" ")} resume --last`;
 		return `(${execCommand}) && ${resumeCommand}`;
 	}
 
@@ -531,10 +519,11 @@ export class CodexProvider {
 		const encodingPrefix =
 			"$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ";
 		const execCommand = `Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
-		const resumeArgs = ["resume", ...this.getExecutionFlags(), "--last"];
-		const resumeCommand = `& ${codexPath} ${resumeArgs
+		const resumeArgs = execArgs
+			.slice(0, -2)
 			.map((arg) => this.quotePowerShell(arg))
-			.join(" ")}`;
+			.join(" ");
+		const resumeCommand = `& ${codexPath} ${resumeArgs} resume --last`;
 		return `${encodingPrefix}${execCommand}; if ($LASTEXITCODE -eq 0) { ${resumeCommand} }`;
 	}
 
@@ -546,10 +535,6 @@ export class CodexProvider {
 	private quotePowerShell(value: string): string {
 		const escaped = value.replace(/'/g, "''");
 		return `'${escaped}'`;
-	}
-
-	private getExecutionFlags(): string[] {
-		return ["--full-auto"];
 	}
 
 	/**

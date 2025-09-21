@@ -14,7 +14,7 @@ export class CommandBuilder {
 		// POSIX terminals (Split View)
 		const parts: string[] = [options.codexPath || "codex"];
 		const approvalMode = options.approvalMode || options.defaultApprovalMode;
-		if (approvalMode) parts.push(this.buildApprovalModeFlag(approvalMode));
+		if (approvalMode) parts.push(...this.buildApprovalModeArgs(approvalMode));
 		if (options.model || options.defaultModel)
 			parts.push(`-m "${options.model || options.defaultModel}"`);
 		if (options.workingDirectory)
@@ -32,9 +32,7 @@ export class CommandBuilder {
 		const args: string[] = [];
 		const approvalMode = options.approvalMode || options.defaultApprovalMode;
 		if (approvalMode) {
-			const flag = this.buildApprovalModeFlag(approvalMode);
-			if (flag === "--full-auto") args.push(flag);
-			else args.push("-a", flag.replace(/^-a\s*/, ""));
+			args.push(...this.buildApprovalModeArgs(approvalMode));
 		}
 		if (options.model || options.defaultModel) {
 			args.push("-m", String(options.model || options.defaultModel));
@@ -48,16 +46,21 @@ export class CommandBuilder {
 	/**
 	 * Build approval mode flag for Codex CLI
 	 */
-	buildApprovalModeFlag(mode: ApprovalMode): string {
+	buildApprovalModeArgs(mode: ApprovalMode): string[] {
 		switch (mode) {
 			case ApprovalMode.Interactive:
-				return "-a on-request";
+				return ["--sandbox", "read-only", "--ask-for-approval", "never"];
 			case ApprovalMode.AutoEdit:
-				return "-a on-failure";
+				return [
+					"--sandbox",
+					"workspace-write",
+					"--ask-for-approval",
+					"on-request",
+				];
 			case ApprovalMode.FullAuto:
-				return "--full-auto";
+				return ["--full-auto"];
 			default:
-				return "-a on-request";
+				return ["--sandbox", "read-only", "--ask-for-approval", "on-request"];
 		}
 	}
 
@@ -99,9 +102,11 @@ export class CommandBuilder {
 		// Add approval mode flag
 		const approvalMode = options.approvalMode || options.defaultApprovalMode;
 		if (approvalMode) {
-			const flag = this.buildApprovalModeFlag(approvalMode);
-			if (flag === "--full-auto") parts.push(flag);
-			else parts.push("-a", this.escapeShellArg(flag.replace(/^-a\s*/, "")));
+			const approvalArgs = this.buildApprovalModeArgs(approvalMode);
+			for (const arg of approvalArgs) {
+				if (arg.startsWith("-")) parts.push(arg);
+				else parts.push(this.escapeShellArg(arg));
+			}
 		}
 		if (options.model || options.defaultModel) {
 			parts.push(

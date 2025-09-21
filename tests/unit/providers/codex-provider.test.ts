@@ -133,12 +133,19 @@ describe("CodexProvider", () => {
 			buildCommand: vi.fn(),
 			buildArgs: vi.fn(),
 			buildVersionCommand: vi.fn(),
-			buildApprovalModeFlag: vi.fn(),
+			buildApprovalModeArgs: vi.fn(),
 			buildWorkingDirectoryFlag: vi.fn(),
 			buildHelpCommand: vi.fn(),
 			buildSecureCommand: vi.fn(),
 		} as unknown as Mocked<CommandBuilder>;
-		mockCommandBuilder.buildArgs.mockReturnValue(["-a", "on-request"]);
+		mockCommandBuilder.buildArgs.mockReturnValue([
+			"--sandbox",
+			"read-only",
+			"--ask-for-approval",
+			"never",
+			"--flag",
+			"-",
+		]);
 
 		mockProcessManager = {
 			executeCommand: vi.fn(),
@@ -358,9 +365,10 @@ describe("CodexProvider", () => {
 			);
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"-a",
-				"on-request",
-				"--full-auto",
+				"--sandbox",
+				"read-only",
+				"--ask-for-approval",
+				"never",
 				"-m",
 				"gpt-5",
 				"-C",
@@ -383,11 +391,20 @@ describe("CodexProvider", () => {
 			expect(result.exitCode).toBe(0);
 			expect(result.output).toContain("Function created successfully");
 			expect(result.filesModified).toContain("hello.js");
-			expect(mockProcessManager.executeCommandArgs).toHaveBeenCalledWith(
-				"codex",
-				expect.arrayContaining(["exec", "--full-auto", "--flag", "-"]),
-				expect.objectContaining({ input: mockPrompt }),
-			);
+			const execArgsCall = (
+				mockProcessManager.executeCommandArgs as Mock
+			).mock.calls.pop()!;
+			expect(execArgsCall[0]).toBe("codex");
+			expect(execArgsCall[1]).toEqual([
+				"--sandbox",
+				"read-only",
+				"--ask-for-approval",
+				"never",
+				"--flag",
+				"exec",
+				"-",
+			]);
+			expect(execArgsCall[2]).toMatchObject({ input: mockPrompt });
 		});
 
 		it("should handle execution failure", async () => {
@@ -582,7 +599,9 @@ describe("CodexProvider", () => {
 				mockProcessManager.createTerminal as Mock
 			).mock.calls.pop()!;
 			expect(calledCommand).toContain("Get-Content -Raw -Encoding UTF8");
-			expect(calledCommand).toMatch(/''codex''\s+''exec''\s+''--full-auto''/);
+			expect(calledCommand).toMatch(
+				/''codex''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''\s+''exec''/,
+			);
 
 			platformSpy.mockRestore();
 		});
