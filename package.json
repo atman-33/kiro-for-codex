@@ -176,7 +176,7 @@
           "id": "kiroCodex.views.agentsExplorer",
           "name": "Agents",
           "icon": "account",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.agents.visible"
+          "when": "false"
         },
         {
           "id": "kiroCodex.views.mcpServerStatus",
@@ -339,8 +339,7 @@
         "command": "kiroCodex.agents.refresh",
         "title": "Refresh Agents",
         "category": "Kiro for Codex",
-        "icon": "$(refresh)",
-        "enablement": "false"
+        "icon": "$(refresh)"
       },
       {
         "command": "kiroCodex.help.open",
