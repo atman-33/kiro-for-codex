@@ -25,7 +25,7 @@ export const DEFAULT_CONFIG = {
 	},
 	codex: {
 		path: "codex",
-		defaultApprovalMode: "interactive",
+		defaultApprovalMode: "full-auto",
 		defaultModel: "gpt-5-codex",
 		timeout: 30000,
 		terminalDelay: 1000,
