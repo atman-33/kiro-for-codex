@@ -498,7 +498,8 @@ export class CodexProvider {
 		const codexPath = this.quotePosix(this.codexConfig.codexPath || "codex");
 		const args = execArgs.map((arg) => this.quotePosix(arg)).join(" ");
 		const promptPath = this.quotePosix(promptFilePath);
-		return `cat ${promptPath} | ${codexPath} ${args}`;
+		const execCommand = `cat ${promptPath} | ${codexPath} ${args}`;
+		return `(${execCommand}) && ${codexPath} resume --last`;
 	}
 
 	private buildWindowsTerminalCommand(
@@ -525,7 +526,9 @@ export class CodexProvider {
 		const promptPath = this.quotePowerShell(promptFilePath);
 		const encodingPrefix =
 			"$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ";
-		return `${encodingPrefix}Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
+		const execCommand = `Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
+		const resumeCommand = `& ${codexPath} resume --last`;
+		return `${encodingPrefix}${execCommand}; if ($LASTEXITCODE -eq 0) { ${resumeCommand} }`;
 	}
 
 	private quotePosix(value: string): string {
