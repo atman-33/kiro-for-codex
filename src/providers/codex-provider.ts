@@ -476,7 +476,7 @@ export class CodexProvider {
 			...this.codexConfig,
 			...options,
 		} as CommandOptions);
-		return [...args, "exec", "-"];
+		return ["exec", ...args, "-"];
 	}
 
 	private buildPosixTerminalCommand(
@@ -487,10 +487,11 @@ export class CodexProvider {
 		const args = execArgs.map((arg) => this.quotePosix(arg)).join(" ");
 		const promptPath = this.quotePosix(promptFilePath);
 		const execCommand = `cat ${promptPath} | ${codexPath} ${args}`;
-		const resumeArgs = execArgs.slice(0, -2);
-		const resumeCommand = `${codexPath} ${resumeArgs
+		const resumeOptions = execArgs.slice(1, -1);
+		const resumeArgs = resumeOptions
 			.map((arg) => this.quotePosix(arg))
-			.join(" ")} resume --last`;
+			.join(" ");
+		const resumeCommand = `${codexPath} resume --last${resumeArgs ? ` ${resumeArgs}` : ""}`;
 		return `(${execCommand}) && ${resumeCommand}`;
 	}
 
@@ -519,11 +520,11 @@ export class CodexProvider {
 		const encodingPrefix =
 			"$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ";
 		const execCommand = `Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
-		const resumeArgs = execArgs
-			.slice(0, -2)
+		const resumeOptions = execArgs.slice(1, -1);
+		const resumeArgs = resumeOptions
 			.map((arg) => this.quotePowerShell(arg))
 			.join(" ");
-		const resumeCommand = `& ${codexPath} ${resumeArgs} resume --last`;
+		const resumeCommand = `& ${codexPath} resume --last${resumeArgs ? ` ${resumeArgs}` : ""}`;
 		return `${encodingPrefix}${execCommand}; if ($LASTEXITCODE -eq 0) { ${resumeCommand} }`;
 	}
 

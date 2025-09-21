@@ -1,16 +1,17 @@
 import {
-	beforeEach,
 	afterEach,
+	beforeEach,
 	describe,
 	expect,
 	it,
 	vi,
+	type Mock,
 	type Mocked,
 } from "vitest";
 import * as vscode from "vscode";
 import {
-	CodexProvider,
 	ApprovalMode,
+	CodexProvider,
 } from "../../src/providers/codex-provider";
 
 const recordedTerminals: string[] = [];
@@ -178,11 +179,13 @@ describe("CodexProvider integration", () => {
 		const execCall = (processManager.executeCommandArgs as Mock).mock.calls[0];
 		expect(execCall[0]).toBe("codex");
 		expect(execCall[1]).toEqual([
+			"exec",
 			"--sandbox",
 			"read-only",
 			"--ask-for-approval",
 			"never",
-			"exec",
+			"-m",
+			"gpt-4",
 			"-",
 		]);
 		expect(execCall[2]).toMatchObject({ input: "print('hello world')" });
@@ -198,7 +201,10 @@ describe("CodexProvider integration", () => {
 
 		expect(recordedTerminals[0]).toContain("cat");
 		expect(recordedTerminals[0]).toMatch(
-			/codex\s+--sandbox\s+read-only\s+--ask-for-approval\s+never\s+exec/,
+			/'codex'\s+'exec'\s+'--sandbox'\s+'read-only'\s+'--ask-for-approval'\s+'never'/,
+		);
+		expect(recordedTerminals[0]).toMatch(
+			/'codex'\s+resume\s+--last\s+'--sandbox'\s+'read-only'\s+'--ask-for-approval'\s+'never'/,
 		);
 
 		platformSpy.mockRestore();
@@ -214,7 +220,10 @@ describe("CodexProvider integration", () => {
 
 		expect(recordedTerminals[0]).toContain("Get-Content -Raw -Encoding UTF8");
 		expect(recordedTerminals[0]).toMatch(
-			/''codex''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''\s+''exec''/,
+			/''codex''\s+''exec''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''/,
+		);
+		expect(recordedTerminals[0]).toMatch(
+			/''codex''\s+resume\s+--last\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''/,
 		);
 
 		platformSpy.mockRestore();
