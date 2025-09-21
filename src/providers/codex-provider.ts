@@ -488,7 +488,7 @@ export class CodexProvider {
 			}
 			filtered.push(arg);
 		}
-		return ["exec", ...filtered, "-"];
+		return ["exec", ...this.getExecutionFlags(), ...filtered, "-"];
 	}
 
 	private buildPosixTerminalCommand(
@@ -499,7 +499,11 @@ export class CodexProvider {
 		const args = execArgs.map((arg) => this.quotePosix(arg)).join(" ");
 		const promptPath = this.quotePosix(promptFilePath);
 		const execCommand = `cat ${promptPath} | ${codexPath} ${args}`;
-		return `(${execCommand}) && ${codexPath} resume --last`;
+		const resumeArgs = ["resume", ...this.getExecutionFlags(), "--last"];
+		const resumeCommand = `${codexPath} ${resumeArgs
+			.map((arg) => this.quotePosix(arg))
+			.join(" ")}`;
+		return `(${execCommand}) && ${resumeCommand}`;
 	}
 
 	private buildWindowsTerminalCommand(
@@ -527,7 +531,10 @@ export class CodexProvider {
 		const encodingPrefix =
 			"$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ";
 		const execCommand = `Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
-		const resumeCommand = `& ${codexPath} resume --last`;
+		const resumeArgs = ["resume", ...this.getExecutionFlags(), "--last"];
+		const resumeCommand = `& ${codexPath} ${resumeArgs
+			.map((arg) => this.quotePowerShell(arg))
+			.join(" ")}`;
 		return `${encodingPrefix}${execCommand}; if ($LASTEXITCODE -eq 0) { ${resumeCommand} }`;
 	}
 
@@ -539,6 +546,10 @@ export class CodexProvider {
 	private quotePowerShell(value: string): string {
 		const escaped = value.replace(/'/g, "''");
 		return `'${escaped}'`;
+	}
+
+	private getExecutionFlags(): string[] {
+		return ["--full-auto"];
 	}
 
 	/**

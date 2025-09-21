@@ -177,7 +177,7 @@ describe("CodexProvider integration", () => {
 		const processManager = processManagerInstances[0];
 		expect(processManager.executeCommandArgs).toHaveBeenCalledWith(
 			"codex",
-			expect.arrayContaining(["exec", "-"]),
+			expect.arrayContaining(["exec", "--full-auto", "-"]),
 			expect.objectContaining({ input: "print('hello world')" }),
 		);
 	});
@@ -191,7 +191,7 @@ describe("CodexProvider integration", () => {
 		await provider.invokeCodexSplitView("echo hi", "Test");
 
 		expect(recordedTerminals[0]).toContain("cat");
-		expect(recordedTerminals[0]).toMatch(/'codex'\s+'exec'/);
+		expect(recordedTerminals[0]).toMatch(/'codex'\s+'exec'\s+'--full-auto'/);
 
 		platformSpy.mockRestore();
 	});
@@ -205,7 +205,9 @@ describe("CodexProvider integration", () => {
 		await provider.invokeCodexSplitView("Write-Output hi", "Test");
 
 		expect(recordedTerminals[0]).toContain("Get-Content -Raw -Encoding UTF8");
-		expect(recordedTerminals[0]).toMatch(/''codex''\s+''exec''/);
+		expect(recordedTerminals[0]).toMatch(
+			/''codex''\s+''exec''\s+''--full-auto''/,
+		);
 
 		platformSpy.mockRestore();
 	});

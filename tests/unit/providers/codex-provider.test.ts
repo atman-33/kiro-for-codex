@@ -385,7 +385,7 @@ describe("CodexProvider", () => {
 			expect(result.filesModified).toContain("hello.js");
 			expect(mockProcessManager.executeCommandArgs).toHaveBeenCalledWith(
 				"codex",
-				expect.arrayContaining(["exec", "--flag", "-"]),
+				expect.arrayContaining(["exec", "--full-auto", "--flag", "-"]),
 				expect.objectContaining({ input: mockPrompt }),
 			);
 		});
@@ -582,7 +582,7 @@ describe("CodexProvider", () => {
 				mockProcessManager.createTerminal as Mock
 			).mock.calls.pop()!;
 			expect(calledCommand).toContain("Get-Content -Raw -Encoding UTF8");
-			expect(calledCommand).toMatch(/''codex''\s+''exec''/);
+			expect(calledCommand).toMatch(/''codex''\s+''exec''\s+''--full-auto''/);
 
 			platformSpy.mockRestore();
 		});
