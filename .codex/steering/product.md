@@ -17,6 +17,7 @@ Use this guide to keep the VS Code extension "Kiro for Codex" aligned with its p
   - Supports single‑shot runs and streaming via the Codex terminal session.
 - Settings bootstrap: create `.codex/settings/kiroCodex-settings.json` with defaults on first run.
 - Codex availability checks and setup guidance if missing or incompatible.
+- Codex executions (spec creation, steering generation, prompts, chat) funnel through `CodexProvider.executePlan`, ensuring large prompts stream via STDIN and succeed on Windows PowerShell as well as POSIX shells.
 
 ## User Value Proposition
 - Consistent, reviewable planning before implementation (Specs cadence and approvals).
@@ -30,6 +31,7 @@ Use this guide to keep the VS Code extension "Kiro for Codex" aligned with its p
 - Gate disabled features by flags in `src/constants.ts`:
   - `ENABLE_SPEC_AGENTS`, `ENABLE_AGENTS_UI`, `ENABLE_HOOKS_UI`, `ENABLE_MCP_UI` must be respected in UI and command registration.
 - Require Codex CLI readiness before actions that invoke it; surface `showSetupGuidance` on failure (`src/providers/codex-provider.ts`).
+- Use `CodexProvider.executePlan` for every feature flow; do not call `invokeCodexSplitView`/`invokeCodexHeadless` directly from managers.
 - Keep the Spec order: generate Requirements → approval → Design → approval → Tasks. In navigation, show placeholder docs with guidance if files are absent (`SpecManager.navigateToDocument`).
 - Write task completion as Markdown checkbox replacement `- [ ]` → `- [x]` when executing a task (`kiroCodex.spec.implTask`).
 - Maintain `.codex` watcher‑based auto‑refresh of tree views; avoid long‑running synchronous work on the extension host thread.
