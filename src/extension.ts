@@ -653,10 +653,11 @@ function registerCommands(
 						return;
 					}
 					const content = await fs.promises.readFile(target, "utf8");
-					await codexProvider.invokeCodexSplitView(
-						content,
-						`Codex - Prompt: ${require("path").basename(target)}`,
-					);
+					await codexProvider.executePlan({
+						mode: "splitView",
+						prompt: content,
+						title: `Codex - Prompt: ${require("path").basename(target)}`,
+					});
 				} catch (e) {
 					vscode.window.showErrorMessage(`Failed to run prompt: ${e}`);
 				}

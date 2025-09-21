@@ -46,10 +46,11 @@ export class ChatManager {
 		this.output.appendLine(
 			`[ChatManager] Starting Codex terminal session (len=${initialText.length})`,
 		);
-		const terminal = await this.codex.invokeCodexSplitView(
-			initialText,
-			title ?? this.defaultTitle,
-		);
+		const terminal = await this.codex.executePlan({
+			mode: "splitView",
+			prompt: initialText,
+			title: title ?? this.defaultTitle,
+		});
 		this.bindTerminal(terminal);
 		return terminal;
 	}
@@ -111,16 +112,17 @@ export class ChatManager {
 	): Promise<{ cancel: () => void }> {
 		this.output.appendLine(`[ChatManager] runStream len=${prompt.length}`);
 		try {
-			const controller = await this.codex.executeCodexStream(
+			const controller = await this.codex.executePlan({
+				mode: "stream",
 				prompt,
-				undefined,
-				{
+				options: undefined,
+				handlers: {
 					onStdout: (chunk) => handlers.onChunk?.(chunk),
 					onStderr: (chunk) =>
 						this.output.appendLine(`[ChatManager][stderr] ${chunk.trim()}`),
 					onClose: (code) => handlers.onComplete?.(code),
 				},
-			);
+			});
 			return { cancel: controller.cancel };
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : String(e);

@@ -226,10 +226,11 @@ Requirements:
 - Should return a greeting string
 - Include JSDoc comments`;
 
-			await this.codexProvider.invokeCodexSplitView(
-				samplePrompt,
-				"Codex Sample Test",
-			);
+			await this.codexProvider.executePlan({
+				mode: "splitView",
+				prompt: samplePrompt,
+				title: "Codex Sample Test",
+			});
 
 			vscode.window.showInformationMessage(
 				"Sample Codex command started! Check the terminal on the right for results.",
