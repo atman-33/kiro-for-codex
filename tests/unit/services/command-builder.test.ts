@@ -26,8 +26,8 @@ describe("CommandBuilder", () => {
 			const command = commandBuilder.buildCommand(promptFilePath, options);
 
 			expect(command).toContain("codex");
-			// New CLI uses short flag and on-request for interactive
-			expect(command).toContain("-a on-request");
+			// Interactive mode defaults to read-only sandbox with no approval prompts
+			expect(command).toContain("--sandbox read-only --ask-for-approval never");
 			expect(command).toContain(`"$(cat "${promptFilePath}")"`);
 		});
 
@@ -76,7 +76,7 @@ describe("CommandBuilder", () => {
 			const command = commandBuilder.buildCommand(promptFilePath, options);
 
 			expect(command).toContain("--full-auto");
-			expect(command).not.toContain("-a on-request");
+			expect(command).not.toContain("--ask-for-approval never");
 		});
 
 		it("should use custom codex path", () => {

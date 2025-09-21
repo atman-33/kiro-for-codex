@@ -144,7 +144,6 @@ describe("CodexProvider", () => {
 			"--ask-for-approval",
 			"never",
 			"--flag",
-			"-",
 		]);
 
 		mockProcessManager = {
@@ -396,12 +395,16 @@ describe("CodexProvider", () => {
 			).mock.calls.pop()!;
 			expect(execArgsCall[0]).toBe("codex");
 			expect(execArgsCall[1]).toEqual([
+				"exec",
 				"--sandbox",
 				"read-only",
 				"--ask-for-approval",
 				"never",
+				"-m",
+				"gpt-5",
+				"-C",
+				"/workspace",
 				"--flag",
-				"exec",
 				"-",
 			]);
 			expect(execArgsCall[2]).toMatchObject({ input: mockPrompt });
@@ -530,8 +533,10 @@ describe("CodexProvider", () => {
 			} as any;
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"-a",
-				"on-request",
+				"--sandbox",
+				"read-only",
+				"--ask-for-approval",
+				"never",
 				"-m",
 				"gpt-5",
 			]);
@@ -576,8 +581,10 @@ describe("CodexProvider", () => {
 			} as any;
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"-a",
-				"on-request",
+				"--sandbox",
+				"read-only",
+				"--ask-for-approval",
+				"never",
 				"-m",
 				"gpt-5",
 			]);
@@ -600,7 +607,10 @@ describe("CodexProvider", () => {
 			).mock.calls.pop()!;
 			expect(calledCommand).toContain("Get-Content -Raw -Encoding UTF8");
 			expect(calledCommand).toMatch(
-				/''codex''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''\s+''exec''/,
+				/''codex''\s+''exec''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never'/,
+			);
+			expect(calledCommand).toMatch(
+				/''codex''\s+resume\s+--last\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never'/,
 			);
 
 			platformSpy.mockRestore();
