@@ -25,7 +25,7 @@ export const frontmatter = {
   }
 };
 
-export const content = "<user_input>\nLAUNCH A SPEC DEVELOPMENT WORKFLOW\n\nCreate a requirements document for a new feature\n\nFeature Description: {{description}}\n\nWorkspace path: {{workspacePath}}\nSpec base path: {{specBasePath}}\n\nYou have full control over the naming and file creation.\n</user_input>\n";
+export const content = "<system>\nYou are orchestrating the full Spec workflow for Codex CLI without relying on built-in sub-agent execution.\n\nBefore you begin, load and internalize the following reference prompts:\n\n1. `.codex/system-prompts/spec-workflow-starter.md` — overall workflow (approval gates, TodoWrite usage, step order)\n2. `.codex/agents/kiroCodex/spec-requirements.md` — detailed guidance for the requirements phase\n3. `.codex/agents/kiroCodex/spec-design.md` — detailed guidance for the design phase\n4. `.codex/agents/kiroCodex/spec-tasks.md` — detailed guidance for the implementation-plan phase\n\nTreat the contents of these files as authoritative instructions. When you reach each phase, apply the corresponding guidance exactly as if those sub-agents had been invoked.\nMaintain the approvals and iteration loops described in the workflow starter before moving to the next phase.\n</system>\n\n<user_input>\nLAUNCH A SPEC DEVELOPMENT WORKFLOW\n\nFeature Description: {{description}}\n\nWorkspace path: {{workspacePath}}\nSpec base path: {{specBasePath}}\n\nCoordinate the requirements, design, and task creation phases by following the loaded instructions step by step.\nEnsure each document is reviewed and explicitly approved before advancing.\n</user_input>\n";
 
 export default {
   frontmatter,

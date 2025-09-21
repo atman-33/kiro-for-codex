@@ -49,16 +49,6 @@ export class SpecManager {
 	}
 
 	async createWithAgents() {
-		// Check Codex CLI availability first
-		const isCodexReady = await this.codexProvider.isCodexReady();
-		if (!isCodexReady) {
-			const availabilityResult =
-				await this.codexProvider.getCodexAvailabilityStatus();
-			await this.codexProvider.showSetupGuidance(availabilityResult);
-			return;
-		}
-
-		// Get feature description only
 		const description = await vscode.window.showInputBox({
 			title: "✨ Create New Spec with Agents ✨",
 			prompt:
@@ -69,6 +59,24 @@ export class SpecManager {
 		});
 
 		if (!description) {
+			return;
+		}
+
+		await this.createWithAgentsFromDescription(description);
+	}
+
+	async createWithAgentsFromDescription(description: string) {
+		const trimmed = description.trim();
+		if (!trimmed) {
+			return;
+		}
+
+		// Check Codex CLI availability first
+		const isCodexReady = await this.codexProvider.isCodexReady();
+		if (!isCodexReady) {
+			const availabilityResult =
+				await this.codexProvider.getCodexAvailabilityStatus();
+			await this.codexProvider.showSetupGuidance(availabilityResult);
 			return;
 		}
 
@@ -85,7 +93,7 @@ export class SpecManager {
 
 		// Use the specialized subagent prompt optimized for Codex
 		const prompt = this.promptLoader.renderPrompt("create-spec-with-agents", {
-			description,
+			description: trimmed,
 			workspacePath: workspaceFolder.uri.fsPath,
 			specBasePath: this.getSpecBasePath(),
 			approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,

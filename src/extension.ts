@@ -358,7 +358,7 @@ function registerCommands(
 			);
 			outputChannel.appendLine(`Time: ${new Date().toLocaleTimeString()}`);
 			try {
-				createNewSpecPanelProvider.show();
+				createNewSpecPanelProvider.show("standard");
 			} catch (error) {
 				outputChannel.appendLine(
 					`Error opening Create New Spec panel: ${error}`,
@@ -381,7 +381,7 @@ function registerCommands(
 				return;
 			}
 			try {
-				await specManager.createWithAgents();
+				createNewSpecPanelProvider.show("agents");
 			} catch (error) {
 				outputChannel.appendLine(`Error in createWithAgents: ${error}`);
 				vscode.window.showErrorMessage(
