@@ -52,7 +52,7 @@ export const ENABLE_MCP_UI = false as const;
 export const ENABLE_HOOKS_UI = false as const;
 
 // Feature flag to fully disable Agents UI and background loading
-export const ENABLE_AGENTS_UI = false as const;
+export const ENABLE_AGENTS_UI = true as const;
 
 // Feature flag to disable "New Spec with Agents" flow
 export const ENABLE_SPEC_AGENTS = false as const;
