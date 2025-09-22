@@ -133,6 +133,7 @@ describe("CodexProvider", () => {
 			buildCommand: vi.fn(),
 			buildArgs: vi.fn(),
 			buildVersionCommand: vi.fn(),
+			buildResumeArgs: vi.fn(),
 			buildApprovalModeArgs: vi.fn(),
 			buildWorkingDirectoryFlag: vi.fn(),
 			buildHelpCommand: vi.fn(),
@@ -176,7 +177,7 @@ describe("CodexProvider", () => {
 			get: vi.fn((key: string, defaultValue?: any) => {
 				const configMap: Record<string, any> = {
 					"codex.path": "codex",
-					"codex.defaultApprovalMode": ApprovalMode.Interactive,
+					"codex.defaultApprovalMode": ApprovalMode.FullAuto,
 					"codex.defaultModel": "gpt-5",
 					"codex.timeout": 30000,
 					"codex.terminalDelay": 1000,
@@ -250,7 +251,7 @@ describe("CodexProvider", () => {
 		it("should load Codex configuration from workspace settings", () => {
 			const config = codexProvider.getCodexConfig();
 			expect(config.codexPath).toBe("codex");
-			expect(config.defaultApprovalMode).toBe(ApprovalMode.Interactive);
+			expect(config.defaultApprovalMode).toBe(ApprovalMode.FullAuto);
 			expect(config.defaultModel).toBe("gpt-5");
 			expect(config.timeout).toBe(30000);
 		});
@@ -364,10 +365,10 @@ describe("CodexProvider", () => {
 			);
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"--sandbox",
-				"read-only",
-				"--ask-for-approval",
-				"never",
+				"-s",
+				"workspace-write",
+				"--full-auto",
+				"--skip-git-repo-check",
 				"-m",
 				"gpt-5",
 				"-C",
@@ -396,10 +397,10 @@ describe("CodexProvider", () => {
 			expect(execArgsCall[0]).toBe("codex");
 			expect(execArgsCall[1]).toEqual([
 				"exec",
-				"--sandbox",
-				"read-only",
-				"--ask-for-approval",
-				"never",
+				"-s",
+				"workspace-write",
+				"--full-auto",
+				"--skip-git-repo-check",
 				"-m",
 				"gpt-5",
 				"-C",
@@ -464,17 +465,17 @@ describe("CodexProvider", () => {
 		it("should pass options to command builder", async () => {
 			const mockPrompt = "Test prompt";
 			const options: CodexOptions = {
-				approvalMode: ApprovalMode.AutoEdit,
+				approvalMode: ApprovalMode.Yolo,
 				workingDirectory: "/custom/path",
 				model: "gpt-4",
 				timeout: 60000,
 			};
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"-a",
-				"on-request",
+				"--dangerously-bypass-approvals-and-sandbox",
+				"--skip-git-repo-check",
 				"-m",
-				"gpt-5",
+				"gpt-4",
 				"-C",
 				"/custom/path",
 			]);
@@ -488,7 +489,7 @@ describe("CodexProvider", () => {
 
 			expect(mockCommandBuilder.buildArgs).toHaveBeenCalledWith(
 				expect.objectContaining({
-					approvalMode: ApprovalMode.AutoEdit,
+					approvalMode: ApprovalMode.Yolo,
 					workingDirectory: "/custom/path",
 					model: "gpt-4",
 					timeout: 60000,
@@ -533,12 +534,18 @@ describe("CodexProvider", () => {
 			} as any;
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"--sandbox",
-				"read-only",
-				"--ask-for-approval",
-				"never",
+				"-s",
+				"workspace-write",
+				"--full-auto",
+				"--skip-git-repo-check",
 				"-m",
 				"gpt-5",
+			]);
+			mockCommandBuilder.buildResumeArgs.mockReturnValue([
+				"-s",
+				"workspace-write",
+				"-a",
+				"on-failure",
 			]);
 			mockProcessManager.createTerminal.mockReturnValue(mockTerminal);
 
@@ -581,12 +588,13 @@ describe("CodexProvider", () => {
 			} as any;
 
 			mockCommandBuilder.buildArgs.mockReturnValue([
-				"--sandbox",
-				"read-only",
-				"--ask-for-approval",
-				"never",
+				"--dangerously-bypass-approvals-and-sandbox",
+				"--skip-git-repo-check",
 				"-m",
 				"gpt-5",
+			]);
+			mockCommandBuilder.buildResumeArgs.mockReturnValue([
+				"--dangerously-bypass-approvals-and-sandbox",
 			]);
 			mockProcessManager.createTerminal.mockReturnValue(mockTerminal);
 
@@ -599,6 +607,7 @@ describe("CodexProvider", () => {
 			const result = await codexProvider.invokeCodexSplitView(
 				mockPrompt,
 				"Test Terminal",
+				{ approvalMode: ApprovalMode.Yolo },
 			);
 
 			expect(result).toBe(mockTerminal);
@@ -607,10 +616,10 @@ describe("CodexProvider", () => {
 			).mock.calls.pop()!;
 			expect(calledCommand).toContain("Get-Content -Raw -Encoding UTF8");
 			expect(calledCommand).toMatch(
-				/''codex''\s+''exec''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never'/,
+				/''codex''\s+''exec''\s+''--dangerously-bypass-approvals-and-sandbox''\s+''--skip-git-repo-check''/,
 			);
 			expect(calledCommand).toMatch(
-				/''codex''\s+resume\s+--last\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never'/,
+				/''codex''\s+resume\s+--last\s+''--dangerously-bypass-approvals-and-sandbox''/,
 			);
 
 			platformSpy.mockRestore();
@@ -688,12 +697,12 @@ describe("CodexProvider", () => {
 
 	describe("Configuration Management", () => {
 		it("should set approval mode", () => {
-			codexProvider.setApprovalMode(ApprovalMode.FullAuto);
+			codexProvider.setApprovalMode(ApprovalMode.Yolo);
 
 			const config = codexProvider.getCodexConfig();
-			expect(config.defaultApprovalMode).toBe(ApprovalMode.FullAuto);
+			expect(config.defaultApprovalMode).toBe(ApprovalMode.Yolo);
 			expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-				expect.stringContaining("Approval mode set to: full-auto"),
+				expect.stringContaining("Approval mode set to: yolo"),
 			);
 		});
 
@@ -702,7 +711,7 @@ describe("CodexProvider", () => {
 
 			expect(config).toEqual({
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				defaultModel: "gpt-5",
 				timeout: 30000,
 				terminalDelay: 1000,

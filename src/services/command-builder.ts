@@ -48,24 +48,36 @@ export class CommandBuilder {
 	 */
 	buildApprovalModeArgs(mode: ApprovalMode): string[] {
 		switch (mode) {
-			case ApprovalMode.Interactive:
-				return ["--sandbox", "read-only", "--ask-for-approval", "never"];
-			case ApprovalMode.AutoEdit:
-				return [
-					"--sandbox",
-					"workspace-write",
-					"--ask-for-approval",
-					"on-request",
-				];
 			case ApprovalMode.FullAuto:
 				return [
-					"--sandbox",
+					"-s",
 					"workspace-write",
-					"--ask-for-approval",
-					"on-failure",
+					"--full-auto",
+					"--skip-git-repo-check",
+				];
+			case ApprovalMode.Yolo:
+				return [
+					"--dangerously-bypass-approvals-and-sandbox",
+					"--skip-git-repo-check",
 				];
 			default:
-				return ["--sandbox", "read-only", "--ask-for-approval", "on-request"];
+				return [
+					"-s",
+					"workspace-write",
+					"--full-auto",
+					"--skip-git-repo-check",
+				];
+		}
+	}
+
+	buildResumeArgs(mode: ApprovalMode): string[] {
+		switch (mode) {
+			case ApprovalMode.FullAuto:
+				return ["-s", "workspace-write", "-a", "on-failure"];
+			case ApprovalMode.Yolo:
+				return ["--dangerously-bypass-approvals-and-sandbox"];
+			default:
+				return ["-s", "workspace-write", "-a", "on-failure"];
 		}
 	}
 

@@ -129,7 +129,7 @@ Object.defineProperty(vscode, "workspace", {
 			get: (key: string, fallback: unknown) => {
 				const values: Record<string, unknown> = {
 					"codex.path": "codex",
-					"codex.defaultApprovalMode": ApprovalMode.Interactive,
+					"codex.defaultApprovalMode": ApprovalMode.FullAuto,
 					"codex.defaultModel": "gpt-5",
 					"codex.timeout": 30000,
 					"codex.terminalDelay": 1000,
@@ -180,10 +180,10 @@ describe("CodexProvider integration", () => {
 		expect(execCall[0]).toBe("codex");
 		expect(execCall[1]).toEqual([
 			"exec",
-			"--sandbox",
-			"read-only",
-			"--ask-for-approval",
-			"never",
+			"-s",
+			"workspace-write",
+			"--full-auto",
+			"--skip-git-repo-check",
 			"-m",
 			"gpt-4",
 			"-",
@@ -201,10 +201,10 @@ describe("CodexProvider integration", () => {
 
 		expect(recordedTerminals[0]).toContain("cat");
 		expect(recordedTerminals[0]).toMatch(
-			/'codex'\s+'exec'\s+'--sandbox'\s+'read-only'\s+'--ask-for-approval'\s+'never'/,
+			/'codex'\s+'exec'\s+'-s'\s+'workspace-write'\s+'--full-auto'\s+'--skip-git-repo-check'/,
 		);
 		expect(recordedTerminals[0]).toMatch(
-			/'codex'\s+resume\s+--last\s+'--sandbox'\s+'read-only'\s+'--ask-for-approval'\s+'never'/,
+			/'codex'\s+resume\s+--last\s+'-s'\s+'workspace-write'\s+'-a'\s+'on-failure'/,
 		);
 
 		platformSpy.mockRestore();
@@ -216,14 +216,16 @@ describe("CodexProvider integration", () => {
 			.spyOn(process, "platform", "get")
 			.mockReturnValue("win32");
 
-		await provider.invokeCodexSplitView("Write-Output hi", "Test");
+		await provider.invokeCodexSplitView("Write-Output hi", "Test", {
+			approvalMode: ApprovalMode.Yolo,
+		});
 
 		expect(recordedTerminals[0]).toContain("Get-Content -Raw -Encoding UTF8");
 		expect(recordedTerminals[0]).toMatch(
-			/''codex''\s+''exec''\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''/,
+			/''codex''\s+''exec''\s+''--dangerously-bypass-approvals-and-sandbox''\s+''--skip-git-repo-check''/,
 		);
 		expect(recordedTerminals[0]).toMatch(
-			/''codex''\s+resume\s+--last\s+''--sandbox''\s+''read-only''\s+''--ask-for-approval''\s+''never''/,
+			/''codex''\s+resume\s+--last\s+''--dangerously-bypass-approvals-and-sandbox''/,
 		);
 
 		platformSpy.mockRestore();

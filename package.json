@@ -101,9 +101,8 @@
         "kiroCodex.codex.defaultApprovalMode": {
           "type": "string",
           "enum": [
-            "interactive",
-            "auto-edit",
-            "full-auto"
+            "full-auto",
+            "yolo"
           ],
           "default": "full-auto",
           "description": "Default approval mode when invoking Codex CLI"

@@ -18,7 +18,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				timeout: 30000,
 				terminalDelay: 1000,
 			};
@@ -27,7 +27,9 @@ describe("CommandBuilder", () => {
 
 			expect(command).toContain("codex");
 			// Interactive mode defaults to read-only sandbox with no approval prompts
-			expect(command).toContain("--sandbox read-only --ask-for-approval never");
+			expect(command).toContain(
+				"-s workspace-write --full-auto --skip-git-repo-check",
+			);
 			expect(command).toContain(`"$(cat "${promptFilePath}")"`);
 		});
 
@@ -35,7 +37,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				model: "gpt-4",
 				timeout: 30000,
 				terminalDelay: 1000,
@@ -52,7 +54,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				workingDirectory: "/workspace/project",
 				timeout: 30000,
 				terminalDelay: 1000,
@@ -67,23 +69,25 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
-				approvalMode: ApprovalMode.FullAuto,
+				defaultApprovalMode: ApprovalMode.FullAuto,
+				approvalMode: ApprovalMode.Yolo,
 				timeout: 30000,
 				terminalDelay: 1000,
 			};
 
 			const command = commandBuilder.buildCommand(promptFilePath, options);
 
-			expect(command).toContain("--ask-for-approval on-failure");
-			expect(command).not.toContain("--ask-for-approval never");
+			expect(command).toContain(
+				"--dangerously-bypass-approvals-and-sandbox --skip-git-repo-check",
+			);
+			expect(command).not.toContain("--full-auto");
 		});
 
 		it("should use custom codex path", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "/usr/local/bin/codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				timeout: 30000,
 				terminalDelay: 1000,
 			};
@@ -95,48 +99,51 @@ describe("CommandBuilder", () => {
 	});
 
 	describe("buildApprovalModeArgs", () => {
-		it("should build interactive approval mode args", () => {
-			const args = commandBuilder.buildApprovalModeArgs(
-				ApprovalMode.Interactive,
-			);
+		it("should build yolo approval mode args", () => {
+			const args = commandBuilder.buildApprovalModeArgs(ApprovalMode.Yolo);
 			expect(args).toEqual([
-				"--sandbox",
-				"read-only",
-				"--ask-for-approval",
-				"never",
-			]);
-		});
-
-		it("should build auto-edit approval mode args", () => {
-			const args = commandBuilder.buildApprovalModeArgs(ApprovalMode.AutoEdit);
-			expect(args).toEqual([
-				"--sandbox",
-				"workspace-write",
-				"--ask-for-approval",
-				"on-request",
+				"--dangerously-bypass-approvals-and-sandbox",
+				"--skip-git-repo-check",
 			]);
 		});
 
 		it("should build full-auto approval mode args", () => {
 			const args = commandBuilder.buildApprovalModeArgs(ApprovalMode.FullAuto);
 			expect(args).toEqual([
-				"--sandbox",
+				"-s",
 				"workspace-write",
-				"--ask-for-approval",
-				"on-failure",
+				"--full-auto",
+				"--skip-git-repo-check",
 			]);
 		});
 
-		it("should default to interactive for unknown mode", () => {
+		it("should default to full-auto for unknown mode", () => {
 			const args = commandBuilder.buildApprovalModeArgs(
 				"unknown" as ApprovalMode,
 			);
 			expect(args).toEqual([
-				"--sandbox",
-				"read-only",
-				"--ask-for-approval",
-				"on-request",
+				"-s",
+				"workspace-write",
+				"--full-auto",
+				"--skip-git-repo-check",
 			]);
+		});
+	});
+
+	describe("buildResumeArgs", () => {
+		it("should build full-auto resume args", () => {
+			const args = commandBuilder.buildResumeArgs(ApprovalMode.FullAuto);
+			expect(args).toEqual(["-s", "workspace-write", "-a", "on-failure"]);
+		});
+
+		it("should build yolo resume args", () => {
+			const args = commandBuilder.buildResumeArgs(ApprovalMode.Yolo);
+			expect(args).toEqual(["--dangerously-bypass-approvals-and-sandbox"]);
+		});
+
+		it("should default to full-auto for unknown mode", () => {
+			const args = commandBuilder.buildResumeArgs("unknown" as ApprovalMode);
+			expect(args).toEqual(["-s", "workspace-write", "-a", "on-failure"]);
 		});
 	});
 
@@ -193,7 +200,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				model: "gpt-4'malicious",
 				workingDirectory: "/path'with'quotes",
 				timeout: 30000,
@@ -205,17 +212,21 @@ describe("CommandBuilder", () => {
 				options,
 			);
 
-			expect(command).toContain("'gpt-4'\\''malicious'");
-			expect(command).toContain("'/path'\\''with'\\''quotes'");
-			// Interactive maps to read-only sandbox with no approvals
-			expect(command).toContain("'never'");
+			expect(command).toContain(
+				commandBuilder["escapeShellArg"]("gpt-4'malicious"),
+			);
+			expect(command).toContain(
+				commandBuilder["escapeShellArg"]("/path'with'quotes"),
+			);
+			// FullAuto uses explicit sandbox and approval flags instead of -a
+			expect(command).toContain("workspace-write");
 		});
 
 		it("should escape shell arguments properly", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				model: "model; rm -rf /",
 				timeout: 30000,
 				terminalDelay: 1000,
@@ -235,7 +246,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				model: "", // Empty string is falsy, so won't be included
 				defaultModel: "fallback-model", // This will be used instead
 				timeout: 30000,
@@ -257,8 +268,8 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/complex-prompt.md";
 			const options: CommandOptions = {
 				codexPath: "/usr/local/bin/codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
-				approvalMode: ApprovalMode.AutoEdit,
+				defaultApprovalMode: ApprovalMode.FullAuto,
+				approvalMode: ApprovalMode.Yolo,
 				model: "gpt-4-turbo",
 				workingDirectory: "/workspace/my-project",
 				timeout: 120000,
@@ -269,7 +280,7 @@ describe("CommandBuilder", () => {
 
 			expect(command).toContain("/usr/local/bin/codex");
 			expect(command).toContain(
-				"--sandbox workspace-write --ask-for-approval on-request",
+				"--dangerously-bypass-approvals-and-sandbox --skip-git-repo-check",
 			);
 			expect(command).toContain('-m "gpt-4-turbo"');
 			expect(command).toContain('-C "/workspace/my-project"');
@@ -280,8 +291,8 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
-				approvalMode: ApprovalMode.FullAuto,
+				defaultApprovalMode: ApprovalMode.FullAuto,
+				approvalMode: ApprovalMode.Yolo,
 				model: "gpt-4",
 				workingDirectory: "/workspace",
 				timeout: 60000,
@@ -293,19 +304,17 @@ describe("CommandBuilder", () => {
 
 			expect(parts[0]).toBe("codex");
 			// FullAuto uses explicit sandbox and approval flags instead of -a
-			const sandboxIndex = parts.indexOf("--sandbox");
-			const workspaceIndex = parts.indexOf("workspace-write");
-			const askIndex = parts.indexOf("--ask-for-approval");
-			const failureIndex = parts.indexOf("on-failure");
+			const sandboxIndex = parts.indexOf(
+				"--dangerously-bypass-approvals-and-sandbox",
+			);
+			const skipGitIndex = parts.indexOf("--skip-git-repo-check");
 			expect(sandboxIndex).toBeGreaterThan(-1);
-			expect(workspaceIndex).toBeGreaterThan(sandboxIndex);
-			expect(askIndex).toBeGreaterThan(workspaceIndex);
-			expect(failureIndex).toBeGreaterThan(askIndex);
+			expect(skipGitIndex).toBeGreaterThan(sandboxIndex);
 			const modelIndex = parts.indexOf("-m");
 			const cwdIndex = parts.indexOf("-C");
 			expect(modelIndex).toBeGreaterThan(-1);
 			expect(cwdIndex).toBeGreaterThan(-1);
-			expect(askIndex).toBeLessThan(modelIndex);
+			expect(skipGitIndex).toBeLessThan(modelIndex);
 			expect(modelIndex).toBeLessThan(cwdIndex);
 		});
 	});
@@ -315,7 +324,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: undefined as any,
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				timeout: 30000,
 				terminalDelay: 1000,
 			};
@@ -329,7 +338,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				timeout: 0,
 				terminalDelay: 1000,
 			};
@@ -344,7 +353,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				timeout: 999999999,
 				terminalDelay: 1000,
 			};
@@ -359,7 +368,7 @@ describe("CommandBuilder", () => {
 			const promptFilePath = "/tmp/prompt with spaces & symbols.md";
 			const options: CommandOptions = {
 				codexPath: "codex",
-				defaultApprovalMode: ApprovalMode.Interactive,
+				defaultApprovalMode: ApprovalMode.FullAuto,
 				timeout: 30000,
 				terminalDelay: 1000,
 			};

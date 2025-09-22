@@ -17,9 +17,8 @@ import { RetryService } from "../services/retry-service";
 import { ConfigManager } from "../utils/config-manager";
 
 export enum ApprovalMode {
-	Interactive = "interactive",
-	AutoEdit = "auto-edit",
 	FullAuto = "full-auto",
+	Yolo = "yolo",
 }
 
 export interface CodexOptions {
@@ -108,7 +107,7 @@ export class CodexProvider {
 		// Initialize Codex configuration with defaults
 		this.codexConfig = {
 			codexPath: "codex",
-			defaultApprovalMode: ApprovalMode.Interactive,
+			defaultApprovalMode: ApprovalMode.FullAuto,
 			defaultModel: "gpt-5",
 			timeout: 30000,
 			terminalDelay: 1000,
@@ -138,7 +137,7 @@ export class CodexProvider {
 			codexPath: config.get("codex.path", "codex"),
 			defaultApprovalMode: config.get(
 				"codex.defaultApprovalMode",
-				ApprovalMode.Interactive,
+				ApprovalMode.FullAuto,
 			) as ApprovalMode,
 			defaultModel: config.get("codex.defaultModel", "gpt-5"),
 			timeout: config.get("codex.timeout", 30000),
@@ -482,15 +481,18 @@ export class CodexProvider {
 	private buildPosixTerminalCommand(
 		execArgs: string[],
 		promptFilePath: string,
+		approvalMode: ApprovalMode,
 	): string {
 		const codexPath = this.quotePosix(this.codexConfig.codexPath || "codex");
 		const args = execArgs.map((arg) => this.quotePosix(arg)).join(" ");
 		const promptPath = this.quotePosix(promptFilePath);
 		const execCommand = `cat ${promptPath} | ${codexPath} ${args}`;
-		const resumeOptions = execArgs.slice(1, -1);
-		const resumeArgs = resumeOptions
+
+		const resumeArgs = this.commandBuilder
+			.buildResumeArgs(approvalMode)
 			.map((arg) => this.quotePosix(arg))
 			.join(" ");
+
 		const resumeCommand = `${codexPath} resume --last${resumeArgs ? ` ${resumeArgs}` : ""}`;
 		return `(${execCommand}) && ${resumeCommand}`;
 	}
@@ -498,9 +500,14 @@ export class CodexProvider {
 	private buildWindowsTerminalCommand(
 		execArgs: string[],
 		promptFilePath: string,
+		approvalMode: ApprovalMode,
 		wrapInPowerShell: boolean,
 	): string {
-		const pipeline = this.buildPowerShellPipeline(execArgs, promptFilePath);
+		const pipeline = this.buildPowerShellPipeline(
+			execArgs,
+			promptFilePath,
+			approvalMode,
+		);
 		if (!wrapInPowerShell) {
 			return pipeline;
 		}
@@ -511,6 +518,7 @@ export class CodexProvider {
 	private buildPowerShellPipeline(
 		execArgs: string[],
 		promptFilePath: string,
+		approvalMode: ApprovalMode,
 	): string {
 		const codexPath = this.quotePowerShell(
 			this.codexConfig.codexPath || "codex",
@@ -520,10 +528,12 @@ export class CodexProvider {
 		const encodingPrefix =
 			"$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ";
 		const execCommand = `Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
-		const resumeOptions = execArgs.slice(1, -1);
-		const resumeArgs = resumeOptions
+
+		const resumeArgs = this.commandBuilder
+			.buildResumeArgs(approvalMode)
 			.map((arg) => this.quotePowerShell(arg))
 			.join(" ");
+
 		const resumeCommand = `& ${codexPath} resume --last${resumeArgs ? ` ${resumeArgs}` : ""}`;
 		return `${encodingPrefix}${execCommand}; if ($LASTEXITCODE -eq 0) { ${resumeCommand} }`;
 	}
@@ -585,13 +595,20 @@ export class CodexProvider {
 					const isWindows = process.platform === "win32";
 					const isPowerShell =
 						isWindows && this.isPowerShellExecutable(resolvedShellPath);
+					const approvalMode =
+						options?.approvalMode || this.codexConfig.defaultApprovalMode;
 					const command = isWindows
 						? this.buildWindowsTerminalCommand(
 								execArgs,
 								promptFilePath,
+								approvalMode,
 								!isPowerShell,
 							)
-						: this.buildPosixTerminalCommand(execArgs, promptFilePath);
+						: this.buildPosixTerminalCommand(
+								execArgs,
+								promptFilePath,
+								approvalMode,
+							);
 
 					const hasVisibleEditor =
 						vscode.window.visibleTextEditors &&
