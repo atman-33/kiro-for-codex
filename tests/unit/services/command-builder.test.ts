@@ -75,7 +75,7 @@ describe("CommandBuilder", () => {
 
 			const command = commandBuilder.buildCommand(promptFilePath, options);
 
-			expect(command).toContain("--full-auto");
+			expect(command).toContain("--ask-for-approval on-failure");
 			expect(command).not.toContain("--ask-for-approval never");
 		});
 
@@ -119,7 +119,12 @@ describe("CommandBuilder", () => {
 
 		it("should build full-auto approval mode args", () => {
 			const args = commandBuilder.buildApprovalModeArgs(ApprovalMode.FullAuto);
-			expect(args).toEqual(["--full-auto"]);
+			expect(args).toEqual([
+				"--sandbox",
+				"workspace-write",
+				"--ask-for-approval",
+				"on-failure",
+			]);
 		});
 
 		it("should default to interactive for unknown mode", () => {
@@ -287,12 +292,21 @@ describe("CommandBuilder", () => {
 			const parts = command.split(" ");
 
 			expect(parts[0]).toBe("codex");
-			// FullAuto uses --full-auto instead of -a
-			expect(parts.indexOf("--full-auto")).toBeGreaterThan(-1);
-			expect(parts.indexOf("-m")).toBeGreaterThan(-1);
-			expect(parts.indexOf("-C")).toBeGreaterThan(-1);
-			expect(parts.indexOf("--full-auto")).toBeLessThan(parts.indexOf("-m"));
-			expect(parts.indexOf("-m")).toBeLessThan(parts.indexOf("-C"));
+			// FullAuto uses explicit sandbox and approval flags instead of -a
+			const sandboxIndex = parts.indexOf("--sandbox");
+			const workspaceIndex = parts.indexOf("workspace-write");
+			const askIndex = parts.indexOf("--ask-for-approval");
+			const failureIndex = parts.indexOf("on-failure");
+			expect(sandboxIndex).toBeGreaterThan(-1);
+			expect(workspaceIndex).toBeGreaterThan(sandboxIndex);
+			expect(askIndex).toBeGreaterThan(workspaceIndex);
+			expect(failureIndex).toBeGreaterThan(askIndex);
+			const modelIndex = parts.indexOf("-m");
+			const cwdIndex = parts.indexOf("-C");
+			expect(modelIndex).toBeGreaterThan(-1);
+			expect(cwdIndex).toBeGreaterThan(-1);
+			expect(askIndex).toBeLessThan(modelIndex);
+			expect(modelIndex).toBeLessThan(cwdIndex);
 		});
 	});
 

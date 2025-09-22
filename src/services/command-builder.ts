@@ -58,7 +58,12 @@ export class CommandBuilder {
 					"on-request",
 				];
 			case ApprovalMode.FullAuto:
-				return ["--full-auto"];
+				return [
+					"--sandbox",
+					"workspace-write",
+					"--ask-for-approval",
+					"on-failure",
+				];
 			default:
 				return ["--sandbox", "read-only", "--ask-for-approval", "on-request"];
 		}
