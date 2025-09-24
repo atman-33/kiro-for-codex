@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.7.0 2025-09-24
+
+### Added
+
+- replace approval modes with full-auto and yolo options
+- replace --full-auto with explicit sandbox and approval flags
+- fix terminal command construction for codex provider
+- defalt of defaultApprovalMode to full-auto
+- update Codex CLI command generation for new approval mode flags
+- disable agents explorer view and enable refresh command
+- clarify single-pass agent execution in workflow prompts
+- add spec-design agent documentation for spec development workflow
+- enable agents and settings views by default
+- update default model and minimum CLI version
+- enable agents UI and update spec workflow instructions
+- add --full-auto flag to execution and resume commands
+- add resume command after execution
+- refactor codex execution to use unified executePlan method
+
+### Changed
+
+- Merge pull request #48 from atman-33/feature/improve-codex-provider
+- update prompt snapshots to reflect spec agent workflow changes
+- add approval mode settings to README
+- update command args and improve test structure
+- add spec-prompt-stress-test doc
+- centralize Codex execution through executePlan for cross-platform support
+- add integration tests for CodexProvider terminal operations
+- chore/arrange-version
+- bump package version from 0.4.0 to 0.6.0
+- Merge pull request #45 from atman-33/version-bump/v0.6.0
+
 ## v0.6.0 2025-09-18
 
 ### Added
