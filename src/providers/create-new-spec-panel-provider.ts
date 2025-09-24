@@ -1,23 +1,29 @@
 import * as vscode from "vscode";
 import type { SpecManager } from "../features/spec/spec-manager";
 
+type SpecCreationMode = "standard" | "agents";
+
 export class CreateNewSpecPanelProvider {
 	private panel: vscode.WebviewPanel | null = null;
+	private currentMode: SpecCreationMode = "standard";
 
 	constructor(
 		private readonly context: vscode.ExtensionContext,
 		private readonly specManager: SpecManager,
 	) {}
 
-	public show() {
+	public show(mode: SpecCreationMode = "standard") {
+		this.currentMode = mode;
 		if (this.panel) {
+			this.panel.title = this.getPanelTitle(mode);
+			this.panel.webview.postMessage({ type: "spec.create/setMode", mode });
 			this.panel.reveal(vscode.ViewColumn.Active);
 			return;
 		}
 
 		this.panel = vscode.window.createWebviewPanel(
 			"kiroCodex.createNewSpec",
-			"Create New Spec",
+			this.getPanelTitle(mode),
 			{ viewColumn: vscode.ViewColumn.Active, preserveFocus: false },
 			{
 				enableScripts: true,
@@ -34,7 +40,7 @@ export class CreateNewSpecPanelProvider {
 		);
 
 		this.panel.onDidDispose(() => (this.panel = null));
-		this.panel.webview.html = this.getHtml(this.panel.webview);
+		this.panel.webview.html = this.getHtml(this.panel.webview, mode);
 
 		this.panel.webview.onDidReceiveMessage(async (msg: any) => {
 			try {
@@ -42,7 +48,11 @@ export class CreateNewSpecPanelProvider {
 				if (msg.type === "spec.create/submit") {
 					const text = String(msg.text ?? "");
 					const id = msg.id ?? "submit";
-					await this.specManager.createFromDescription(text);
+					if (this.currentMode === "agents") {
+						await this.specManager.createWithAgentsFromDescription(text);
+					} else {
+						await this.specManager.createFromDescription(text);
+					}
 					this.panel?.webview.postMessage({
 						type: "spec.create/ack",
 						id,
@@ -60,7 +70,11 @@ export class CreateNewSpecPanelProvider {
 		});
 	}
 
-	private getHtml(webview: vscode.Webview) {
+	private getPanelTitle(mode: SpecCreationMode): string {
+		return mode === "agents" ? "New Spec with Agents" : "Create New Spec";
+	}
+
+	private getHtml(webview: vscode.Webview, mode: SpecCreationMode) {
 		const base = vscode.Uri.joinPath(
 			this.context.extensionUri,
 			"dist",
@@ -99,7 +113,7 @@ export class CreateNewSpecPanelProvider {
     </style>
   </head>
   <body>
-    <div id="root" data-page="create-new-spec"></div>
+    <div id="root" data-page="create-new-spec" data-mode="${mode}"></div>
     <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
   </body>
 </html>`;

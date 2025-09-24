@@ -17,14 +17,16 @@ export const DEFAULT_CONFIG = {
 		mcp: false,
 		// Temporarily hide Hooks view until CLI feature is available
 		hooks: false,
+		// Agents view is enabled by default
+		agents: true,
 		// Prompts view is enabled by default
 		prompts: true,
-		settings: false,
+		settings: true,
 	},
 	codex: {
 		path: "codex",
-		defaultApprovalMode: "interactive",
-		defaultModel: "gpt-5",
+		defaultApprovalMode: "full-auto",
+		defaultModel: "gpt-5-codex",
 		timeout: 30000,
 		terminalDelay: 1000,
 		windowsShellPath: "",
@@ -52,10 +54,10 @@ export const ENABLE_MCP_UI = false as const;
 export const ENABLE_HOOKS_UI = false as const;
 
 // Feature flag to fully disable Agents UI and background loading
-export const ENABLE_AGENTS_UI = false as const;
+export const ENABLE_AGENTS_UI = true as const;
 
 // Feature flag to disable "New Spec with Agents" flow
-export const ENABLE_SPEC_AGENTS = false as const;
+export const ENABLE_SPEC_AGENTS = true as const;
 
 // Minimum supported Codex CLI version (hardcoded requirement)
-export const MIN_CODEX_CLI_VERSION = "0.28.0" as const;
+export const MIN_CODEX_CLI_VERSION = "0.38.0" as const;

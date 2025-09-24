@@ -243,7 +243,10 @@ Example with 10 documents:
 - After all judge evaluation rounds complete, the main thread MUST rename the final selected document (with random 4-digit suffix) to the standard name (e.g., requirements_v3456.md → requirements.md, design_v7890.md → design.md)
 - After renaming, the main thread MUST tell the user that the document has been finalized and is ready for review
 - The number of spec-judge agents is automatically determined by the tree-based evaluation rules - NEVER ask users how many judges to use
-- Always assume a single instance of each spec sub-agent (spec-requirements, spec-design, spec-tasks). Do not ask the user how many agents to launch.
+- For sub-agents that can be called in parallel (spec-requirements, spec-design, spec-tasks), you MUST ask the user how many agents to use (1-128)
+- After confirming the user's initial feature description, you MUST ask: "How many spec-requirements agents to use? (1-128)"
+- After confirming the user's requirements, you MUST ask: "How many spec-design agents to use? (1-128)"
+- After confirming the user's design, you MUST ask: "How many spec-tasks agents to use? (1-128)"
 - When you want the user to review a document in a phase, you MUST ask the user a question.
 - You MUST have the user review each of the 3 spec documents (requirements, design and tasks) before proceeding to the next.
 - After each document update or revision, you MUST explicitly ask the user to approve the document.

@@ -49,16 +49,6 @@ export class SpecManager {
 	}
 
 	async createWithAgents() {
-		// Check Codex CLI availability first
-		const isCodexReady = await this.codexProvider.isCodexReady();
-		if (!isCodexReady) {
-			const availabilityResult =
-				await this.codexProvider.getCodexAvailabilityStatus();
-			await this.codexProvider.showSetupGuidance(availabilityResult);
-			return;
-		}
-
-		// Get feature description only
 		const description = await vscode.window.showInputBox({
 			title: "✨ Create New Spec with Agents ✨",
 			prompt:
@@ -69,6 +59,24 @@ export class SpecManager {
 		});
 
 		if (!description) {
+			return;
+		}
+
+		await this.createWithAgentsFromDescription(description);
+	}
+
+	async createWithAgentsFromDescription(description: string) {
+		const trimmed = description.trim();
+		if (!trimmed) {
+			return;
+		}
+
+		// Check Codex CLI availability first
+		const isCodexReady = await this.codexProvider.isCodexReady();
+		if (!isCodexReady) {
+			const availabilityResult =
+				await this.codexProvider.getCodexAvailabilityStatus();
+			await this.codexProvider.showSetupGuidance(availabilityResult);
 			return;
 		}
 
@@ -85,17 +93,18 @@ export class SpecManager {
 
 		// Use the specialized subagent prompt optimized for Codex
 		const prompt = this.promptLoader.renderPrompt("create-spec-with-agents", {
-			description,
+			description: trimmed,
 			workspacePath: workspaceFolder.uri.fsPath,
 			specBasePath: this.getSpecBasePath(),
 			approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
 		});
 
 		// Send to Codex and get the terminal
-		const terminal = await this.codexProvider.invokeCodexSplitView(
+		const terminal = await this.codexProvider.executePlan({
+			mode: "splitView",
 			prompt,
-			"Codex -Creating Spec (Agents)",
-		);
+			title: "Codex -Creating Spec (Agents)",
+		});
 
 		// Set up automatic terminal renaming when spec folder is created
 		this.setupSpecFolderWatcher(workspaceFolder, terminal);
@@ -132,10 +141,11 @@ export class SpecManager {
 			approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
 		});
 
-		const terminal = await this.codexProvider.invokeCodexSplitView(
+		const terminal = await this.codexProvider.executePlan({
+			mode: "splitView",
 			prompt,
-			"Codex -Creating Spec",
-		);
+			title: "Codex -Creating Spec",
+		});
 
 		// Auto-rename terminal when new spec folder appears
 		await this.setupSpecFolderWatcher(workspaceFolder, terminal);
@@ -169,10 +179,11 @@ export class SpecManager {
 			workingDirectory: workspaceFolder.uri.fsPath,
 		});
 
-		await this.codexProvider.invokeCodexSplitView(
+		await this.codexProvider.executePlan({
+			mode: "splitView",
 			prompt,
-			"Codex -Implementing Task",
-		);
+			title: "Codex -Implementing Task",
+		});
 	}
 
 	/**
@@ -438,10 +449,11 @@ This document has not been created yet.`;
 			});
 
 			// Execute using Codex CLI
-			await this.codexProvider.invokeCodexSplitView(
+			await this.codexProvider.executePlan({
+				mode: "splitView",
 				prompt,
-				"Codex -Executing Task",
-			);
+				title: "Codex -Executing Task",
+			});
 		} catch (error) {
 			this.outputChannel.appendLine(
 				`[SpecManager] Error executing task: ${error}`,

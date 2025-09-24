@@ -82,7 +82,7 @@ describe("SteeringManager.createProjectDocumentation", () => {
 		};
 
 		mockCodexProvider = {
-			invokeCodexSplitView: vi.fn().mockResolvedValue({} as any),
+			executePlan: vi.fn().mockResolvedValue({} as any),
 			getCodexConfig: vi.fn(() => ({ defaultApprovalMode: "interactive" })),
 		} as unknown as Mocked<CodexProvider>;
 
@@ -101,9 +101,12 @@ describe("SteeringManager.createProjectDocumentation", () => {
 			steeringPath: ".codex/steering",
 		});
 
-		expect(mockCodexProvider.invokeCodexSplitView).toHaveBeenCalledWith(
-			"mocked prompt content",
-			"Codex -Create AGENTS.md",
+		expect(mockCodexProvider.executePlan).toHaveBeenCalledWith(
+			expect.objectContaining({
+				mode: "splitView",
+				title: "Codex -Create AGENTS.md",
+				prompt: "mocked prompt content",
+			}),
 		);
 	});
 });

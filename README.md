@@ -12,6 +12,13 @@ A VS Code extension that brings spec-driven development to Codex CLI. Manage you
 
 ## Features
 
+### ⚙️ Configuration
+
+- **Approval Modes**: The `kiroCodex.codex.defaultApprovalMode` setting now supports two modes:
+  - `full-auto`: (Default) Executes non-destructive commands automatically and asks for approval on failure.
+  - `yolo`: Executes all commands without approval. Use with caution.
+
+
 ### 📝 SPEC Management
 
 - Create Specs: generate requirements, design, and task documents with Codex CLI

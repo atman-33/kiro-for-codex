@@ -60,10 +60,11 @@ export class SteeringManager {
 				approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
 			});
 
-			await this.codexProvider.invokeCodexSplitView(
+			await this.codexProvider.executePlan({
+				mode: "splitView",
 				prompt,
-				"Codex -Create Steering",
-			);
+				title: "Codex -Create Steering",
+			});
 
 			// Show auto-dismiss notification
 			await NotificationUtils.showAutoDismissNotification(
@@ -99,7 +100,10 @@ export class SteeringManager {
 			);
 
 			// Execute Codex command to update project documentation
-			const result = await this.codexProvider.invokeCodexHeadless(prompt);
+			const result = await this.codexProvider.executePlan({
+				mode: "headless",
+				prompt,
+			});
 
 			if (result.exitCode === 0) {
 				await NotificationUtils.showAutoDismissNotification(
@@ -164,10 +168,11 @@ export class SteeringManager {
 					approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
 				});
 
-				await this.codexProvider.invokeCodexSplitView(
+				await this.codexProvider.executePlan({
+					mode: "splitView",
 					prompt,
-					"Codex -Init Steering",
-				);
+					title: "Codex -Init Steering",
+				});
 
 				// Auto-dismiss notification after 3 seconds
 				await NotificationUtils.showAutoDismissNotification(
@@ -184,10 +189,11 @@ export class SteeringManager {
 		});
 
 		// Send to Codex
-		await this.codexProvider.invokeCodexSplitView(
+		await this.codexProvider.executePlan({
+			mode: "splitView",
 			prompt,
-			"Codex -Refine Steering",
-		);
+			title: "Codex -Refine Steering",
+		});
 
 		// Show auto-dismiss notification
 		await NotificationUtils.showAutoDismissNotification(
@@ -234,10 +240,11 @@ export class SteeringManager {
 				steeringPath: this.getSteeringBasePath(),
 			});
 
-			await this.codexProvider.invokeCodexSplitView(
+			await this.codexProvider.executePlan({
+				mode: "splitView",
 				prompt,
-				"Codex -Create AGENTS.md",
-			);
+				title: "Codex -Create AGENTS.md",
+			});
 
 			await NotificationUtils.showAutoDismissNotification(
 				"Codex is creating AGENTS.md configuration. Check the terminal for progress.",

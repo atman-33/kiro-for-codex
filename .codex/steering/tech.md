@@ -24,14 +24,17 @@ Use these conventions when building and maintaining the extension.
 - Build commands via `CommandBuilder` (`src/services/command-builder.ts`).
   - Approval mode flags: `-a on-request` | `-a on-failure` | `--full-auto`.
   - Model flag: `-m <model>`. Working directory: `-C <path>`.
+  - All prompt content is passed via `codex exec … -` STDIN piping (no inline prompt arguments) to avoid Windows 32 KB limits.
 - Resolve default paths/settings via `ConfigManager` and `DEFAULT_CONFIG`.
+- Route every invocation through `CodexProvider.executePlan` so managers pick the correct mode (split terminal / headless / stream) without duplicating platform logic.
+- `invokeCodexSplitView` now builds platform-aware pipelines (`cat … | codex … -` on POSIX, `Get-Content -Raw … | & codex exec -` on PowerShell). Reuse `buildExecArgs` for both terminal and headless code paths.
 - Check availability and show guidance using `CodexProvider` before invoking.
 
 ## Common Commands (developer)
 - Build: `npm run build` (esbuild + Vite)
 - Run (VS Code): press F5 (Extension Development Host)
 - Package: `npm run package` → `kiro-for-codex-<version>.vsix`
-- Tests: `npm test`
+- Tests: `npm test` (Vitest suite includes cross-platform Codex execution coverage)
 
 ## Project-Specific Conventions
 - File layout under `src/`:

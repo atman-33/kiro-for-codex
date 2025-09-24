@@ -358,7 +358,7 @@ function registerCommands(
 			);
 			outputChannel.appendLine(`Time: ${new Date().toLocaleTimeString()}`);
 			try {
-				createNewSpecPanelProvider.show();
+				createNewSpecPanelProvider.show("standard");
 			} catch (error) {
 				outputChannel.appendLine(
 					`Error opening Create New Spec panel: ${error}`,
@@ -381,7 +381,7 @@ function registerCommands(
 				return;
 			}
 			try {
-				await specManager.createWithAgents();
+				createNewSpecPanelProvider.show("agents");
 			} catch (error) {
 				outputChannel.appendLine(`Error in createWithAgents: ${error}`);
 				vscode.window.showErrorMessage(
@@ -653,10 +653,11 @@ function registerCommands(
 						return;
 					}
 					const content = await fs.promises.readFile(target, "utf8");
-					await codexProvider.invokeCodexSplitView(
-						content,
-						`Codex - Prompt: ${require("path").basename(target)}`,
-					);
+					await codexProvider.executePlan({
+						mode: "splitView",
+						prompt: content,
+						title: `Codex - Prompt: ${require("path").basename(target)}`,
+					});
 				} catch (e) {
 					vscode.window.showErrorMessage(`Failed to run prompt: ${e}`);
 				}

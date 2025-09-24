@@ -75,8 +75,8 @@
         },
         "kiroCodex.views.agents.visible": {
           "type": "boolean",
-          "default": false,
-          "description": "Show Agents view in the Kiro activity container (temporarily disabled)"
+          "default": true,
+          "description": "Show Agents view in the Kiro activity container"
         },
         "kiroCodex.views.hooks.visible": {
           "type": "boolean",
@@ -90,7 +90,7 @@
         },
         "kiroCodex.views.settings.visible": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Show Settings view in the Kiro activity container"
         },
         "kiroCodex.codex.path": {
@@ -101,16 +101,15 @@
         "kiroCodex.codex.defaultApprovalMode": {
           "type": "string",
           "enum": [
-            "interactive",
-            "auto-edit",
-            "full-auto"
+            "full-auto",
+            "yolo"
           ],
-          "default": "interactive",
+          "default": "full-auto",
           "description": "Default approval mode when invoking Codex CLI"
         },
         "kiroCodex.codex.defaultModel": {
           "type": "string",
-          "default": "gpt-5",
+          "default": "gpt-5-codex",
           "description": "Default model identifier for Codex CLI"
         },
         "kiroCodex.codex.timeout": {
@@ -195,6 +194,10 @@
     },
     "viewsWelcome": [
       {
+        "view": "kiroCodex.views.specExplorer",
+        "contents": "Plan features with Specs\n\n[$(plus) Create New Spec](command:kiroCodex.spec.create)\n[$(sparkle) New Spec with Agents](command:kiroCodex.spec.createWithAgents)"
+      },
+      {
         "view": "kiroCodex.views.promptsExplorer",
         "contents": "Create and run prompts (.md) under .codex/prompts\n\n[$(plus) Create Prompt](command:kiroCodex.prompts.create)\n[$(refresh) Refresh](command:kiroCodex.prompts.refresh)"
       },
@@ -249,7 +252,7 @@
         "title": "New Spec with Agents",
         "category": "Kiro for Codex",
         "icon": "$(sparkle)",
-        "enablement": "false"
+        "enablement": "workspaceFolderCount > 0"
       },
       {
         "command": "kiroCodex.steering.create",
@@ -335,8 +338,7 @@
         "command": "kiroCodex.agents.refresh",
         "title": "Refresh Agents",
         "category": "Kiro for Codex",
-        "icon": "$(refresh)",
-        "enablement": "false"
+        "icon": "$(refresh)"
       },
       {
         "command": "kiroCodex.help.open",
@@ -370,7 +372,7 @@
         },
         {
           "command": "kiroCodex.spec.createWithAgents",
-          "when": "false",
+          "when": "view == kiroCodex.views.specExplorer",
           "group": "navigation@2"
         },
         {
@@ -458,7 +460,7 @@
         },
         {
           "command": "kiroCodex.spec.createWithAgents",
-          "when": "false"
+          "when": "workspaceFolderCount > 0"
         },
         {
           "command": "kiroCodex.hooks.refresh",
@@ -470,7 +472,7 @@
         },
         {
           "command": "kiroCodex.agents.refresh",
-          "when": "false"
+          "when": "workspaceFolderCount > 0"
         }
       ]
     }

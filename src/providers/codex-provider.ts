@@ -10,15 +10,15 @@ import {
 import { CodexErrorHandler, ErrorType } from "../services/error-handler";
 import {
 	ProcessManager,
+	type StreamHandlers,
 	type TerminalOptions,
 } from "../services/process-manager";
 import { RetryService } from "../services/retry-service";
 import { ConfigManager } from "../utils/config-manager";
 
 export enum ApprovalMode {
-	Interactive = "interactive",
-	AutoEdit = "auto-edit",
 	FullAuto = "full-auto",
+	Yolo = "yolo",
 }
 
 export interface CodexOptions {
@@ -34,6 +34,31 @@ export interface CodexResult {
 	error?: string;
 	filesModified?: string[];
 }
+
+export type SplitViewInvocationPlan = {
+	mode: "splitView";
+	prompt: string;
+	title: string;
+	options?: CodexOptions;
+};
+
+export type HeadlessInvocationPlan = {
+	mode: "headless";
+	prompt: string;
+	options?: CodexOptions;
+};
+
+export type StreamInvocationPlan = {
+	mode: "stream";
+	prompt: string;
+	options?: CodexOptions;
+	handlers: StreamHandlers;
+};
+
+export type CodexInvocationPlan =
+	| SplitViewInvocationPlan
+	| HeadlessInvocationPlan
+	| StreamInvocationPlan;
 
 export interface CodexConfig {
 	codexPath: string;
@@ -82,7 +107,7 @@ export class CodexProvider {
 		// Initialize Codex configuration with defaults
 		this.codexConfig = {
 			codexPath: "codex",
-			defaultApprovalMode: ApprovalMode.Interactive,
+			defaultApprovalMode: ApprovalMode.FullAuto,
 			defaultModel: "gpt-5",
 			timeout: 30000,
 			terminalDelay: 1000,
@@ -112,7 +137,7 @@ export class CodexProvider {
 			codexPath: config.get("codex.path", "codex"),
 			defaultApprovalMode: config.get(
 				"codex.defaultApprovalMode",
-				ApprovalMode.Interactive,
+				ApprovalMode.FullAuto,
 			) as ApprovalMode,
 			defaultModel: config.get("codex.defaultModel", "gpt-5"),
 			timeout: config.get("codex.timeout", 30000),
@@ -365,7 +390,6 @@ export class CodexProvider {
 	): Promise<CodexResult> {
 		return await this.retryService.executeWithRetry(
 			async () => {
-				// Check availability first
 				const availabilityResult =
 					await this.checkCodexInstallationAndCompatibility();
 				if (!availabilityResult.isAvailable) {
@@ -373,123 +397,43 @@ export class CodexProvider {
 					const error = new Error(
 						availabilityResult.errorMessage || "Codex CLI is not available",
 					);
-					// Add error type information for proper classification
 					(error as any).codexErrorType = availabilityResult.isInstalled
 						? ErrorType.VERSION_INCOMPATIBLE
 						: ErrorType.CLI_NOT_INSTALLED;
 					throw error;
 				}
 
-				try {
-					// Build argv flags (no shell) and execute with argument list
-					const workingDir =
-						options?.workingDirectory ||
-						vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-					const timeout = options?.timeout || this.codexConfig.timeout;
+				const workingDir =
+					options?.workingDirectory ||
+					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+				const timeout = options?.timeout || this.codexConfig.timeout;
+				const execArgs = this.buildExecArgs(options);
 
-					let result: any;
-					const hasBuildArgs =
-						typeof (this.commandBuilder as any).buildArgs === "function";
-					if (hasBuildArgs) {
-						const args = (this.commandBuilder as any).buildArgs({
-							...this.codexConfig,
-							...options,
-						});
+				const result = await Promise.race([
+					this.processManager.executeCommandArgs(
+						this.codexConfig.codexPath,
+						execArgs,
+						{ cwd: workingDir, timeoutMs: timeout, input: prompt },
+					),
+					this.createTimeoutPromise(timeout),
+				]);
 
-						if (process.platform === "win32") {
-							// Windows: use stdin with `codex -` to pass multi-line prompt safely
-							const filteredArgs: string[] = [];
-							for (let i = 0; i < args.length; i++) {
-								const arg = args[i];
-								if (arg === "-a") {
-									i++;
-									continue;
-								} // skip approval mode for exec
-								if (arg === "--full-auto") {
-									continue;
-								}
-								filteredArgs.push(arg);
-							}
-							const execArgs = ["exec", ...filteredArgs, "-"];
-
-							result = await Promise.race([
-								this.processManager.executeCommandArgs(
-									this.codexConfig.codexPath,
-									execArgs,
-									{ cwd: workingDir, timeoutMs: timeout, input: prompt },
-								),
-								this.createTimeoutPromise(timeout),
-							]);
-						} else {
-							// Non-Windows: align with Windows behavior; use stdin with `exec -`
-							const filteredArgs: string[] = [];
-							for (let i = 0; i < args.length; i++) {
-								const arg = args[i];
-								if (arg === "-a") {
-									i++;
-									continue;
-								} // skip approval mode for exec
-								if (arg === "--full-auto") {
-									continue;
-								}
-								filteredArgs.push(arg);
-							}
-							const execArgs = ["exec", ...filteredArgs, "-"];
-
-							result = await Promise.race([
-								this.processManager.executeCommandArgs(
-									this.codexConfig.codexPath,
-									execArgs,
-									{ cwd: workingDir, timeoutMs: timeout, input: prompt },
-								),
-								this.createTimeoutPromise(timeout),
-							]);
-						}
-					} else {
-						// Fallback to legacy behavior (temp file + string command)
-						const promptFilePath = await this.createTempFile(
-							prompt,
-							"codex-prompt",
-						);
-						try {
-							const command = this.commandBuilder.buildCommand(promptFilePath, {
-								...this.codexConfig,
-								...options,
-							});
-							result = await Promise.race([
-								this.processManager.executeCommand(
-									command,
-									workingDir,
-									timeout,
-								),
-								this.createTimeoutPromise(timeout),
-							]);
-						} finally {
-							// Cleanup temp file
-							await this.cleanupTempFile(promptFilePath);
-						}
-					}
-
-					// Validate result
-					if (result.exitCode !== 0) {
-						const error = new Error(
-							result.error ||
-								`Codex CLI failed with exit code ${result.exitCode}`,
-						);
-						(error as any).codexErrorType = ErrorType.EXECUTION_FAILED;
-						(error as any).exitCode = result.exitCode;
-						throw error;
-					}
-
-					return {
-						exitCode: result.exitCode,
-						output: result.output,
-						error: result.error,
-						filesModified: this.parseModifiedFiles(result.output || ""),
-					};
-				} finally {
-					// No temp file used in headless path
+				if (result.exitCode !== 0) {
+					const error = new Error(
+						result.error ||
+							`Codex CLI failed with exit code ${result.exitCode}`,
+					);
+					(error as any).codexErrorType = ErrorType.EXECUTION_FAILED;
+					(error as any).exitCode = result.exitCode;
+					throw error;
 				}
+
+				return {
+					exitCode: result.exitCode,
+					output: result.output,
+					error: result.error,
+					filesModified: this.parseModifiedFiles(result.output || ""),
+				};
 			},
 			"Codex CLI Execution",
 			{
@@ -506,10 +450,7 @@ export class CodexProvider {
 					);
 				},
 				shouldRetry: (error: any, _attempt: number) => {
-					// Custom retry logic for specific scenarios
 					const errorType = (error as any).codexErrorType;
-
-					// Don't retry installation or permission errors
 					if (
 						errorType === ErrorType.CLI_NOT_INSTALLED ||
 						errorType === ErrorType.PERMISSION_DENIED ||
@@ -518,10 +459,8 @@ export class CodexProvider {
 						return false;
 					}
 
-					// Retry execution failures only if exit code suggests transient issue
 					if (errorType === ErrorType.EXECUTION_FAILED) {
 						const exitCode = (error as any).exitCode;
-						// Don't retry for syntax errors (exit code 1) but retry for network issues (exit code 2)
 						return exitCode !== 1;
 					}
 
@@ -531,16 +470,94 @@ export class CodexProvider {
 		);
 	}
 
+	private buildExecArgs(options?: CodexOptions): string[] {
+		const args = this.commandBuilder.buildArgs({
+			...this.codexConfig,
+			...options,
+		} as CommandOptions);
+		return ["exec", ...args, "-"];
+	}
+
+	private buildPosixTerminalCommand(
+		execArgs: string[],
+		promptFilePath: string,
+		approvalMode: ApprovalMode,
+	): string {
+		const codexPath = this.quotePosix(this.codexConfig.codexPath || "codex");
+		const args = execArgs.map((arg) => this.quotePosix(arg)).join(" ");
+		const promptPath = this.quotePosix(promptFilePath);
+		const execCommand = `cat ${promptPath} | ${codexPath} ${args}`;
+
+		const resumeArgs = this.commandBuilder
+			.buildResumeArgs(approvalMode)
+			.map((arg) => this.quotePosix(arg))
+			.join(" ");
+
+		const resumeCommand = `${codexPath} resume --last${resumeArgs ? ` ${resumeArgs}` : ""}`;
+		return `(${execCommand}) && ${resumeCommand}`;
+	}
+
+	private buildWindowsTerminalCommand(
+		execArgs: string[],
+		promptFilePath: string,
+		approvalMode: ApprovalMode,
+		wrapInPowerShell: boolean,
+	): string {
+		const pipeline = this.buildPowerShellPipeline(
+			execArgs,
+			promptFilePath,
+			approvalMode,
+		);
+		if (!wrapInPowerShell) {
+			return pipeline;
+		}
+		const escaped = pipeline.replace(/'/g, "''");
+		return `powershell -NoLogo -NoProfile -Command '& { ${escaped} }'`;
+	}
+
+	private buildPowerShellPipeline(
+		execArgs: string[],
+		promptFilePath: string,
+		approvalMode: ApprovalMode,
+	): string {
+		const codexPath = this.quotePowerShell(
+			this.codexConfig.codexPath || "codex",
+		);
+		const args = execArgs.map((arg) => this.quotePowerShell(arg)).join(" ");
+		const promptPath = this.quotePowerShell(promptFilePath);
+		const encodingPrefix =
+			"$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ";
+		const execCommand = `Get-Content -Raw -Encoding UTF8 ${promptPath} | & ${codexPath} ${args}`;
+
+		const resumeArgs = this.commandBuilder
+			.buildResumeArgs(approvalMode)
+			.map((arg) => this.quotePowerShell(arg))
+			.join(" ");
+
+		const resumeCommand = `& ${codexPath} resume --last${resumeArgs ? ` ${resumeArgs}` : ""}`;
+		return `${encodingPrefix}${execCommand}; if ($LASTEXITCODE -eq 0) { ${resumeCommand} }`;
+	}
+
+	private quotePosix(value: string): string {
+		const escaped = value.replace(/'/g, "'\\''");
+		return `'${escaped}'`;
+	}
+
+	private quotePowerShell(value: string): string {
+		const escaped = value.replace(/'/g, "''");
+		return `'${escaped}'`;
+	}
+
 	/**
 	 * Invoke Codex in a new terminal on the right side (split view)
 	 */
 	async invokeCodexSplitView(
 		prompt: string,
 		title: string = "Kiro for Codex",
+		options?: CodexOptions,
 	): Promise<vscode.Terminal> {
 		return await this.retryService.executeWithRetry(
 			async () => {
-				// Check availability first
 				const availabilityResult =
 					await this.checkCodexInstallationAndCompatibility();
 				if (!availabilityResult.isAvailable) {
@@ -557,91 +574,58 @@ export class CodexProvider {
 				let promptFilePath: string | null = null;
 
 				try {
-					// Create temp file with the prompt (terminal path keeps file-based invocation)
 					promptFilePath = await this.createTempFile(prompt, "codex-prompt");
 
-					// Build command with OS-aware content loading
-					let command: string;
-					const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-					const commandBuilderOptions: CommandOptions = {
-						...this.codexConfig,
-						...(cwd ? { workingDirectory: cwd } : {}),
-					};
+					const workspaceDir =
+						vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+					const planOptions = workspaceDir
+						? {
+								...options,
+								workingDirectory: options?.workingDirectory ?? workspaceDir,
+							}
+						: options;
+					const execArgs = this.buildExecArgs(planOptions);
 
-					if (process.platform === "win32") {
-						const configuredShellPath = this.codexConfig.windowsShellPath;
-						const resolvedShellPath =
-							configuredShellPath ||
-							(typeof vscode.env.shell === "string"
-								? vscode.env.shell
-								: undefined);
-						const isPowerShell = this.isPowerShellExecutable(resolvedShellPath);
-
-						if (isPowerShell) {
-							// Windows: Read file content in Node and pass as a (potentially large) string argument.
-							// This is simpler but may hit command-line length limits.
-							const promptContent = await fs.promises.readFile(
+					const configuredShellPath = this.codexConfig.windowsShellPath;
+					const resolvedShellPath =
+						configuredShellPath ||
+						(typeof vscode.env.shell === "string"
+							? vscode.env.shell
+							: undefined);
+					const isWindows = process.platform === "win32";
+					const isPowerShell =
+						isWindows && this.isPowerShellExecutable(resolvedShellPath);
+					const approvalMode =
+						options?.approvalMode || this.codexConfig.defaultApprovalMode;
+					const command = isWindows
+						? this.buildWindowsTerminalCommand(
+								execArgs,
 								promptFilePath,
-								"utf8",
+								approvalMode,
+								!isPowerShell,
+							)
+						: this.buildPosixTerminalCommand(
+								execArgs,
+								promptFilePath,
+								approvalMode,
 							);
 
-							// For PowerShell, escape backticks and double-quotes within the string.
-							const escapedPrompt = promptContent
-								.replace(/`/g, "``")
-								.replace(/"/g, "``");
-
-							const modelPart = this.codexConfig.defaultModel
-								? `-m "${this.codexConfig.defaultModel}"`
-								: "";
-							const cdPart = cwd ? `-C "${cwd}"` : "";
-
-							const commandParts = [
-								this.codexConfig.codexPath,
-								modelPart,
-								cdPart,
-								"--",
-								`"${escapedPrompt}"`, // Pass the escaped content as a single quoted argument
-							];
-
-							// Encoding setup is still good practice for the terminal environment itself.
-							command = `$enc = [System.Text.Encoding]::UTF8; $OutputEncoding=$enc; [Console]::InputEncoding=$enc; [Console]::OutputEncoding=$enc; chcp 65001 > $null; ${commandParts.filter((p) => p).join(" ")}`;
-						} else {
-							command = this.commandBuilder.buildCommand(
-								promptFilePath,
-								commandBuilderOptions,
-							);
-						}
-					} else {
-						// POSIX: legacy $(cat) is more robust for large prompts.
-						command = this.commandBuilder.buildCommand(
-							promptFilePath,
-							commandBuilderOptions,
-						);
-					}
-
-					// Choose location: if no editor is open, use Active; otherwise open in split (Two)
 					const hasVisibleEditor =
 						vscode.window.visibleTextEditors &&
 						vscode.window.visibleTextEditors.length > 0;
-
 					const locationOption = hasVisibleEditor
 						? { viewColumn: vscode.ViewColumn.Two }
 						: { viewColumn: vscode.ViewColumn.Active };
 
 					const terminalOptions: TerminalOptions = {
 						name: title,
-						cwd,
+						cwd: planOptions?.workingDirectory,
 						location: locationOption,
 					};
 
-					if (
-						process.platform === "win32" &&
-						this.codexConfig.windowsShellPath
-					) {
-						terminalOptions.shellPath = this.codexConfig.windowsShellPath;
-						if (
-							this.isPowerShellExecutable(this.codexConfig.windowsShellPath)
-						) {
+					if (isWindows && configuredShellPath) {
+						terminalOptions.shellPath = configuredShellPath;
+						if (this.isPowerShellExecutable(configuredShellPath)) {
 							terminalOptions.shellArgs = ["-NoLogo", "-NoProfile"];
 						}
 					}
@@ -651,23 +635,21 @@ export class CodexProvider {
 						terminalOptions,
 					);
 
-					// Schedule cleanup of temp file
 					if (promptFilePath) {
 						this.scheduleCleanup(promptFilePath, 30000);
 					}
 
 					return terminal;
 				} catch (error) {
-					// Clean up immediately on error
 					if (promptFilePath) {
-						this.cleanupTempFile(promptFilePath);
+						await this.cleanupTempFile(promptFilePath);
 					}
 					throw error;
 				}
 			},
 			"Codex Split View",
 			{
-				maxAttempts: 2, // Fewer retries for terminal operations
+				maxAttempts: 2,
 				baseDelay: 500,
 				retryableErrors: [
 					ErrorType.FILE_ACCESS_ERROR,
@@ -679,6 +661,30 @@ export class CodexProvider {
 				},
 			},
 		);
+	}
+
+	async executePlan(plan: SplitViewInvocationPlan): Promise<vscode.Terminal>;
+	async executePlan(plan: HeadlessInvocationPlan): Promise<CodexResult>;
+	async executePlan(
+		plan: StreamInvocationPlan,
+	): Promise<{ cancel: () => void }>;
+	async executePlan(plan: CodexInvocationPlan): Promise<unknown> {
+		switch (plan.mode) {
+			case "splitView":
+				return await this.invokeCodexSplitView(
+					plan.prompt,
+					plan.title,
+					plan.options,
+				);
+			case "headless":
+				return await this.invokeCodexHeadless(plan.prompt, plan.options);
+			case "stream":
+				return await this.executeCodexStream(
+					plan.prompt,
+					plan.options,
+					plan.handlers,
+				);
+		}
 	}
 
 	/**
@@ -745,24 +751,7 @@ export class CodexProvider {
 		const workingDir =
 			options?.workingDirectory ||
 			vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-		const args = (this.commandBuilder as any).buildArgs({
-			...this.codexConfig,
-			...options,
-		}) as string[];
-
-		const filteredArgs: string[] = [];
-		for (let i = 0; i < args.length; i++) {
-			const arg = args[i];
-			if (arg === "-a") {
-				i++;
-				continue;
-			}
-			if (arg === "--full-auto") {
-				continue;
-			}
-			filteredArgs.push(arg);
-		}
-		const execArgs = ["exec", ...filteredArgs, "-"];
+		const execArgs = this.buildExecArgs(options);
 
 		const controller = this.processManager.executeCommandArgsStream(
 			this.codexConfig.codexPath,

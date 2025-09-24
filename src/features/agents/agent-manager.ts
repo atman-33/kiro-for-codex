@@ -450,10 +450,11 @@ export class AgentManager {
 			);
 
 			// Execute using Codex CLI
-			const terminal = await this.codexProvider.invokeCodexSplitView(
+			const terminal = await this.codexProvider.executePlan({
+				mode: "splitView",
 				prompt,
-				`Codex - Agent: ${agentInfo.name}`,
-			);
+				title: `Codex - Agent: ${agentInfo.name}`,
+			});
 
 			this.outputChannel.appendLine(
 				`[AgentManager] Successfully executed agent '${agentName}'`,
@@ -529,10 +530,14 @@ export class AgentManager {
 			);
 
 			// Execute using Codex CLI in headless mode
-			const result = await this.codexProvider.invokeCodexHeadless(prompt, {
-				approvalMode: options.approvalMode,
-				workingDirectory: options.workingDirectory,
-				timeout: options.timeout,
+			const result = await this.codexProvider.executePlan({
+				mode: "headless",
+				prompt,
+				options: {
+					approvalMode: options.approvalMode,
+					workingDirectory: options.workingDirectory,
+					timeout: options.timeout,
+				},
 			});
 
 			if (result.exitCode === 0) {

@@ -13,7 +13,9 @@ Follow this organization and naming to keep the codebase consistent.
   - `providers/` — VS Code TreeDataProviders & webview glue
     - `*/*-provider.ts` (e.g., `spec-explorer-provider.ts`, `steering-explorer-provider.ts`)
     - Webview providers: `codex-chat-view-provider.ts`, `create-new-spec-panel-provider.ts`
-  - `services/` — cross‑cutting services (`command-builder.ts`, `process-manager.ts`, `prompt-loader.ts`, etc.)
+- `services/` — cross‑cutting services (`command-builder.ts`, `process-manager.ts`, `prompt-loader.ts`, etc.)
+- `services/` — cross‑cutting services (`command-builder.ts`, `process-manager.ts`, `prompt-loader.ts`, etc.)
+  - `codex-provider.ts` owns platform-specific pipelines via `executePlan` / `invokeCodexSplitView`; feature managers must call `executePlan` instead of invoking Codex directly.
   - `utils/` — helpers (`config-manager.ts`, `notification-utils.ts`, `update-checker.ts`)
   - `prompts/` — authorable markdown sources; built artifacts under `prompts/target/`
   - `resources/` — agent/system prompt materials
@@ -27,6 +29,9 @@ Follow this organization and naming to keep the codebase consistent.
   - `steering/product.md|tech.md|structure.md`
   - `prompts/<name>.md`
   - `settings/kiroCodex-settings.json`
+- `tests/`
+  - `unit/providers/codex-provider.test.ts` exercises STDIN piping, Windows pipeline, and `executePlan` branching.
+  - `integration/codex-provider-terminal.test.ts` verifies POSIX/PowerShell command construction against the real `CommandBuilder`.
 
 ## Naming Patterns
 - Providers: `*-provider.ts` exporting a class named `PascalCase...Provider`.
