@@ -1,7 +1,6 @@
 // Auto-generated index file
 // Re-export all prompt modules
 
-export { default as createSpecWithAgents } from './spec/create-spec-with-agents';
 export { default as createSpec } from './spec/create-spec';
 export { default as implTask } from './spec/impl-task';
 export { default as createAgentsMd } from './steering/create-agents-md';

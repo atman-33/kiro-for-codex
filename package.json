@@ -68,26 +68,6 @@
           "default": true,
           "description": "Show Prompts view in the Kiro activity container"
         },
-        "kiroCodex.views.chat.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Chat view in the Kiro activity container"
-        },
-        "kiroCodex.views.agents.visible": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show Agents view in the Kiro activity container"
-        },
-        "kiroCodex.views.hooks.visible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show Agent Hooks view in the Kiro activity container (temporarily disabled)"
-        },
-        "kiroCodex.views.mcp.visible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show MCP Servers view in the Kiro activity container (temporarily disabled)"
-        },
         "kiroCodex.views.settings.visible": {
           "type": "boolean",
           "default": true,
@@ -159,31 +139,6 @@
           "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.prompts.visible"
         },
         {
-          "id": "kiroCodex.views.codexChat",
-          "name": "Chat",
-          "icon": "comment-discussion",
-          "type": "webview",
-          "when": "!(workbenchState == empty || workspaceFolderCount == 0) && config.kiroCodex.views.chat.visible"
-        },
-        {
-          "id": "kiroCodex.views.hooksStatus",
-          "name": "Hooks",
-          "icon": "plug",
-          "when": "false"
-        },
-        {
-          "id": "kiroCodex.views.agentsExplorer",
-          "name": "Agents",
-          "icon": "account",
-          "when": "false"
-        },
-        {
-          "id": "kiroCodex.views.mcpServerStatus",
-          "name": "MCP Servers",
-          "icon": "server",
-          "when": "false"
-        },
-        {
           "id": "kiroCodex.views.overview",
           "name": "Settings",
           "icon": "gear",
@@ -195,7 +150,7 @@
     "viewsWelcome": [
       {
         "view": "kiroCodex.views.specExplorer",
-        "contents": "Plan features with Specs\n\n[$(plus) Create New Spec](command:kiroCodex.spec.create)\n[$(sparkle) New Spec with Agents](command:kiroCodex.spec.createWithAgents)"
+        "contents": "Plan features with Specs\n\n[$(plus) Create New Spec](command:kiroCodex.spec.create)"
       },
       {
         "view": "kiroCodex.views.promptsExplorer",
@@ -210,16 +165,8 @@
         "contents": "Build complex features with structured planning\n\n[$(plus) Create New Spec](command:kiroCodex.spec.create)"
       },
       {
-        "view": "kiroCodex.views.hooksStatus",
-        "contents": "Hooks are temporarily disabled in this build"
-      },
-      {
         "view": "kiroCodex.views.steeringExplorer",
         "contents": "[$(globe) Create User Rule](command:kiroCodex.steering.createUserRule)\n\n[$(root-folder) Create Project Rule](command:kiroCodex.steering.createProjectRule)"
-      },
-      {
-        "view": "kiroCodex.views.mcpServerStatus",
-        "contents": "MCP is temporarily disabled in this build"
       }
     ],
     "commands": [
@@ -246,13 +193,6 @@
         "title": "Create New Spec",
         "category": "Kiro for Codex",
         "icon": "$(plus)"
-      },
-      {
-        "command": "kiroCodex.spec.createWithAgents",
-        "title": "New Spec with Agents",
-        "category": "Kiro for Codex",
-        "icon": "$(sparkle)",
-        "enablement": "workspaceFolderCount > 0"
       },
       {
         "command": "kiroCodex.steering.create",
@@ -297,20 +237,6 @@
         "icon": "$(root-folder)"
       },
       {
-        "command": "kiroCodex.hooks.refresh",
-        "title": "Refresh Hooks",
-        "category": "Kiro for Codex",
-        "icon": "$(refresh)",
-        "enablement": "false"
-      },
-      {
-        "command": "kiroCodex.mcp.refresh",
-        "title": "Refresh MCP Status",
-        "category": "Kiro for Codex",
-        "icon": "$(refresh)",
-        "enablement": "false"
-      },
-      {
         "command": "kiroCodex.settings.open",
         "title": "Kiro Settings",
         "category": "Kiro for Codex",
@@ -331,12 +257,6 @@
       {
         "command": "kiroCodex.steering.refresh",
         "title": "Refresh Steering",
-        "category": "Kiro for Codex",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "kiroCodex.agents.refresh",
-        "title": "Refresh Agents",
         "category": "Kiro for Codex",
         "icon": "$(refresh)"
       },
@@ -371,11 +291,6 @@
           "group": "navigation@1"
         },
         {
-          "command": "kiroCodex.spec.createWithAgents",
-          "when": "view == kiroCodex.views.specExplorer",
-          "group": "navigation@2"
-        },
-        {
           "command": "kiroCodex.spec.refresh",
           "when": "view == kiroCodex.views.specExplorer",
           "group": "navigation@3"
@@ -404,21 +319,6 @@
           "command": "kiroCodex.prompts.refresh",
           "when": "view == kiroCodex.views.promptsExplorer",
           "group": "navigation@2"
-        },
-        {
-          "command": "kiroCodex.mcp.refresh",
-          "when": "view == kiroCodex.views.mcpServerStatus",
-          "group": "navigation"
-        },
-        {
-          "command": "kiroCodex.hooks.refresh",
-          "when": "view == kiroCodex.views.hooksStatus",
-          "group": "navigation"
-        },
-        {
-          "command": "kiroCodex.agents.refresh",
-          "when": "view == kiroCodex.views.agentsExplorer",
-          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -457,22 +357,6 @@
         },
         {
           "command": "kiroCodex.checkForUpdates"
-        },
-        {
-          "command": "kiroCodex.spec.createWithAgents",
-          "when": "workspaceFolderCount > 0"
-        },
-        {
-          "command": "kiroCodex.hooks.refresh",
-          "when": "false"
-        },
-        {
-          "command": "kiroCodex.mcp.refresh",
-          "when": "false"
-        },
-        {
-          "command": "kiroCodex.agents.refresh",
-          "when": "workspaceFolderCount > 0"
         }
       ]
     }
