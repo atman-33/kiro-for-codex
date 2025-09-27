@@ -6,19 +6,15 @@ import {
 	ENABLE_AGENTS_UI,
 	ENABLE_HOOKS_UI,
 	ENABLE_MCP_UI,
-	ENABLE_SPEC_AGENTS,
 	VSC_CONFIG_NAMESPACE,
 } from "./constants";
 import { AgentManager } from "./features/agents/agent-manager";
 import { ChatManager } from "./features/codex-chat/chat-manager";
 import { SpecManager } from "./features/spec/spec-manager";
 import { SteeringManager } from "./features/steering/steering-manager";
-import { AgentsExplorerProvider } from "./providers/agents-explorer-provider";
 import { CodexChatViewProvider } from "./providers/codex-chat-view-provider";
 import { CodexProvider } from "./providers/codex-provider";
 import { CreateNewSpecPanelProvider } from "./providers/create-new-spec-panel-provider";
-import { HooksExplorerProvider } from "./providers/hooks-explorer-provider";
-import { MCPExplorerProvider } from "./providers/mcp-explorer-provider";
 import { OverviewProvider } from "./providers/overview-provider";
 import { PromptsExplorerProvider } from "./providers/prompts-explorer-provider";
 import { SpecExplorerProvider } from "./providers/spec-explorer-provider";
@@ -84,17 +80,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const overviewProvider = new OverviewProvider(context);
 	const specExplorer = new SpecExplorerProvider(context, outputChannel);
 	const steeringExplorer = new SteeringExplorerProvider(context);
-	// Guard Hooks UI to avoid invoking not-yet-implemented CLI hooks
-	const hooksExplorer: HooksExplorerProvider | undefined = ENABLE_HOOKS_UI
-		? new HooksExplorerProvider(context)
-		: undefined;
-	// Guard MCP UI to avoid invoking non-existent CLI commands
-	const mcpExplorer: MCPExplorerProvider | undefined = ENABLE_MCP_UI
-		? new MCPExplorerProvider(context, outputChannel)
-		: undefined;
-	const agentsExplorer = ENABLE_AGENTS_UI
-		? new AgentsExplorerProvider(context, agentManager, outputChannel)
-		: undefined;
 	const promptsExplorer = new PromptsExplorerProvider(context, codexProvider);
 
 	// Set managers
@@ -115,37 +100,12 @@ export async function activate(context: vscode.ExtensionContext) {
 			steeringExplorer,
 		),
 	);
-	if (ENABLE_AGENTS_UI && agentsExplorer) {
-		context.subscriptions.push(
-			vscode.window.registerTreeDataProvider(
-				"kiroCodex.views.agentsExplorer",
-				agentsExplorer,
-			),
-		);
-	}
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
 			"kiroCodex.views.promptsExplorer",
 			promptsExplorer,
 		),
 	);
-	if (ENABLE_HOOKS_UI && hooksExplorer) {
-		context.subscriptions.push(
-			vscode.window.registerTreeDataProvider(
-				"kiroCodex.views.hooksStatus",
-				hooksExplorer,
-			),
-		);
-	}
-
-	if (ENABLE_MCP_UI && mcpExplorer) {
-		context.subscriptions.push(
-			vscode.window.registerTreeDataProvider(
-				"kiroCodex.views.mcpServerStatus",
-				mcpExplorer,
-			),
-		);
-	}
 
 	// Initialize update checker
 	const updateChecker = new UpdateChecker(context, outputChannel);
@@ -169,9 +129,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		specExplorer,
 		steeringExplorer,
-		hooksExplorer,
-		mcpExplorer,
-		agentsExplorer,
 		promptsExplorer,
 		updateChecker,
 	);
@@ -180,15 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	await initializeDefaultSettings();
 
 	// Set up file watchers
-	setupFileWatchers(
-		context,
-		specExplorer,
-		steeringExplorer,
-		hooksExplorer,
-		mcpExplorer,
-		agentsExplorer,
-		promptsExplorer,
-	);
+	setupFileWatchers(context, specExplorer, steeringExplorer, promptsExplorer);
 
 	// Check for updates on startup
 	updateChecker.checkForUpdates();
@@ -338,9 +287,6 @@ function registerCommands(
 	context: vscode.ExtensionContext,
 	specExplorer: SpecExplorerProvider,
 	steeringExplorer: SteeringExplorerProvider,
-	hooksExplorer: HooksExplorerProvider | undefined,
-	mcpExplorer: MCPExplorerProvider | undefined,
-	agentsExplorer: AgentsExplorerProvider | undefined,
 	promptsExplorer: PromptsExplorerProvider,
 	updateChecker: UpdateChecker,
 ) {
@@ -370,28 +316,7 @@ function registerCommands(
 		},
 	);
 
-	// Guard: "New Spec with Agents" is disabled for Codex build
-	const createSpecWithAgentsCommand = vscode.commands.registerCommand(
-		"kiroCodex.spec.createWithAgents",
-		async () => {
-			if (!ENABLE_SPEC_AGENTS) {
-				vscode.window.showInformationMessage(
-					"New Spec with Agents is disabled in this build.",
-				);
-				return;
-			}
-			try {
-				createNewSpecPanelProvider.show("agents");
-			} catch (error) {
-				outputChannel.appendLine(`Error in createWithAgents: ${error}`);
-				vscode.window.showErrorMessage(
-					`Failed to create spec with agents: ${error}`,
-				);
-			}
-		},
-	);
-
-	context.subscriptions.push(createSpecCommand, createSpecWithAgentsCommand);
+	context.subscriptions.push(createSpecCommand);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -512,21 +437,6 @@ function registerCommands(
 			);
 			steeringExplorer.refresh();
 		}),
-
-		// Agents commands
-		...(ENABLE_AGENTS_UI && agentsExplorer
-			? [
-					vscode.commands.registerCommand(
-						"kiroCodex.agents.refresh",
-						async () => {
-							outputChannel.appendLine(
-								"[Manual Refresh] Refreshing agents explorer...",
-							);
-							agentsExplorer.refresh();
-						},
-					),
-				]
-			: []),
 	);
 
 	// Add file save confirmation for agent files
@@ -565,30 +475,6 @@ function registerCommands(
 
 	// Codex integration commands
 	// Codex CLI integration commands
-
-	// Hooks commands
-	if (ENABLE_HOOKS_UI && hooksExplorer) {
-		context.subscriptions.push(
-			vscode.commands.registerCommand("kiroCodex.hooks.refresh", () => {
-				hooksExplorer.refresh();
-			}),
-			vscode.commands.registerCommand(
-				"kiroCodex.hooks.copyCommand",
-				async (command: string) => {
-					await vscode.env.clipboard.writeText(command);
-				},
-			),
-		);
-	}
-
-	// MCP commands (only when enabled)
-	if (ENABLE_MCP_UI && mcpExplorer) {
-		context.subscriptions.push(
-			vscode.commands.registerCommand("kiroCodex.mcp.refresh", () => {
-				mcpExplorer.refresh();
-			}),
-		);
-	}
 
 	// Prompts commands
 	context.subscriptions.push(
@@ -775,9 +661,6 @@ function setupFileWatchers(
 	context: vscode.ExtensionContext,
 	specExplorer: SpecExplorerProvider,
 	steeringExplorer: SteeringExplorerProvider,
-	hooksExplorer: HooksExplorerProvider | undefined,
-	mcpExplorer: MCPExplorerProvider | undefined,
-	agentsExplorer: AgentsExplorerProvider | undefined,
 	promptsExplorer: PromptsExplorerProvider,
 ) {
 	// Watch for changes in .codex directories with debouncing
@@ -794,9 +677,6 @@ function setupFileWatchers(
 		refreshTimeout = setTimeout(() => {
 			specExplorer.refresh();
 			steeringExplorer.refresh();
-			hooksExplorer?.refresh();
-			mcpExplorer?.refresh();
-			agentsExplorer?.refresh();
 			promptsExplorer.refresh();
 		}, 1000); // Increase debounce time to 1 second
 	};
@@ -816,11 +696,6 @@ function setupFileWatchers(
 		);
 		const codexSettingsWatcher =
 			vscode.workspace.createFileSystemWatcher(settingsPattern);
-
-		codexSettingsWatcher.onDidChange(() => {
-			hooksExplorer?.refresh();
-			mcpExplorer?.refresh();
-		});
 
 		context.subscriptions.push(codexSettingsWatcher);
 	}
@@ -847,4 +722,3 @@ export function deactivate() {
 		codexProvider.cancelAllRetries();
 	}
 }
-//

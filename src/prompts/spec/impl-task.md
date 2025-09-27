@@ -21,11 +21,10 @@ Task Description: {{taskDescription}}
 
 Please help me:
 
-1. First read the workflow instructions stored at `.codex/system-prompts/spec-workflow-starter.md` to understand the complete context
-2. Review the requirements and design documents in the spec folder
-3. Implement this task based on existing codebase patterns and conventions
-4. Ensure code quality, including error handling, performance, and security
-5. Add comprehensive unit tests for the implemented code
+1. Review the requirements and design documents in the spec folder
+2. Implement this task based on existing codebase patterns and conventions
+3. Ensure code quality, including error handling, performance, and security
+4. Add comprehensive unit tests for the implemented code
 
 Let's start implementing this task!
 </user_input>

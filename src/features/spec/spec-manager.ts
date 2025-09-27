@@ -48,68 +48,6 @@ export class SpecManager {
 		await this.createFromDescription(description);
 	}
 
-	async createWithAgents() {
-		const description = await vscode.window.showInputBox({
-			title: "✨ Create New Spec with Agents ✨",
-			prompt:
-				"This will use specialized subagents for creating requirements, design, and tasks",
-			placeHolder:
-				"Enter your idea to generate requirement, design, and task specs...",
-			ignoreFocusOut: false,
-		});
-
-		if (!description) {
-			return;
-		}
-
-		await this.createWithAgentsFromDescription(description);
-	}
-
-	async createWithAgentsFromDescription(description: string) {
-		const trimmed = description.trim();
-		if (!trimmed) {
-			return;
-		}
-
-		// Check Codex CLI availability first
-		const isCodexReady = await this.codexProvider.isCodexReady();
-		if (!isCodexReady) {
-			const availabilityResult =
-				await this.codexProvider.getCodexAvailabilityStatus();
-			await this.codexProvider.showSetupGuidance(availabilityResult);
-			return;
-		}
-
-		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-		if (!workspaceFolder) {
-			vscode.window.showErrorMessage("No workspace folder open");
-			return;
-		}
-
-		// Show notification immediately after user input
-		NotificationUtils.showAutoDismissNotification(
-			"Codex is creating your spec with specialized agents. Check the terminal for progress.",
-		);
-
-		// Use the specialized subagent prompt optimized for Codex
-		const prompt = this.promptLoader.renderPrompt("create-spec-with-agents", {
-			description: trimmed,
-			workspacePath: workspaceFolder.uri.fsPath,
-			specBasePath: this.getSpecBasePath(),
-			approvalMode: this.codexProvider.getCodexConfig().defaultApprovalMode,
-		});
-
-		// Send to Codex and get the terminal
-		const terminal = await this.codexProvider.executePlan({
-			mode: "splitView",
-			prompt,
-			title: "Codex -Creating Spec (Agents)",
-		});
-
-		// Set up automatic terminal renaming when spec folder is created
-		this.setupSpecFolderWatcher(workspaceFolder, terminal);
-	}
-
 	/**
 	 * New entry used by the Create New Spec webview UI.
 	 */

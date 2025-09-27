@@ -49,7 +49,7 @@ export class CreateNewSpecPanelProvider {
 					const text = String(msg.text ?? "");
 					const id = msg.id ?? "submit";
 					if (this.currentMode === "agents") {
-						await this.specManager.createWithAgentsFromDescription(text);
+						throw new Error("Not implemented");
 					} else {
 						await this.specManager.createFromDescription(text);
 					}

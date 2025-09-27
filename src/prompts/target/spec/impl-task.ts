@@ -20,7 +20,7 @@ export const frontmatter = {
   }
 };
 
-export const content = "<user_input>\nI just completed a spec workflow and now need to implement one of the specific tasks.\n\nTask File Path: {{taskFilePath}}\nTask Description: {{taskDescription}}\n\nPlease help me:\n\n1. First read the workflow instructions stored at `.codex/system-prompts/spec-workflow-starter.md` to understand the complete context\n2. Review the requirements and design documents in the spec folder\n3. Implement this task based on existing codebase patterns and conventions\n4. Ensure code quality, including error handling, performance, and security\n5. Add comprehensive unit tests for the implemented code\n\nLet's start implementing this task!\n</user_input>\n";
+export const content = "<user_input>\nI just completed a spec workflow and now need to implement one of the specific tasks.\n\nTask File Path: {{taskFilePath}}\nTask Description: {{taskDescription}}\n\nPlease help me:\n\n1. Review the requirements and design documents in the spec folder\n2. Implement this task based on existing codebase patterns and conventions\n3. Ensure code quality, including error handling, performance, and security\n4. Add comprehensive unit tests for the implemented code\n\nLet's start implementing this task!\n</user_input>\n";
 
 export default {
   frontmatter,
