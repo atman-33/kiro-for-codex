@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## v0.7.1 2025-09-27
+
+### Added
+
+- remove disabled UI components
+
+### Changed
+
+- Merge pull request #51 from atman-33/atman-33-patch-1
+- Update README.md
+- feature/arrange-necessary-features
+- update prompt snapshot to reflect internal task tracking
+- update README with announcement about kiro-for-codex-ide project
+- Merge pull request #49 from atman-33/version-bump/v0.7.0
+
 ## v0.7.0 2025-09-24
 
 ### Added
