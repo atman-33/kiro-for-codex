@@ -7,8 +7,10 @@
 
 A VS Code extension that brings spec-driven development to Codex CLI. Manage your specs, steering documents, and custom prompts visually while leveraging Codex CLI's powerful AI capabilities.
 
-💡New in this release:
-- Windows shell override: set `kiroCodex.codex.windowsShellPath` to run Codex CLI through a custom Windows shell when needed
+💡 **Announcement**
+In the original **kiro-for-codex**, interacting with Codex required sending prompts through the terminal, which unfortunately reduced usability. To address this, I’ve been developing [**kiro-for-codex-ide**](https://github.com/atman-33/kiro-for-codex-ide), which passes the necessary prompts (such as those for spec creation) directly into the context of [Codex - OpenAI’s coding agent](https://marketplace.visualstudio.com/items?itemName=openai.chatgpt).
+
+This approach makes working with Codex much smoother, so moving forward I plan to focus development on **kiro-for-codex-ide** as the main project.
 
 ## Features
 
